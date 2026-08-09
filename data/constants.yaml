@@ -1,0 +1,389 @@
+# ЕДИНСТВЕННЫЙ ИСТОЧНИК всех числовых значений игры (D-065).
+#
+# Правится ТОЛЬКО здесь. Из этого файла генерируются:
+#   30-economy/07-constants.md — страница для чтения
+#   build/constants.json       — плоская карта, которую читает движок
+# Команда: python tools/build.py
+#
+# Требование дизайна: ни одна из этих величин не зашита в код
+# (90-production/01-tech-notes.md, D-065). Изменение константы применяется
+# к миру немедленно или со следующего тика, без выката новой версии.
+#
+# Формат записи:
+#   key      — идентификатор, по которому значение достаёт движок
+#   value    — число, строка, или диапазон {min, max}
+#   unit     — единица измерения (необязательно)
+#   note     — смысл величины для человека (необязательно)
+#   decision — D-XXX, если значение зафиксировано решением, а не подобрано
+#   formula  — вместо value, если это не число, а правило пересчёта
+
+meta:
+  decision: D-065
+  doc: 30-economy/07-constants.md
+  telemetry: 60-meta/04-metrics.md
+
+groups:
+  - id: anchors
+    title: Якоря
+    constants:
+      - key: energy.body_print
+        value: 1000
+        unit: энергии
+        note: Энергии на печать одного тела
+        decision: D-033
+      - key: mining.iron_per_hour
+        value: 60
+        unit: ед./час
+        note: Единиц железной руды за час активной добычи средним инструментом
+
+  - id: energy
+    title: Энергия
+    constants:
+      - key: energy.per_coal
+        value: 50
+        unit: энергии/ед.
+        note: Выход энергии с единицы угля
+      - key: energy.waterwheel_rate
+        value: 30
+        unit: в час
+        note: Топлива не требует
+      - key: energy.windmill_rate
+        value: {min: 0, max: 40}
+        unit: в час
+        note: Зависит от погоды
+      - key: energy.coal_plant_rate
+        value: 200
+        unit: в час
+        note: При расходе 4 угля в час
+      - key: energy.coal_plant_fuel_draw
+        value: 4
+        unit: угля/час
+      - key: energy.battery_capacity
+        value: 500
+        unit: энергии
+      - key: energy.battery_mass
+        value: 15
+        unit: кг
+      - key: energy.battery_selfdischarge
+        value: 2
+        unit: "% в сутки"
+      - key: energy.auto_bench_draw
+        value: 40
+        unit: в час
+        note: Расход автоматического станка
+      - key: energy.deep_mine_draw
+        value: 20
+        unit: в час
+        note: Освещение, откачка, вентиляция
+      - key: energy.biopr_idle_draw
+        value: 5
+        unit: в час
+        note: Поддержание готовности биопринтера
+
+  - id: quality
+    title: Качество
+    constants:
+      - key: quality.scale
+        value: {min: 0, max: 100}
+      - key: quality.tiers
+        value:
+          - {from: 0, to: 19, name: скверное}
+          - {from: 20, to: 39, name: плохое}
+          - {from: 40, to: 59, name: обычное}
+          - {from: 60, to: 79, name: хорошее}
+          - {from: 80, to: 100, name: отличное}
+      - key: quality.durability_factor
+        formula: "base_life * (0.5 + quality / 80)"
+        note: Качество 80 служит вдвое дольше качества 40
+      - key: quality.spread_good_ratio
+        value: 5
+        unit: "±"
+        note: Разброс результата при верных пропорциях
+      - key: quality.spread_bad_ratio
+        value: 20
+        unit: "±"
+        note: Разброс результата при неверных пропорциях
+      - key: quality.repair_ceiling_loss
+        value: -8
+        note: К потолку состояния за каждый ремонт
+      - key: quality.hand_craft_bonus
+        value: 10
+        unit: "до +"
+        note: Премия за точное попадание в пропорции — адаптивность ручного ремесла
+
+  - id: death
+    title: Смерть и печать
+    constants:
+      - key: death.iron_cost
+        value: 10
+        unit: ед. железа
+        decision: D-033
+      - key: death.print_time_city
+        value: 3
+        unit: минуты
+      - key: death.print_time_capital
+        value: 12
+        unit: часов
+        decision: D-028
+      - key: death.first_body_instant
+        value: true
+        note: Первое тело печатается мгновенно
+        decision: D-040
+      - key: death.salvage_ratio
+        value: 30
+        unit: "%"
+        note: Носимого уцелевает на месте гибели, с потерей состояния
+      - key: death.nymph_grow_multiplier
+        value: 2
+        unit: "×"
+        note: Тела нимф растут дольше
+
+  - id: bank
+    title: Деньги и банк
+    constants:
+      - key: bank.base_rate
+        value: 5
+        unit: "% годовых"
+        note: В пересчёте на игровые сутки
+      - key: bank.target_inflation
+        value: 2
+        unit: "% за 30 суток"
+      - key: bank.rate_reaction_k
+        value: 1.5
+        note: Коэффициент реакции ставки на отклонение инфляции
+      - key: bank.rate_review_period
+        value: 3
+        unit: суток
+      - key: bank.risk_premium
+        value: {min: 2, max: 8}
+        unit: "%"
+        note: В зависимости от истории заёмщика
+      - key: bank.collateral_ratio
+        value: 70
+        unit: "%"
+        note: Заём не более этой доли оценки залога
+      - key: bank.unsecured_limit
+        value: 200
+        unit: ₮
+        note: Без залога при чистой истории
+      - key: coin.gold_per_coin
+        value: 1
+        unit: г
+      - key: coin.silver_per_coin
+        value: 5
+        unit: г
+      - key: coin.default_fineness
+        value: 900
+        note: Проба может занижаться эмитентом
+
+  - id: debt
+    title: Долг и несостоятельность
+    constants:
+      - key: debt.grace_period
+        value: 7
+        unit: суток
+        note: Просрочки до санкций
+      - key: debt.prison_threshold
+        value: 14
+        unit: суток
+        note: Долг превышает оценку всего имущества и не обслуживается столько суток
+      - key: debt.workoff_rate
+        value: 30
+        unit: "% дохода"
+        note: Уходит в погашение автоматически
+      - key: debt.max_body_debt
+        value: 5
+        unit: печатей
+        note: Непогашенных — дальше только бесплатная печать в столице
+
+  - id: breed
+    title: Селекция
+    constants:
+      - key: breed.inherit_drift
+        formula: "mean(parents) ± 0.15 * spread(parents)"
+        note: Признак потомка
+      - key: breed.novel_trait_chance
+        value: 5
+        unit: "%"
+        note: На появление признака, которого не было у родителей
+      - key: breed.generations_to_stabilize
+        value: {min: 4, max: 6}
+        unit: поколений
+        note: Отбора
+      - key: breed.distinctness_threshold
+        value: 15
+        unit: "%"
+        note: Новый сорт жизнеспособен, если отличается от ближайшего не меньше чем на столько по совокупности признаков
+      - key: breed.degradation_per_gen
+        value: -3
+        unit: "%"
+        note: К показателям за поколение пересева без отбора
+      - key: breed.hybrid_decay
+        value: -25
+        unit: "%"
+        note: К показателям у потомства гибрида
+
+  - id: invent
+    title: Изобретение
+    constants:
+      - key: invent.exact_match_required
+        value: true
+        note: Засчитывается только точное совпадение состава
+        decision: D-064
+      - key: invent.max_ingredients
+        value: 5
+        note: Потолок числа компонентов в изобретаемом рецепте
+      - key: invent.material_loss
+        value: 100
+        unit: "%"
+        note: При неудаче
+      - key: invent.attempt_time
+        formula: "craft_time(item_of_same_level)"
+
+  - id: trial
+    title: Ограничения бесплатного аккаунта
+    constants:
+      - key: trial.duration
+        value: 90
+        unit: суток
+        decision: D-038
+      - key: trial.transfer_limit_base
+        value: 500
+        unit: ₮ в сутки
+        note: Эквивалента
+      - key: trial.transfer_limit_growth
+        value: 10
+        unit: "%"
+        note: За каждые сутки активной игры
+      - key: trial.transfer_limit_cap
+        value: 20
+        unit: "×"
+        note: К базовому лимиту
+      - key: trial.market_unlimited
+        value: true
+        note: Продажа на маркетплейсе не ограничивается
+        decision: D-041
+
+  - id: chat
+    title: Общение
+    constants:
+      - key: chat.leak_base
+        value: 8
+        unit: "%"
+        note: Вероятность, что реплика долетит до соседней группы
+      - key: chat.leak_per_person
+        value: 1
+        unit: "%"
+        note: За каждого человека в локации сверх четырёх
+      - key: chat.leak_group_size
+        value: 2
+        unit: "%"
+        note: За каждого участника группы сверх трёх
+      - key: chat.leak_quiet_multiplier
+        value: 0.3
+        unit: "×"
+        note: При речи вполголоса
+      - key: chat.leak_location_modifier
+        value:
+          кузница: 0.5
+          библиотека: 1.5
+        note: Шумно / тихо
+      - key: chat.city_record_retention
+        value: 30
+        unit: суток
+        note: Срок хранения городских записей. Сам факт ограничения — часть решения, а не настройка
+        decision: D-081
+
+  - id: market
+    title: Маркетплейс
+    constants:
+      - key: market.order_lifetime
+        value: 14
+        unit: суток
+        note: До истечения ордера
+      - key: market.reservation_deposit
+        value: 20
+        unit: "%"
+        note: Суммы задатком
+      - key: market.reservation_period
+        value: 3
+        unit: суток
+        note: На то, чтобы забрать
+      - key: market.default_fee
+        value: 2
+        unit: "%"
+        note: С оборота вне городской юрисдикции
+
+  - id: time
+    title: Время и логистика
+    constants:
+      - key: time.tick
+        value: 1
+        unit: минута
+      - key: time.day_terra
+        value: 38
+        unit: ч
+      - key: time.day_aquatica
+        value: 14
+        unit: ч
+      - key: time.day_pyroxis
+        value: 46
+        unit: ч
+      - key: time.day_aurora
+        value: 33
+        unit: ч
+      - key: travel.intra_city
+        value: {min: 20, max: 60}
+        unit: секунд
+        note: Между локациями города
+      - key: travel.inter_node
+        value: {min: 20, max: 120}
+        unit: минут
+      - key: travel.interplanetary
+        value: {min: 2, max: 8}
+        unit: суток
+        note: По таблице маршрутов
+        decision: D-009
+      - key: comm.delay_interplanetary
+        value: {min: 1, max: 5}
+        unit: секунд
+        decision: D-010
+
+  - id: upkeep
+    title: Содержание и стоки
+    constants:
+      - key: upkeep.territory_exponent
+        value: 1.4
+        note: Показатель нелинейного роста содержания от числа узлов города
+      - key: upkeep.decay_rate
+        value: 2
+        unit: "% в сутки"
+        note: Состояния постройки без оплаты содержания
+      - key: spoilage.food_base
+        value: 5
+        unit: "% в сутки"
+      - key: spoilage.cold_storage_multiplier
+        value: 0.2
+        unit: "×"
+      - key: spoilage.salted_multiplier
+        value: 0.05
+        unit: "×"
+      - key: wear.tool_per_session
+        value: 3
+        unit: "% состояния"
+        note: За сессию добычи
+
+  - id: aurora
+    title: Аврора
+    constants:
+      - key: aurora.depth_scaling
+        formula: "recipe_complexity ~ depth"
+        note: Сложность и ценность рецепта растут с глубиной комплекса
+        decision: D-061
+      - key: aurora.artifact_rarity
+        value: редко
+        note: Артефакты-предметы остаются ограниченным исключением из П1
+      - key: aurora.oxygen_draw
+        value: 10
+        unit: ед./час
+        note: Кислорода в час пребывания

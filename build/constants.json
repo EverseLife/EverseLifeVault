@@ -1,0 +1,146 @@
+{
+  "energy.body_print": 1000,
+  "mining.iron_per_hour": 60,
+  "energy.per_coal": 50,
+  "energy.waterwheel_rate": 30,
+  "energy.windmill_rate": {
+    "min": 0,
+    "max": 40
+  },
+  "energy.coal_plant_rate": 200,
+  "energy.coal_plant_fuel_draw": 4,
+  "energy.battery_capacity": 500,
+  "energy.battery_mass": 15,
+  "energy.battery_selfdischarge": 2,
+  "energy.auto_bench_draw": 40,
+  "energy.deep_mine_draw": 20,
+  "energy.biopr_idle_draw": 5,
+  "quality.scale": {
+    "min": 0,
+    "max": 100
+  },
+  "quality.tiers": [
+    {
+      "from": 0,
+      "to": 19,
+      "name": "скверное"
+    },
+    {
+      "from": 20,
+      "to": 39,
+      "name": "плохое"
+    },
+    {
+      "from": 40,
+      "to": 59,
+      "name": "обычное"
+    },
+    {
+      "from": 60,
+      "to": 79,
+      "name": "хорошее"
+    },
+    {
+      "from": 80,
+      "to": 100,
+      "name": "отличное"
+    }
+  ],
+  "quality.durability_factor": {
+    "formula": "base_life * (0.5 + quality / 80)"
+  },
+  "quality.spread_good_ratio": 5,
+  "quality.spread_bad_ratio": 20,
+  "quality.repair_ceiling_loss": -8,
+  "quality.hand_craft_bonus": 10,
+  "death.iron_cost": 10,
+  "death.print_time_city": 3,
+  "death.print_time_capital": 12,
+  "death.first_body_instant": true,
+  "death.salvage_ratio": 30,
+  "death.nymph_grow_multiplier": 2,
+  "bank.base_rate": 5,
+  "bank.target_inflation": 2,
+  "bank.rate_reaction_k": 1.5,
+  "bank.rate_review_period": 3,
+  "bank.risk_premium": {
+    "min": 2,
+    "max": 8
+  },
+  "bank.collateral_ratio": 70,
+  "bank.unsecured_limit": 200,
+  "coin.gold_per_coin": 1,
+  "coin.silver_per_coin": 5,
+  "coin.default_fineness": 900,
+  "debt.grace_period": 7,
+  "debt.prison_threshold": 14,
+  "debt.workoff_rate": 30,
+  "debt.max_body_debt": 5,
+  "breed.inherit_drift": {
+    "formula": "mean(parents) ± 0.15 * spread(parents)"
+  },
+  "breed.novel_trait_chance": 5,
+  "breed.generations_to_stabilize": {
+    "min": 4,
+    "max": 6
+  },
+  "breed.distinctness_threshold": 15,
+  "breed.degradation_per_gen": -3,
+  "breed.hybrid_decay": -25,
+  "invent.exact_match_required": true,
+  "invent.max_ingredients": 5,
+  "invent.material_loss": 100,
+  "invent.attempt_time": {
+    "formula": "craft_time(item_of_same_level)"
+  },
+  "trial.duration": 90,
+  "trial.transfer_limit_base": 500,
+  "trial.transfer_limit_growth": 10,
+  "trial.transfer_limit_cap": 20,
+  "trial.market_unlimited": true,
+  "chat.leak_base": 8,
+  "chat.leak_per_person": 1,
+  "chat.leak_group_size": 2,
+  "chat.leak_quiet_multiplier": 0.3,
+  "chat.leak_location_modifier": {
+    "кузница": 0.5,
+    "библиотека": 1.5
+  },
+  "chat.city_record_retention": 30,
+  "market.order_lifetime": 14,
+  "market.reservation_deposit": 20,
+  "market.reservation_period": 3,
+  "market.default_fee": 2,
+  "time.tick": 1,
+  "time.day_terra": 38,
+  "time.day_aquatica": 14,
+  "time.day_pyroxis": 46,
+  "time.day_aurora": 33,
+  "travel.intra_city": {
+    "min": 20,
+    "max": 60
+  },
+  "travel.inter_node": {
+    "min": 20,
+    "max": 120
+  },
+  "travel.interplanetary": {
+    "min": 2,
+    "max": 8
+  },
+  "comm.delay_interplanetary": {
+    "min": 1,
+    "max": 5
+  },
+  "upkeep.territory_exponent": 1.4,
+  "upkeep.decay_rate": 2,
+  "spoilage.food_base": 5,
+  "spoilage.cold_storage_multiplier": 0.2,
+  "spoilage.salted_multiplier": 0.05,
+  "wear.tool_per_session": 3,
+  "aurora.depth_scaling": {
+    "formula": "recipe_complexity ~ depth"
+  },
+  "aurora.artifact_rarity": "редко",
+  "aurora.oxygen_draw": 10
+}

@@ -1,0 +1,1375 @@
+{
+  "operations": [
+    {
+      "name": "Рубка дерева",
+      "requires": [
+        "Топор"
+      ],
+      "gives": [
+        "Дерево"
+      ]
+    },
+    {
+      "name": "Распил",
+      "requires": [
+        "Пила"
+      ],
+      "gives": [
+        "Доски"
+      ]
+    },
+    {
+      "name": "Добыча",
+      "requires": [
+        "Кирка",
+        "Жила"
+      ],
+      "gives": [
+        "Руда",
+        "Камень",
+        "Уголь"
+      ]
+    },
+    {
+      "name": "Дробление",
+      "requires": [
+        "Молот"
+      ],
+      "gives": [
+        "Щебень",
+        "Крошка"
+      ]
+    },
+    {
+      "name": "Плавка",
+      "requires": [
+        "Печь",
+        "Уголь"
+      ],
+      "gives": [
+        "Слиток железа",
+        "Медный слиток",
+        "Олово",
+        "Свинец"
+      ]
+    },
+    {
+      "name": "Обжиг",
+      "requires": [
+        "Печь"
+      ],
+      "gives": [
+        "Керамика"
+      ]
+    }
+  ],
+  "raw": [
+    "Волокно",
+    "Дерево",
+    "Камень",
+    "Глина",
+    "Вода",
+    "Смола",
+    "Солома",
+    "Зерно",
+    "Овощи",
+    "Мясо",
+    "Масло",
+    "Известняк",
+    "Кварцевый песок",
+    "Песок",
+    "Органические отходы",
+    "Соль",
+    "Сера",
+    "Селитра",
+    "Руда",
+    "Уголь",
+    "Вольфрам",
+    "Никель",
+    "Золотоносная порода",
+    "Серебряная порода",
+    "Энергия",
+    "Жила"
+  ],
+  "recipes": [
+    {
+      "name": "Верёвка",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Волокно"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Факел",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Дерево",
+        "Волокно",
+        "Смола"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Каменный топор",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Камень",
+        "Дерево",
+        "Верёвка"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Каменная кирка",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Камень",
+        "Дерево",
+        "Верёвка"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Плавильная печь",
+      "level": 1,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Камень",
+        "Глина"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Корзина",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Волокно"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Глиняный горшок",
+      "level": 1,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Глина"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Верстак",
+      "level": 2,
+      "section": null,
+      "kind": "station",
+      "inputs": [
+        "Доски",
+        "Верёвка"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Брус",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Дерево"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Рукоять",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Дерево"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Ткань",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Волокно"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Мешок",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Ткань",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Ведро",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Доски",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Бочка",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Доски",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Шахтная крепь",
+      "level": 2,
+      "section": null,
+      "kind": "key",
+      "inputs": [
+        "Брус",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Тачка",
+      "level": 2,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Доски",
+        "Брус",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Кузница",
+      "level": 3,
+      "section": null,
+      "kind": "station",
+      "inputs": [
+        "Камень",
+        "Глина",
+        "Брус"
+      ],
+      "station": "Руками"
+    },
+    {
+      "name": "Меха",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Ткань",
+        "Брус",
+        "Скобы"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Сталь",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Слиток железа",
+        "Уголь",
+        "Известняк"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Гвозди",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Слиток железа"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Скобы",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Слиток железа"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Железная кирка",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Слиток железа",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Стальная кирка",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Топор",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Пила",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Молот",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Лопата",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Клещи",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Труба",
+      "level": 3,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Плуг",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Брус"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Серп",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Рукоять"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Селекционный питомник",
+      "level": 4,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Доски",
+        "Стекло",
+        "Ткань"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Теплица",
+      "level": 4,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Стекло",
+        "Сталь",
+        "Труба",
+        "Провод"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Компост",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Органические отходы",
+        "Вода"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Минеральное удобрение",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Селитра",
+        "Известь"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Мельница",
+      "level": 4,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Камень",
+        "Брус",
+        "Скобы"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Мука",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Зерно"
+      ],
+      "station": "Мельница"
+    },
+    {
+      "name": "Хлеб",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Мука",
+        "Вода"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Солонина",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Мясо",
+        "Соль"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Сушёные овощи",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Овощи"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Корм",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Зерно",
+        "Солома"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Одежда",
+      "level": 4,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Ткань",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Водяное колесо",
+      "level": 5,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Доски",
+        "Скобы"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Ветряк",
+      "level": 5,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Ткань",
+        "Скобы"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Угольная станция",
+      "level": 5,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Сталь",
+        "Труба"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Волочильный станок",
+      "level": 5,
+      "section": null,
+      "kind": "station",
+      "inputs": [
+        "Сталь",
+        "Брус"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Провод",
+      "level": 5,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Медный слиток"
+      ],
+      "station": "Волочильный станок"
+    },
+    {
+      "name": "Стекло",
+      "level": 5,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Кварцевый песок",
+        "Уголь"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Серная кислота",
+      "level": 5,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сера",
+        "Вода"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Аккумулятор",
+      "level": 5,
+      "section": null,
+      "kind": "key",
+      "inputs": [
+        "Свинец",
+        "Серная кислота",
+        "Глиняный горшок"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Масляная лампа",
+      "level": 5,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Стекло",
+        "Масло",
+        "Сталь"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Кирпич",
+      "level": 6,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Глина"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Известь",
+      "level": 6,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Известняк"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Раствор",
+      "level": 6,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Известь",
+        "Песок",
+        "Вода"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Каменный блок",
+      "level": 6,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Камень"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Дом",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Доски",
+        "Кирпич",
+        "Раствор"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Склад",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Доски",
+        "Гвозди"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Мастерская",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Брус",
+        "Гвозди"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Терминал маркетплейса",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Брус",
+        "Доски",
+        "Сталь"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Монетный двор",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Сталь",
+        "Пресс"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Администрация",
+      "level": 6,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Раствор",
+        "Брус",
+        "Сталь"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Пресс",
+      "level": 7,
+      "section": null,
+      "kind": "station",
+      "inputs": [
+        "Сталь",
+        "Брус"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Аффинированное золото",
+      "level": 7,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Золотоносная порода",
+        "Уголь"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Аффинированное серебро",
+      "level": 7,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Серебряная порода",
+        "Уголь"
+      ],
+      "station": "Печь"
+    },
+    {
+      "name": "Золотая монета",
+      "level": 7,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Аффинированное золото"
+      ],
+      "station": "Монетный двор"
+    },
+    {
+      "name": "Серебряная монета",
+      "level": 7,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Аффинированное серебро"
+      ],
+      "station": "Монетный двор"
+    },
+    {
+      "name": "Высокая печь",
+      "level": 8,
+      "section": "precision",
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Известь",
+        "Сталь",
+        "Меха"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Прокатный стан",
+      "level": 8,
+      "section": "precision",
+      "kind": "station",
+      "inputs": [
+        "Сталь",
+        "Брус",
+        "Скобы"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Медная фольга",
+      "level": 8,
+      "section": "precision",
+      "kind": "item",
+      "inputs": [
+        "Медный слиток"
+      ],
+      "station": "Прокатный стан"
+    },
+    {
+      "name": "Вольфрамовый резец",
+      "level": 8,
+      "section": "precision",
+      "kind": "item",
+      "inputs": [
+        "Вольфрам",
+        "Сталь"
+      ],
+      "station": "Высокая печь"
+    },
+    {
+      "name": "Привод",
+      "level": 8,
+      "section": "precision",
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Брус",
+        "Скобы"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Токарный станок",
+      "level": 8,
+      "section": "precision",
+      "kind": "station",
+      "inputs": [
+        "Сталь",
+        "Брус",
+        "Вольфрамовый резец",
+        "Привод"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Точная деталь",
+      "level": 8,
+      "section": "precision",
+      "kind": "item",
+      "inputs": [
+        "Сталь"
+      ],
+      "station": "Токарный станок"
+    },
+    {
+      "name": "Магнит",
+      "level": 8,
+      "section": "electric",
+      "kind": "item",
+      "inputs": [
+        "Железо",
+        "Никель"
+      ],
+      "station": "Высокая печь"
+    },
+    {
+      "name": "Электродвигатель",
+      "level": 8,
+      "section": "electric",
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Провод",
+        "Магнит"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Реле",
+      "level": 8,
+      "section": "electric",
+      "kind": "item",
+      "inputs": [
+        "Медь",
+        "Сталь",
+        "Провод"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Автоматический станок",
+      "level": 8,
+      "section": "electric",
+      "kind": "station",
+      "inputs": [
+        "Стальная рама",
+        "Электродвигатель",
+        "Точная деталь",
+        "Реле"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Кремний",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Кварцевый песок",
+        "Уголь",
+        "Энергия"
+      ],
+      "station": "Высокая печь"
+    },
+    {
+      "name": "Кремниевая пластина",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Кремний"
+      ],
+      "station": "Токарный станок"
+    },
+    {
+      "name": "Текстолит",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Ткань",
+        "Смола"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Печатная плата",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Текстолит",
+        "Медная фольга"
+      ],
+      "station": "Чистая мастерская"
+    },
+    {
+      "name": "Чистая мастерская",
+      "level": 8,
+      "section": "electronics",
+      "kind": "building",
+      "inputs": [
+        "Стекло",
+        "Сталь",
+        "Кирпич",
+        "Ткань",
+        "Провод"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Микросхема",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Кремниевая пластина",
+        "Аффинированное золото",
+        "Провод"
+      ],
+      "station": "Чистая мастерская"
+    },
+    {
+      "name": "Датчик",
+      "level": 8,
+      "section": "electronics",
+      "kind": "item",
+      "inputs": [
+        "Микросхема",
+        "Стекло",
+        "Провод"
+      ],
+      "station": "Чистая мастерская"
+    },
+    {
+      "name": "Процессорный блок",
+      "level": 8,
+      "section": "electronics",
+      "kind": "key",
+      "inputs": [
+        "Микросхема",
+        "Печатная плата",
+        "Провод",
+        "Сталь"
+      ],
+      "station": "Чистая мастерская"
+    },
+    {
+      "name": "Стальная рама",
+      "level": 9,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Био-камера",
+      "level": 9,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Стекло",
+        "Сталь",
+        "Ткань"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Питающий контур",
+      "level": 9,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Аккумулятор",
+        "Провод",
+        "Сталь"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Биопринтер",
+      "level": 9,
+      "section": null,
+      "kind": "building",
+      "inputs": [
+        "Стальная рама",
+        "Био-камера",
+        "Питающий контур",
+        "Процессорный блок"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Ремкомплект биопринтера",
+      "level": 9,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Провод",
+        "Точная деталь"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Колесо",
+      "level": 10,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Брус",
+        "Сталь"
+      ],
+      "station": "Кузница"
+    },
+    {
+      "name": "Повозка",
+      "level": 10,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Доски",
+        "Брус",
+        "Колесо",
+        "Верёвка"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Упряжь",
+      "level": 10,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Ткань",
+        "Верёвка",
+        "Сталь"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Ремонтный набор",
+      "level": 10,
+      "section": null,
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Доски",
+        "Верёвка"
+      ],
+      "station": "Верстак"
+    },
+    {
+      "name": "Бродильный чан",
+      "level": 11,
+      "section": "fuel",
+      "kind": "station",
+      "inputs": [
+        "Доски",
+        "Медь",
+        "Труба"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Спирт",
+      "level": 11,
+      "section": "fuel",
+      "kind": "item",
+      "inputs": [
+        "Зерно",
+        "Вода"
+      ],
+      "station": "Бродильный чан"
+    },
+    {
+      "name": "Электролизёр",
+      "level": 11,
+      "section": "fuel",
+      "kind": "station",
+      "inputs": [
+        "Сталь",
+        "Провод",
+        "Стекло"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Кислород",
+      "level": 11,
+      "section": "fuel",
+      "kind": "item",
+      "inputs": [
+        "Вода",
+        "Энергия"
+      ],
+      "station": "Электролизёр"
+    },
+    {
+      "name": "Окислитель",
+      "level": 11,
+      "section": "fuel",
+      "kind": "item",
+      "inputs": [
+        "Селитра",
+        "Энергия"
+      ],
+      "station": "Электролизёр"
+    },
+    {
+      "name": "Ракетное топливо",
+      "level": 11,
+      "section": "fuel",
+      "kind": "key",
+      "inputs": [
+        "Спирт",
+        "Окислитель"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Обшивка",
+      "level": 11,
+      "section": "hull",
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Никель"
+      ],
+      "station": "Прокатный стан"
+    },
+    {
+      "name": "Теплозащитные плиты",
+      "level": 11,
+      "section": "hull",
+      "kind": "item",
+      "inputs": [
+        "Глина",
+        "Известь"
+      ],
+      "station": "Высокая печь"
+    },
+    {
+      "name": "Баллон высокого давления",
+      "level": 11,
+      "section": "hull",
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Никель"
+      ],
+      "station": "Прокатный стан"
+    },
+    {
+      "name": "Камера сгорания",
+      "level": 11,
+      "section": "hull",
+      "kind": "item",
+      "inputs": [
+        "Сталь",
+        "Никель",
+        "Точная деталь"
+      ],
+      "station": "Токарный станок"
+    },
+    {
+      "name": "Насос",
+      "level": 11,
+      "section": "hull",
+      "kind": "item",
+      "inputs": [
+        "Точная деталь",
+        "Сталь",
+        "Привод"
+      ],
+      "station": "Токарный станок"
+    },
+    {
+      "name": "Двигатель I класса",
+      "level": 11,
+      "section": "hull",
+      "kind": "key",
+      "inputs": [
+        "Камера сгорания",
+        "Насос",
+        "Труба",
+        "Датчик"
+      ],
+      "station": "Верфь"
+    },
+    {
+      "name": "Корпус",
+      "level": 11,
+      "section": "hull",
+      "kind": "key",
+      "inputs": [
+        "Стальная рама",
+        "Обшивка",
+        "Теплозащитные плиты"
+      ],
+      "station": "Верфь"
+    },
+    {
+      "name": "Навигационный блок",
+      "level": 11,
+      "section": "assembly",
+      "kind": "item",
+      "inputs": [
+        "Процессорный блок",
+        "Датчик",
+        "Стекло"
+      ],
+      "station": "Чистая мастерская"
+    },
+    {
+      "name": "Система жизнеобеспечения",
+      "level": 11,
+      "section": "assembly",
+      "kind": "item",
+      "inputs": [
+        "Баллон высокого давления",
+        "Кислород",
+        "Труба",
+        "Датчик"
+      ],
+      "station": "Мастерская"
+    },
+    {
+      "name": "Верфь",
+      "level": 11,
+      "section": "assembly",
+      "kind": "building",
+      "inputs": [
+        "Кирпич",
+        "Сталь",
+        "Брус",
+        "Привод"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Космодром",
+      "level": 11,
+      "section": "assembly",
+      "kind": "building",
+      "inputs": [
+        "Раствор",
+        "Каменный блок",
+        "Сталь",
+        "Труба"
+      ],
+      "station": "Стройка"
+    },
+    {
+      "name": "Орбитальный корабль",
+      "level": 11,
+      "section": "assembly",
+      "kind": "key",
+      "inputs": [
+        "Корпус",
+        "Двигатель I класса",
+        "Навигационный блок",
+        "Система жизнеобеспечения"
+      ],
+      "station": "Верфь"
+    }
+  ]
+}
