@@ -1,0 +1,6 @@
+# Вольт правится и на Windows, и в Obsidian, и генератором. Держим LF везде,
+# иначе каждая сборка даёт diff из-за одних только переводов строк.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.webp binary
