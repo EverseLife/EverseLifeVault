@@ -34,6 +34,20 @@
   "mining.crowd_bonus_cap": 6,
   "vein.depletion_step": 100000,
   "vein.richness_decay": 3,
+  "mine.roof_start": 100,
+  "mine.roof_per_swing": 6,
+  "mine.roof_per_timber": 25,
+  "mine.roof_timber_cap": 80,
+  "mine.pace_k": 1.5,
+  "mine.sign_bands": {
+    "свод сухой": 70,
+    "сыплется пыль": 45,
+    "свод потрескивает": 20,
+    "трещит": 0
+  },
+  "mine.sign_noise": 8,
+  "mine.collapse_wear": 15,
+  "mine.collapse_wound_chance": 25,
   "wound.recovery_hours": {
     "min": 6,
     "max": 48
@@ -375,6 +389,12 @@
   "site.rain_water_offset": 60,
   "site.river_share": 25,
   "site.coast_share": 15,
+  "site.forest_share": {
+    "min": 0,
+    "max": 100
+  },
+  "forest.stock_per_share": 40,
+  "forest.regrow_per_day": 1.5,
   "site.quality_budget": 10,
   "upkeep.territory_exponent": 1.4,
   "upkeep.materials_share": 40,
