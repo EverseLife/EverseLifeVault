@@ -79,6 +79,746 @@ groups:
         value: 5
         unit: в час
         note: Поддержание готовности биопринтера
+      - key: energy.home_draw_per_m2
+        value: 0.2
+        unit: в час на м²
+        note: Быт — свет, тепло, вентиляция. Берётся с площади застройки (D-135)
+        decision: D-135
+      - key: energy.meter_period
+        value: 24
+        unit: часа
+        note: Как часто выставляется счёт по счётчику. Не заплатил — здание отключено
+        decision: D-135
+      - key: energy.hearth_fuel_per_hour
+        value: 3
+        unit: дров/час
+        note: Очаг топится дровами, а не сетью — еда должна готовиться и вне города
+        decision: D-135
+      - key: energy.tariff_default
+        value: 5
+        unit: ТК/100 энергии
+        note: Тариф нового города до первого решения устава; город вправе поставить ноль
+        decision: D-085
+
+  # Выносливость киборга (D-091): потолка суток нет, темп выбирает игрок
+  - id: body
+    title: Выносливость
+    constants:
+      - key: body.stamina_max
+        value: 100
+        unit: ед.
+        note: Запас тела. Потолка на сутки нет — есть цена темпа
+        decision: D-091
+      - key: body.drain_rate
+        value: {min: 5, max: 40}
+        unit: ед./час
+        note: Расход выбирает игрок — спокойная работа или на износ
+        decision: D-091
+      - key: body.food_restore
+        value: 25
+        unit: ед.
+        note: За приём обычной еды, мгновенно
+        decision: D-091
+      - key: body.diet_variety_bonus
+        value: 20
+        unit: "%"
+        note: К восстановлению за разнообразие рациона
+      - key: body.hibernation_rate
+        value: 8
+        unit: ед./час
+        note: Восстановление в гибернации, офлайн
+        decision: D-091
+      - key: body.hibernation_home_k
+        value: 1.5
+        unit: "×"
+        note: Дома гибернация идёт быстрее
+        decision: D-091
+
+  # Добыча: соседи по жиле и истощение мира (D-099, D-101)
+  - id: mining
+    title: Добыча
+    constants:
+      - key: mining.rich_threshold
+        value: 60
+        unit: качества жилы
+        note: Выше — жила считается богатой, ниже — бедной
+        decision: D-099
+      - key: mining.crowd_rich_penalty
+        value: 15
+        unit: "%"
+        note: К выходу каждого за каждого лишнего добытчика на богатой жиле
+        decision: D-099
+      - key: mining.crowd_poor_bonus
+        value: 10
+        unit: "%"
+        note: К выходу каждого за каждого соседа на бедной жиле
+        decision: D-099
+      - key: mining.crowd_bonus_cap
+        value: 6
+        unit: человек
+        note: Дальше артель бонус не наращивает
+        decision: D-099
+      - key: vein.depletion_step
+        value: 100000
+        unit: ед. сырья
+        note: Сколько нужно добыть на планете, чтобы сработал шаг истощения
+        decision: D-101
+      - key: vein.richness_decay
+        value: 3
+        unit: "%"
+        note: На столько беднее становятся новые жилы планеты за каждый шаг
+        decision: D-101
+
+  # Ранения и медицина (D-096). Источник ранений в альфе — среда, а не люди (D-111)
+  - id: conflict
+    title: Ранения и медицина
+    constants:
+      - key: wound.recovery_hours
+        value: {min: 6, max: 48}
+        unit: часов
+        note: Само заживает медленно и всё это время мешает
+        decision: D-096
+      - key: wound.stamina_penalty
+        value: 40
+        unit: "%"
+        note: К расходу выносливости, пока ранение не залечено
+        decision: D-096
+      - key: wound.treated_multiplier
+        value: 0.3
+        unit: "×"
+        note: Во столько раз короче выздоровление под лечением
+        decision: D-096
+      - key: medicine.field_kit_effect
+        value: 30
+        unit: "%"
+        note: Перевязка на месте, без врача и лекарств
+        decision: D-096
+
+  # Право и правопорядок (D-094, D-095)
+  - id: law_and_order
+    title: Право и правопорядок
+    constants:
+      - key: charter.silence_days
+        value: 21
+        unit: суток
+        note: Молчание правителя, после которого срабатывает пункт устава о преемнике
+        decision: D-094
+      - key: justice.court_fee
+        value: 20
+        unit: ТК
+        note: Пошлина за возбуждение дела
+      - key: justice.claim_window
+        value: 14
+        unit: суток
+        note: Срок подачи иска после нарушения. Вечных претензий не бывает
+        decision: D-117
+      - key: justice.log_retention
+        value: 90
+        unit: суток
+        note: Срок хранения судебных журналов
+      - key: justice.prison_max
+        value: 14
+        unit: суток
+        note: Потолок срока заключения по одному приговору
+        decision: D-095
+      - key: record.city_retention
+        value: 30
+        unit: суток
+        note: Срок хранения записей городских построек
+        decision: D-081
+      - key: build.demolish_days_manual
+        value: 30
+        unit: суток
+        note: Снос чужой постройки вручную. Столько, что в одиночку этим не занимаются
+        decision: D-095
+      - key: build.demolish_days_machine
+        value: 2
+        unit: суток
+        note: Со специальной техникой
+        decision: D-095
+      - key: build.abandoned_site_days
+        value: 14
+        unit: суток
+        note: Брошенная стройка освобождает участок
+        decision: D-090
+
+  # Земледелие: семена, почва и рацион (D-105)
+  - id: farm
+    title: Земледелие и еда
+    constants:
+      - key: farm.seed_rate
+        value: 4
+        unit: семени/м²
+        note: Норма высева на метр делянки. Меньше — пустые места, больше — загущение и болезни
+        decision: D-105
+      - key: farm.yield_per_m2
+        value: 0.6
+        unit: ед./м² за цикл
+        note: Ориентир для средней культуры. По каждой считается отдельно из `harvest.rates` (D-136)
+        decision: D-133
+      - key: farm.cycle_days
+        value: 6
+        unit: суток
+        note: Цикл средней культуры. У каждой свой — см. каталог культур (D-136)
+        decision: D-133
+      - key: plant.trait_budget
+        value: 3.5
+        unit: балла
+        note: Потолок суммы достоинств культуры. Хорошей во всём быть не должно (D-057)
+        decision: D-136
+      - key: farm.plot_min_area
+        value: 5
+        unit: м²
+        note: Меньше делянку не размечают — обход съедает больше, чем она родит
+        decision: D-118
+      - key: farm.plot_overhead
+        value: 2
+        unit: минуты/делянку
+        note: Обход одной делянки независимо от её площади. Это цена дробления
+        decision: D-118
+      - key: farm.care_time_per_m2
+        value: 0.1
+        unit: минуты/м²
+        note: Уход сверх обхода. Отсюда потолок того, сколько земли тянет один человек
+        decision: D-118
+      - key: farm.plow_time_per_m2
+        value: 0.5
+        unit: минуты/м²
+        note: Вспашка раз в цикл и после каждой перекройки границ
+        decision: D-118
+      - key: farm.water_per_m2
+        value: 3
+        unit: литра/м²
+        note: Один полив делянки. Река рядом или её отсутствие решают всё
+        decision: D-118
+      - key: farm.disease_spread
+        value: 20
+        unit: "% делянки в сутки"
+        note: Болезнь расходится внутри делянки, межа её останавливает. Это цена укрупнения
+        decision: D-118
+      - key: farm.harvest_seed_share
+        value: 10
+        unit: "% урожая"
+        note: Столько можно оставить на семена, не продавая
+        decision: D-105
+      - key: farm.agrotech_params
+        value: 5
+        unit: параметров
+        note: Полив, подкормка, прополка, прореживание, защита от болезней
+        decision: D-105
+      - key: farm.neglect_penalty
+        value: 25
+        unit: "% урожая"
+        note: За сутки без ухода. Забросил всё — получишь долю, а не ноль
+      - key: farm.soil_depletion
+        value: 8
+        unit: "% плодородия"
+        note: За цикл одной и той же культуры на делянке
+        decision: D-105
+      - key: farm.legume_recovery
+        value: 15
+        unit: "% плодородия"
+        note: Возвращают бобы за свой цикл. Севооборот выгоднее удобрения
+        decision: D-105
+      - key: farm.compost_recovery
+        value: 10
+        unit: "% плодородия"
+        decision: D-105
+      - key: farm.fallow_recovery
+        value: 2
+        unit: "% в сутки"
+        note: Делянка под паром. Медленно, зато бесплатно
+        decision: D-105
+      - key: food.variety_window
+        value: 6
+        unit: приёмов пищи
+        note: Сколько последних учитывается при подсчёте разнообразия
+        decision: D-105
+      - key: food.variety_min_kinds
+        value: 3
+        unit: вида
+        note: Столько разных блюд в окне — и работает `body.diet_variety_bonus`
+        decision: D-105
+
+  # Готовка: единственный передел, который идёт вниз по прочности (D-119)
+  - id: cooking
+    title: Готовка
+    constants:
+      - key: cook.dish_roles
+        value: 4
+        unit: роли
+        note: Основа, наполнитель, жир, приправа. Что положить в роль — решает повар
+        decision: D-119
+      - key: cook.pot_portions
+        value: 8
+        unit: порций
+        note: Выход одного котла. Готовят потоком, а не поштучно
+        decision: D-119
+      - key: cook.spoilage_multiplier
+        value: 4
+        unit: "×"
+        note: Готовое портится вчетверо быстрее сырья. Отсюда повар живёт при едоке
+        decision: D-119
+      - key: cook.hot_restore_share
+        value: 60
+        unit: "% от `body.food_restore`"
+        note: Горячее восполняет меньше сразу — остальное отдаёт временем
+        decision: D-119
+      - key: cook.hot_drain_reduction
+        value: 20
+        unit: "%"
+        note: На столько горячее блюдо снижает `body.drain_rate`
+        decision: D-119
+      - key: cook.hot_duration
+        value: 3
+        unit: часа
+        note: Столько держится сытость от горячего
+        decision: D-119
+      - key: cook.role_weights
+        value: {основа: 0.5, наполнитель: 0.2, жир: 0.2, приправа: 0.1}
+        unit: "×"
+        note: Вес роли в качестве блюда. Отличная репа важнее отличной соли
+        decision: D-128
+      - key: cook.empty_role_penalty
+        value: 25
+        unit: "% за роль"
+        note: Столько снимается за каждую незакрытую роль. Дешёвый жир лучше, чем никакого
+        decision: D-128
+      - key: cook.hot_quality_min
+        value: 50
+        unit: качества
+        note: Ниже этого горячее просто еда. Выше `agro.quality_cap` — значит машинная не даёт сытости никогда
+        decision: D-121
+      - key: food.restore_by_quality
+        value: {min: 0.7, max: 1.3}
+        unit: "×"
+        note: Множитель к `body.food_restore` от качества 0 до 100. Дешёвая еда кормит хуже, но кормит
+        decision: D-121
+      - key: law.ration_window
+        value: 24
+        unit: часа
+        note: Окно, за которое считается норма отпуска регулируемого товара
+        decision: D-122
+
+  # Внешняя торговля города и приборы, по которым её правят (D-123, D-124)
+  - id: trade
+    title: Пошлины и торговая сводка
+    constants:
+      - key: trade.duty_free_window
+        value: 24
+        unit: часа
+        note: Окно, за которое считается беспошлинная норма ввоза и вывоза на человека
+        decision: D-123
+      - key: trade.reference_price_window
+        value: 48
+        unit: часов
+        note: По сделкам за этот срок берётся справочная цена товара. Сделок не было — пошлину не с чего считать
+        decision: D-123
+      - key: trade.report_window
+        value: 24
+        unit: часа
+        note: Шаг торговой сводки города. Не биржевой терминал, а инструмент управления
+        decision: D-124
+      - key: trade.report_retention
+        value: 30
+        unit: суток
+        note: Глубина истории сводки. Столько власть видит назад, чтобы отличить всплеск от тенденции
+        decision: D-124
+
+  # Здание универсально: его считает формула, а не рецепт (D-106)
+  - id: building
+    title: Здание
+    constants:
+      - key: build.area_min
+        value: 20
+        unit: м²
+        note: Меньше не строится — это уже навес, а не здание
+        decision: D-106
+      - key: build.area_max
+        value: 400
+        unit: м²
+        note: Предел площади одного этажа на участке
+        decision: D-106
+      - key: build.floors_max
+        value: 8
+        unit: этажей
+        note: Выше пятого требует укрепления, а не только другого материала
+        decision: D-125
+      - key: build.floor_cost_growth
+        value: 1.1
+        unit: "×"
+        note: Каждый следующий этаж дороже предыдущего во столько раз. Высота растёт геометрически
+        decision: D-125
+      - key: build.reinforce_from_floor
+        value: 5
+        unit: этаж
+        note: С этого этажа нужен стальной каркас и раствор — отдельной строкой в смете
+        decision: D-125
+      - key: build.reinforce_k
+        value: 1.5
+        unit: "×"
+        note: Множитель к стоимости этажей выше порога укрепления
+        decision: D-125
+      - key: build.slots_per_area
+        value: 10
+        unit: м² на станок
+        note: Сколько площади занимает одно рабочее место или стеллаж
+        decision: D-106
+      - key: build.cost_per_area
+        formula: "materials_per_m2 * footprint * strength_k * sum(build.floor_cost_growth^(n-1) * (build.reinforce_k if n >= build.reinforce_from_floor else 1) for n in 1..floors)"
+        note: Смета здания. Считается от площади застройки и этажности, а не берётся из рецепта
+        decision: D-125
+      - key: build.strength_levels
+        value: 3
+        unit: ступени
+        note: "Дерево, верёвка и солома · камень и железо · сталь, камень и стекло (D-145)"
+        decision: D-106
+      # Диапазоном быть перестал: от множителя зависит смета, значит значение
+      # обязано быть точным по каждой ступени (D-145)
+      - key: build.strength_k
+        value:
+          "1": 1
+          "2": 2
+          "3": 4
+        unit: "×"
+        note: Множитель расхода за ступень прочности. Класс втрое дешевле в содержании стоит вчетверо дороже
+        decision: D-145
+      - key: build.floors_by_strength
+        value:
+          "1": 2
+          "2": 4
+          "3": 8
+        unit: этажей
+        note: Потолок высоты по классу. Восьмиэтажка требует стали и стекла — весь Э2.75 виден в силуэте
+        decision: D-145
+      - key: build.labor_per_m2
+        value: 0.4
+        unit: человеко-часа/м²
+        note: Труд сборки, с поправкой на этажность и прочность. Мини-игры у стройки нет
+        decision: D-131
+      - key: build.labor_stamina_rate
+        value: 12
+        unit: выносливости/час
+        note: Расход на площадке. Стройка — работа, а не кнопка
+        decision: D-131
+      - key: build.upkeep_per_area
+        value: 0.5
+        unit: ТК/м² в сутки
+        note: Содержание. Берётся с застройки, а не с участка — двор бесплатен
+        decision: D-106
+
+  # Дороги: ребро графа, а не постройка на узле (D-107)
+  - id: road
+    title: Дороги
+    constants:
+      - key: road.trail_multiplier
+        value: 2.5
+        unit: "×"
+        note: Во столько раз дольше идти там, где дороги нет вовсе
+        decision: D-107
+      - key: road.road_multiplier
+        value: 1
+        unit: "×"
+        note: Обычная дорога — эталон времени в пути
+        decision: D-107
+      - key: road.paved_multiplier
+        value: 0.7
+        unit: "×"
+        note: Мощёный тракт — быстрее и держит тяжёлый транспорт
+        decision: D-107
+      - key: road.surface_per_edge
+        value: 40
+        unit: ед. полотна
+        note: Сколько дорожного полотна укладывается в одно ребро
+        decision: D-107
+      - key: road.decay_rate
+        value: 1
+        unit: "% в сутки"
+        note: Без содержания дорога зарастает и возвращается в тропу
+        decision: D-107
+      - key: road.toll_max
+        value: 20
+        unit: ТК
+        note: Потолок пошлины за проезд по частной дороге
+        decision: D-107
+
+  # Вычислительная плата за сессию добычи (D-110): фиксированная, не по мощности
+  - id: pow
+    title: Плата устройства
+    constants:
+      - key: pow.session_compute
+        value: 1
+        unit: задача/сессию
+        note: Одна вычислительная задача на одну сессию добычи. Одинаковая для всех
+        decision: D-110
+      - key: pow.compute_time_target
+        value: 2
+        unit: секунды
+        note: Столько она занимает на среднем устройстве. Потолок, а не цель роста
+        decision: D-110
+      - key: pow.compute_time_cap
+        value: 6
+        unit: секунд
+        note: Дольше — наказываем телефон. Сложность подстраивается под этот предел
+        decision: D-110
+      - key: pow.memory_per_session
+        value: 64
+        unit: МБ
+        note: Память на одну оценку. Именно она делает параллельный сеанс дорогим
+        decision: D-112
+      - key: pow.argon_iterations
+        value: 3
+        unit: прохода
+        note: Число проходов Argon2id. Подбирается так, чтобы средний телефон уложился в цель
+        decision: D-113
+      - key: pow.verify_cost
+        value: 1
+        unit: оценка
+        note: Столько считает сервер при проверке. Дороже — и античит станет узким местом
+        decision: D-112
+
+  # Буровая установка: капитал вместо труда (D-115)
+  - id: rig
+    title: Буровая установка
+    constants:
+      - key: rig.output_per_hour
+        value: 25
+        unit: ед./час
+        note: Против 60 у живого шахтёра. Машина берёт не темпом, а тем, что не спит
+        decision: D-115
+      - key: rig.quality_cap
+        value: 45
+        unit: качества
+        note: Потолок качества руды из буровой. Человек подстраивается под пласт, машина нет
+        decision: D-115
+      - key: rig.fuel_per_hour
+        value: 3
+        unit: угля/час
+        note: Встала без топлива — не добывает вовсе
+        decision: D-115
+      - key: rig.hopper_capacity
+        value: 12
+        unit: часов работы
+        note: Бункер полон — установка останавливается. Приезжать и опустошать обязательно
+        decision: D-115
+      - key: rig.wear_per_day
+        value: 6
+        unit: "% состояния"
+        note: Обслуживание тратит ремонтный набор
+        decision: D-115
+      - key: rig.depletion_multiplier
+        value: 2
+        unit: "×"
+        note: Во столько раз быстрее буровая выедает жилу (D-101)
+        decision: D-115
+
+  # Полевой автомат: капитал вместо присутствия в поле (D-120)
+  - id: agro
+    title: Полевой автомат
+    constants:
+      - key: agro.yield_share
+        value: 70
+        unit: "% ручного урожая"
+        note: Столько снимает автомат с той же земли. Берёт не выходом, а тем, что не спит
+        decision: D-120
+      - key: agro.quality_cap
+        value: 45
+        unit: качества
+        note: Потолок качества продуктов. Хорошее блюдо по-прежнему требует ручных (D-119)
+        decision: D-120
+      - key: agro.plot_min_area
+        value: 40
+        unit: м²
+        note: Меньшую делянку автомат не берёт. Отсюда укрупнение и монокультура
+        decision: D-120
+      - key: agro.plots_max
+        value: 8
+        unit: делянок
+        note: Столько обслуживает одна машина. Ставка на объём — дешёвая еда должна лежать в стакане всегда
+        decision: D-121
+      - key: agro.program_steps
+        value: 12
+        unit: шагов
+        note: Потолок длины программы. Цикл безусловный, условий в нём нет
+        decision: D-120
+      - key: agro.energy_per_hour
+        value: 6
+        unit: энергии/час
+        note: Встал без питания — не растит. Тариф города решает рентабельность фермы
+        decision: D-120
+      - key: agro.wear_per_day
+        value: 5
+        unit: "% состояния"
+        note: Обслуживание тратит ремонтный набор. Заброшенный разваливается
+        decision: D-120
+
+  # Трудоёмкость сырья: сколько единиц даёт час труда (D-133).
+  # Из этих темпов выводятся количества входов во всех рецептах — руками
+  # они не задаются. Числа якорятся на mining.iron_per_hour = 60.
+  - id: harvest
+    title: Трудоёмкость сырья
+    constants:
+      - key: harvest.rates
+        value:
+          Руда: 60
+          Уголь: 60
+          Камень: 80
+          Глина: 70
+          Песок: 90
+          Кварцевый песок: 50
+          Известняк: 70
+          Дерево: 40
+          Волокно: 35
+          Смола: 12
+          Вода: 200
+          Зерно: 25
+          Овощи: 30
+          Бобы: 22
+          Солома: 40
+          Сено: 35
+          Масличные семена: 18
+          Сахарный стебель: 20
+          Целебные травы: 8
+          Мясо: 10
+          Органические отходы: 60
+          Соль: 30
+          Сера: 20
+          Селитра: 15
+          Вольфрам: 6
+          Никель: 10
+          Золотоносная порода: 4
+          Серебряная порода: 12
+          Энергия: 200
+          Бревно: 30
+          Доски: 50
+          # Металлы идут в темпе станка, а не в темпе добычи (D-141). Гряда
+          # 10/8/7/7 сохраняет прежний порядок — железо легче, олово и свинец
+          # тяжелее, — но опущена втрое: печь работает не быстрее верстака
+          Слиток железа: 10
+          Медный слиток: 8
+          Олово: 7
+          Свинец: 7
+          Щебень: 70
+          Крошка: 70
+          Керамика: 40
+        unit: ед./час
+        note: Выход часа труда по каждому сырью. Задаёт относительную цену всего в мире
+        decision: D-133
+
+  # Крафт: время партии и потери. Сток С9 наконец получил число (D-129)
+  - id: craft
+    title: Крафт
+    constants:
+      - key: craft.input_labor_ratio
+        value: 1.0
+        unit: "×"
+        note: Сколько чужого труда съедает час своего. Из этого выводятся количества входов
+        decision: D-133
+      - key: craft.amount_cap
+        value: 10
+        unit: единиц
+        note: Потолок количества одного входа. Иначе дешёвое сырьё идёт вёдрами
+        decision: D-133
+      - key: craft.time_growth_per_level
+        value: 2.0
+        unit: "×"
+        note: Во столько раз дольше делается изделие с каждым переделом вглубь. Главная ручка ценности лестницы
+        decision: D-133
+      - key: craft.time_per_unit
+        value: 6
+        unit: минут/единицу
+        note: Базовое время партии на единицу выхода. Считается от него, а не задаётся рецептом
+        decision: D-129
+      - key: craft.station_speed_k
+        value: {min: 0.6, max: 1.4}
+        unit: "×"
+        note: Множитель времени от качества станка. Разбитая наковальня работает медленно
+        decision: D-129
+      - key: craft.auto_speed_k
+        value: 2
+        unit: "×"
+        note: Во столько раз быстрее автоматический станок. Он же работает офлайн
+        decision: D-129
+      - key: craft.batch_max
+        value: 50
+        unit: единиц
+        note: Потолок одной партии. Чтобы очередь не превращалась в сутки безнадзорной работы
+        decision: D-129
+      - key: craft.waste_share
+        value: 5
+        unit: "% входов"
+        note: Брак и угар при верной работе. Это и есть сток С9
+        decision: D-129
+      - key: craft.waste_bad_ratio
+        value: 15
+        unit: "% входов"
+        note: Потери при промахе по пропорции у смеси. Плохая плавка съедает больше
+        decision: D-129
+      - key: craft.recycle_return
+        value: 40
+        unit: "% вложенного"
+        note: Сколько материалов возвращает переработка. Разница — сток
+        decision: D-129
+      - key: craft.repair_cost_share
+        value: 25
+        unit: "% новой вещи"
+        note: Во что обходится ремонт. Потолок при этом падает на `quality.repair_ceiling_loss`
+        decision: D-129
+
+  # Транспорт: без этих чисел инвариант И4 нечем проверить (D-129)
+  - id: transport
+    title: Транспорт
+    constants:
+      - key: inventory.carry_volume
+        value: 40
+        unit: литров
+        note: Объём носимого. Руда упирается в массу, ткань — в объём
+        decision: D-129
+      - key: transport.mass_cart
+        value: 80
+        unit: кг
+        note: Тачка и вьючное животное. Дешёвый вход в торговлю
+        decision: D-129
+      - key: transport.mass_wagon
+        value: 400
+        unit: кг
+        note: Повозка. Требует дороги (D-107)
+        decision: D-129
+      - key: transport.mass_boat
+        value: 2000
+        unit: кг
+        note: Речное и морское судно. Дёшево на тонно-час, но только по воде
+        decision: D-129
+      - key: transport.mass_airship
+        value: 600
+        unit: кг
+        note: Дирижабль. Игнорирует рельеф, дорог в топливе
+        decision: D-129
+      - key: transport.mass_ship
+        value: 5000
+        unit: кг
+        note: Космический корабль. Единственная связь между планетами
+        decision: D-129
+      - key: transport.volume_per_mass
+        value: 3
+        unit: литра/кг
+        note: Сколько объёма приходится на килограмм грузоподъёмности у всех типов
+        decision: D-129
+      - key: transport.speed_k
+        value: {тачка: 0.9, повозка: 1.3, судно: 1.6, дирижабль: 2.5, корабль: 4}
+        unit: "×"
+        note: Множитель к скорости пешего перехода
+        decision: D-129
+      - key: transport.upkeep_per_leg
+        value: 2
+        unit: ТК/отрезок
+        note: Корм, топливо или заряд за один переход между узлами
+        decision: D-129
+      - key: transport.crew_ship
+        value: 2
+        unit: человека
+        note: Экипаж корабля. Меньше — рейс не стартует
+        decision: D-129
 
   - id: quality
     title: Качество
@@ -106,6 +846,16 @@ groups:
       - key: quality.repair_ceiling_loss
         value: -8
         note: К потолку состояния за каждый ремонт
+      - key: quality.material_weight
+        value: 60
+        unit: "%"
+        note: Вклад качества входов в приближение к потолку. У сборок — все 100
+        decision: D-092
+      - key: quality.ratio_weight
+        value: 40
+        unit: "%"
+        note: Вклад точности пропорций. Только у рецептов-смесей (mix)
+        decision: D-092
       - key: quality.hand_craft_bonus
         value: 10
         unit: "до +"
@@ -161,10 +911,10 @@ groups:
       - key: bank.collateral_ratio
         value: 70
         unit: "%"
-        note: Заём не более этой доли оценки залога
+        note: Заём не более этой доли оценки залога. Стартовое значение внутри коридора
       - key: bank.unsecured_limit
         value: 200
-        unit: ₮
+        unit: ТК
         note: Без залога при чистой истории
       - key: coin.gold_per_coin
         value: 1
@@ -175,6 +925,104 @@ groups:
       - key: coin.default_fineness
         value: 900
         note: Проба может занижаться эмитентом
+
+  # Контур денежного регулирования (D-087): датчики, рычаги и их границы.
+  # Всё, что здесь перечислено, публично и показывается игрокам.
+  - id: money_loop
+    title: Регулирование денежного оборота
+    constants:
+      - key: bank.price_index_window
+        value: 10
+        unit: суток
+        note: Окно, по которому считается медиана сделок в индексе цен
+        decision: D-087
+      - key: bank.rate_floor
+        value: 1
+        unit: "% годовых"
+        note: Ниже ставка не опускается даже при дефляции
+        decision: D-087
+      - key: bank.rate_cap
+        value: 40
+        unit: "% годовых"
+        decision: D-087
+      - key: bank.rate_step_max
+        value: 2
+        unit: п.п. за пересмотр
+        note: Ставка не прыгает — коридор проходится за несколько пересмотров
+        decision: D-087
+      - key: bank.emission_reaction_k
+        value: 0.5
+        note: Коэффициент реакции ставки на долю эмиссии в выдаче
+        decision: D-087
+      - key: bank.emission_share_target
+        value: 20
+        unit: "%"
+        note: Целевая доля напечатанного в общей выдаче кредитов
+        decision: D-087
+      - key: bank.emission_share_alarm
+        value: 60
+        unit: "%"
+        note: Выше — аварийный режим, ставка идёт вверх максимальным шагом
+        decision: D-087
+      - key: bank.inflation_alarm
+        value: 10
+        unit: "% за 30 суток"
+        note: Отклонение в любую сторону, при котором руль возвращается алгоритму
+        decision: D-087
+      - key: bank.collateral_ratio_min
+        value: 50
+        unit: "%"
+        note: Нижняя граница коридора нормы залога
+        decision: D-087
+      - key: bank.collateral_ratio_max
+        value: 85
+        unit: "%"
+        decision: D-087
+      - key: bank.coin_collateral_ratio
+        value: 90
+        unit: "%"
+        note: Оценка монеты в залог по содержанию чистого металла. Пол под дефляцией
+        decision: D-087
+      - key: bank.reserve_target
+        value: 15
+        unit: "% оборотной массы"
+        note: Ниже — выдача печатает недостающее, выше — печать не нужна
+        decision: D-087
+      - key: bank.reserve_cap
+        value: 30
+        unit: "% оборотной массы"
+        note: Излишек сверх этого сжигается. Единственный способ уменьшить массу ТК
+        decision: D-087
+      - key: bank.seigniorage_period
+        value: 30
+        unit: суток
+        note: Как часто процентный доход распределяется по казнам городов
+        decision: D-087
+      - key: bank.seigniorage_return
+        value: 100
+        unit: "%"
+        note: Доля процентного дохода, возвращаемая в оборот. Рычаг, ходит в 0–100
+        decision: D-087
+      - key: bank.debt_to_turnover_cap
+        value: 300
+        unit: "%"
+        note: Совокупный долг к обороту за 30 суток. Выше — только под полный залог
+        decision: D-087
+      - key: bank.council_handover_cities
+        value: 5
+        unit: городов
+        note: Столько городов с администрацией — и ставка переходит Совету городов
+        decision: D-087
+      - key: bank.council_rate_deviation
+        value: 3
+        unit: п.п.
+        note: Насколько Совет вправе отклониться от рекомендации алгоритма
+        decision: D-087
+      - key: bank.council_lockout
+        value: 10
+        unit: суток
+        note: На столько ставка возвращается алгоритму после аварийного порога
+        decision: D-087
 
   - id: debt
     title: Долг и несостоятельность
@@ -249,7 +1097,7 @@ groups:
         decision: D-038
       - key: trial.transfer_limit_base
         value: 500
-        unit: ₮ в сутки
+        unit: ТК в сутки
         note: Эквивалента
       - key: trial.transfer_limit_growth
         value: 10
@@ -287,6 +1135,7 @@ groups:
         value:
           кузница: 0.5
           библиотека: 1.5
+        unit: "×"
         note: Шумно / тихо
       - key: chat.city_record_retention
         value: 30
@@ -314,6 +1163,15 @@ groups:
         unit: "%"
         note: С оборота вне городской юрисдикции
 
+  - id: market_orphan
+    title: Осиротевший маркетплейс
+    constants:
+      - key: market.orphan_decay_multiplier
+        value: 5
+        unit: "×"
+        note: Во столько раз быстрее портится товар, брошенный в несодержащемся терминале
+        decision: D-100
+
   - id: time
     title: Время и логистика
     constants:
@@ -332,10 +1190,15 @@ groups:
       - key: time.day_aurora
         value: 33
         unit: ч
+      - key: travel.city_step
+        value: {min: 4, max: 10}
+        unit: секунд
+        note: Один шаг между соседними локациями города
+        decision: D-089
       - key: travel.intra_city
         value: {min: 20, max: 60}
         unit: секунд
-        note: Между локациями города
+        note: Центр и окраина города — три-пять шагов
       - key: travel.inter_node
         value: {min: 20, max: 120}
         unit: минут
@@ -349,12 +1212,108 @@ groups:
         unit: секунд
         decision: D-010
 
+  # Планировка города (D-089): постройка = узел, город растёт кольцами от биопринтера
+  - id: city
+    title: Планировка города
+    constants:
+      - key: city.rings_reserved
+        value: 1
+        unit: кольцо
+        note: Сколько колец вокруг биопринтера отдано обязательным городским постройкам
+        decision: D-089
+      - key: city.ring_slots_base
+        value: 6
+        unit: мест
+        note: Участков в первом кольце
+        decision: D-089
+      - key: city.ring_slots_growth
+        value: 6
+        unit: мест за кольцо
+        note: Дальняя окружность длиннее — мест на ней больше
+        decision: D-089
+      - key: land.price_decay_per_ring
+        value: 35
+        unit: "%"
+        note: На столько дешевеет участок с каждым кольцом от центра. Это запрос города, а не цена движка
+        decision: D-089
+      - key: land.area_ring1
+        value: {min: 60, max: 140}
+        unit: м²
+        note: Площадь участка в первом кольце. Разыгрывается при появлении узла
+        decision: D-125
+      - key: land.area_growth_per_ring
+        value: 30
+        unit: "%"
+        note: На столько просторнее участки с каждым кольцом от центра. В центре тесно всегда
+        decision: D-125
+      - key: treasury.grace_days
+        value: 3
+        unit: суток
+        note: Столько город живёт с пустой казной, прежде чем начинает сыпаться
+        decision: D-127
+
+  # Свойства места: разыгрываются при генерации, идеального места не бывает (D-126)
+  - id: site
+    title: Свойства места
+    constants:
+      - key: site.temp_range
+        value: {min: -15, max: 35}
+        unit: °C
+        note: Средняя температура места. Задаёт, что здесь вообще родится
+        decision: D-126
+      - key: site.rain_range
+        value: {min: 0, max: 100}
+        unit: осадков
+        note: Условная шкала. Сухая пустошь против дождливой поймы
+        decision: D-126
+      - key: site.rain_water_offset
+        value: 60
+        unit: "%"
+        note: Столько полива закрывает дождь при максимуме осадков. Сухое место поливают руками
+        decision: D-126
+      - key: site.river_share
+        value: 25
+        unit: "% мест"
+        note: Доля мест у реки. Даёт воду и водяное колесо
+        decision: D-126
+      - key: site.coast_share
+        value: 15
+        unit: "% мест"
+        note: Доля мест у моря. Даёт порт и морские рёбра графа
+        decision: D-126
+      - key: site.quality_budget
+        value: 10
+        unit: баллов
+        note: Суммарная доброта свойств при розыгрыше. Место, хорошее во всём, не выпадает никогда
+        decision: D-126
+
   - id: upkeep
     title: Содержание и стоки
     constants:
       - key: upkeep.territory_exponent
         value: 1.4
         note: Показатель нелинейного роста содержания от числа узлов города
+      - key: upkeep.materials_share
+        value: 40
+        unit: "% сметы в год"
+        note: Столько материалов от стоимости здания уходит на ремонт. Город их покупает (D-134)
+        decision: D-134
+      - key: upkeep.labor_share
+        value: 35
+        unit: "% содержания"
+        note: Какая доля содержания уходит людям как плата за работу, а не в материалы
+        decision: D-134
+      # Дешёвый класс дороже в содержании — это и есть обмен капитальных
+      # затрат на операционные (D-145). Состав ремонта берётся не отсюда,
+      # а из сметы здания: чем построено, тем и чинится
+      - key: upkeep.by_strength
+        value:
+          "1": 1.6
+          "2": 1.0
+          "3": 0.5
+        unit: "×"
+        note: Множитель содержания по классу постройки. Сталь и стекло втрое дешевле дерева в ремонте
+        decision: D-145
       - key: upkeep.decay_rate
         value: 2
         unit: "% в сутки"
@@ -372,6 +1331,125 @@ groups:
         value: 3
         unit: "% состояния"
         note: За сессию добычи
+      - key: wear.gear_per_day
+        value: 2
+        unit: "% состояния"
+        note: Снаряжение изнашивается от ношения. Сток С2
+        decision: D-129
+      - key: wear.environment_k
+        value: {Терра: 1, Акватика: 2, Аврора: 3, Пироксис: 4}
+        unit: "×"
+        note: Множитель износа снаряжения от среды. Пироксис дорог сам по себе
+        decision: D-129
+      - key: wear.station_per_batch
+        value: 0.5
+        unit: "% состояния"
+        note: Станок изнашивается за партию. Содержание обязательно
+        decision: D-129
+      - key: wear.transport_per_leg
+        value: 1.5
+        unit: "% состояния"
+        note: Транспорт за переход между узлами, с поправкой на загрузку
+        decision: D-129
+
+  # Обещанные документами величины, которых до сих пор не было в реестре.
+  # Найдено машинной проверкой ссылок: документ ссылался на несуществующий ключ.
+  - id: promised
+    title: Прочее
+    constants:
+      - key: map.nodes_terra
+        value: 120
+        unit: узлов
+        note: Правится под фактический онлайн, а не обсуждается (D-065)
+      - key: map.nodes_space
+        value: 18
+        unit: узлов
+        note: Столько, чтобы перехват и блокада были возможны
+      - key: map.shrink_threshold
+        value: 20
+        unit: "% онлайна"
+        note: Ниже — дальние регионы мягко закрываются, карта уплотняется
+      - key: mining.gold_per_hour
+        value: 4
+        unit: ед./час
+        note: Темп добычи золота. Задаёт рост денежной базы — следить пристальнее всего
+      - key: mining.silver_per_hour
+        value: 12
+        unit: ед./час
+      - key: inventory.carry_mass
+        value: 30
+        unit: кг
+        note: Жёсткий лимит носимого. Всё сверх — только транспортом
+      - key: invent.recipe_slots
+        value: 0
+        note: Ноль означает «без ограничения» — лимит наказывал бы старожилов
+      - key: quality.recycle_carryover
+        value: 60
+        unit: "%"
+        note: Доля качества, переносимая при переработке предмета обратно в материалы
+      - key: contract.registry_fee
+        value: 1
+        unit: ТК
+        note: Записать договор в реестр (уровень 2). Дёшево намеренно
+        decision: D-116
+      - key: contract.rent_period
+        value: 1
+        unit: сутки
+        note: Частота повторяющихся списаний — аренда, жалованье
+        decision: D-116
+      - key: contract.max_duration
+        value: 30
+        unit: суток
+        note: Предельный срок договора. Дольше — перезаключать
+        decision: D-116
+      - key: contract.late_grace
+        value: 6
+        unit: часов
+        note: Просрочка сверх срока, после которой фиксируется нарушение
+        decision: D-116
+      - key: contract.fee_level3
+        value: 2
+        unit: "% суммы"
+        note: Комиссия эскроу-контракта с замораживанием капитала
+      - key: city.foundation_cost
+        value: 8000
+        unit: ТК
+        note: Оценка материалов и труда на основание города. Порог намеренно высок (D-023)
+      - key: chat.net_group_limit
+        value: 50
+        unit: участников
+        note: Предел групповой переписки в Сети
+      - key: cheat.suspicion_sigma
+        value: 3
+        unit: σ
+        note: Отклонение поведения, после которого аккаунт попадает в очередь проверки
+      - key: cheat.action_sigma
+        value: 3
+        unit: σ
+        note: То же для равномерности ритма действий
+      - key: record.covert_rig_level
+        value: 8
+        unit: уровень лестницы
+        note: С какого уровня рецептов доступно скрытое оснащение записи (D-081)
+      - key: record.max_duration
+        value: 30
+        unit: минут
+        note: Предел длительности одной записи
+      - key: record.carrier_mass
+        value: 2
+        unit: кг
+        note: Вес носителя записи
+      - key: pyroxis.eruption_period
+        value: {min: 5, max: 14}
+        unit: суток
+      - key: pyroxis.eruption_warning
+        value: 6
+        unit: часов
+        note: Окно предупреждения до извержения
+      - key: pyroxis.nodes_shifted
+        value: {min: 1, max: 4}
+        unit: узлов
+        note: Сколько узлов перестраивает одно извержение
 
   - id: aurora
     title: Аврора

@@ -1,0 +1,141 @@
+# ЕДИНСТВЕННЫЙ ИСТОЧНИК восьми базовых культур Терры (D-057, D-105, D-136).
+#
+# Правится ТОЛЬКО здесь. Из этого файла генерируются:
+#   20-systems/17-plant-catalog.md — страница для чтения
+#   build/plants.json              — то, что читает движок
+# Команда: python tools/build.py
+#
+# Замысел — почему культур восемь и что каждая держит на себе — живёт в
+# 20-systems/14-plants-and-breeding.md и сюда не дублируется.
+#
+# Урожайность НЕ ЗАДАЁТСЯ. Она выводится сборкой из `harvest.rates` и длины
+# цикла (D-136): час ухода за делянкой обязан стоить столько же, сколько час
+# любого другого труда (И2). Задаются требования и характер — то, из чего
+# складывается сложность выращивания.
+#
+# Формат записи:
+#   id        — идентификатор для движка
+#   name      — название культуры
+#   gives     — что даёт. Обязано быть в `harvest.rates` и в сырье recipes.yaml
+#   byproduct — побочный выход, если есть
+#   cycle     — длина цикла роста в сутках
+#   requires  — что нужно от места и ухода:
+#                 temp      {min, max} — диапазон температуры, °C
+#                 water     1–3        — потребность в воде
+#                 fertility 0–100      — требуемая плодородность
+#                 light     1–3        — светолюбивость
+#   traits    — характер:
+#                 hardiness    1–5 — насколько прощает ошибки ухода
+#                 disease_risk 1–5 — чувствительность к болезни
+#                 density_risk 1–5 — чувствительность к загущению
+#                 spoilage_k   ×   — множитель к `spoilage.food_base` для урожая
+#   restores  — сколько плодородия культура ВОЗВРАЩАЕТ почве, % (только бобы)
+#
+# Правило баланса (D-057): показатели и требования идут парой. Культура,
+# хорошая во всём, существовать не должна — сборка это проверяет и ругается.
+
+meta:
+  decisions: [D-057, D-105, D-136]
+  doc: 20-systems/17-plant-catalog.md
+  design: 20-systems/14-plants-and-breeding.md
+  # Нормировочная делянка, от которой считается урожайность (пример из 06-farming)
+  reference_area: 100
+
+plants:
+  - id: spelt
+    name: Полба
+    gives: Зерно
+    byproduct: Солома
+    cycle: 6
+    requires:
+      temp: {min: 4, max: 28}
+      water: 2
+      fertility: 45
+      light: 2
+    traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.5}
+    note: Основа питания. Неприхотлива, средний цикл, солома идёт в корм и на подстилку
+
+  - id: turnip
+    name: Репа
+    gives: Овощи
+    cycle: 4
+    requires:
+      temp: {min: 2, max: 24}
+      water: 3
+      fertility: 40
+      light: 2
+    traits: {hardiness: 3, disease_risk: 3, density_risk: 3, spoilage_k: 1.6}
+    note: Еда новичка. Быстрый цикл и много массы, но портится быстрее всех
+
+  - id: beans
+    name: Бобы
+    gives: Бобы
+    cycle: 7
+    requires:
+      temp: {min: 12, max: 30}
+      water: 2
+      fertility: 30
+      light: 2
+    traits: {hardiness: 3, disease_risk: 2, density_risk: 2, spoilage_k: 0.6}
+    restores: 15
+    note: Единственная культура, которая платит почве, а не берёт. Требует тепла
+
+  - id: flax
+    name: Лён
+    gives: Волокно
+    cycle: 11
+    requires:
+      temp: {min: 3, max: 20}
+      water: 3
+      fertility: 55
+      light: 2
+    traits: {hardiness: 2, disease_risk: 3, density_risk: 4, spoilage_k: 0.2}
+    note: Долгий цикл и капризность в обмен на всю лёгкую промышленность
+
+  - id: camelina
+    name: Рыжик
+    gives: Масличные семена
+    cycle: 8
+    requires:
+      temp: {min: 6, max: 32}
+      water: 1
+      fertility: 20
+      light: 3
+    traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.4}
+    note: Культура окраин — терпит бедные и сухие земли, зато любит свет
+
+  - id: sugarcane
+    name: Сахарник
+    gives: Сахарный стебель
+    cycle: 10
+    requires:
+      temp: {min: 14, max: 34}
+      water: 3
+      fertility: 75
+      light: 3
+    traits: {hardiness: 2, disease_risk: 4, density_risk: 3, spoilage_k: 0.5}
+    note: Жаден к почве и теплу, но открывает химию, спирт и ракетное топливо
+
+  - id: stjohnswort
+    name: Зверобой
+    gives: Целебные травы
+    cycle: 9
+    requires:
+      temp: {min: 5, max: 30}
+      water: 1
+      fertility: 15
+      light: 3
+    traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.3}
+    note: Растёт на скудных землях, выход мал. Вся медицина держится на нём
+
+  - id: brome
+    name: Кострец
+    gives: Сено
+    cycle: 5
+    requires:
+      temp: {min: -2, max: 30}
+      water: 1
+      fertility: 10
+      light: 1
+    traits: {hardiness: 5, disease_risk: 1, density_risk: 1, spoilage_k: 0.3}
+    note: Страховка от неурожая — растёт почти везде, но кормит только скот
