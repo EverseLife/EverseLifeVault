@@ -257,6 +257,17 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
         return d
 
     def step_of(name: str) -> float:
+        """Собственное время изготовления единицы.
+
+        По умолчанию растёт от глубины передела. Рецепт вправе назвать его сам
+        полем `hours` — исключение того же рода, что и `amounts`: бывает работа,
+        длинная не от сложности состава (выдержка, обжиг, брожение).
+        Заданное время идёт и в количества: час работы съедает
+        `craft.input_labor_ratio` часов чужого труда.
+        """
+        manual = (recipes.get(name) or {}).get("hours")
+        if manual:
+            return float(manual)
         return base_step * growth ** (depth_of(name) - 1)
     synonyms = {**STATION_ALIASES, **doc["meta"].get("synonyms", {})}
     op_outputs = {g: op for op in doc["operations"] for g in op["gives"]}
@@ -276,6 +287,11 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
                             "в `harvest.rates` — ни время, ни количества не вывести")
             op_step[g] = 0.0
             labor[g] = 0.0
+
+    for name, r in recipes.items():
+        hours = r.get("hours")
+        if hours is not None and (not isinstance(hours, (int, float)) or hours <= 0):
+            problems.append(f"«{name}»: `hours` должно быть числом больше нуля, а не {hours!r}")
 
     amounts: dict[str, dict[str, float]] = {}
     op_amounts: dict[str, dict[str, float]] = {}
@@ -493,6 +509,11 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     for name in meta.get("bulk", []):
         if canon(name) not in known:
             problems.append(f"весовое «{name}»: такой вещи нет ни в рецептах, ни в сырье")
+
+    # 1c. единицы измерения: тот же присмотр, что за весовым
+    for name in (meta.get("units") or {}):
+        if canon(name) not in known:
+            problems.append(f"единица измерения у «{name}»: такой вещи нет")
 
     # 2. проходимость: можно ли собрать всё, начав с голого сырья.
     #    Заодно ловит любой цикл — зацикленное просто никогда не откроется.
@@ -1110,6 +1131,9 @@ def main() -> int:
             # весовое: количество бывает дробным (D-212). Всё остальное
             # штучное — целое всегда, и половины слитка не бывает
             "bulk": sorted(with_seed_bulk(recipes_doc["meta"].get("bulk", []), plants)),
+            # Единица измерения рядом с числом: «5 шт», «3 м». Только для показа
+            # игроку — целость количества задаётся `bulk`, а не словом
+            "units": dict(sorted((recipes_doc["meta"].get("units") or {}).items())),
             # что годится в котёл: движку нельзя гадать съедобность по имени
             "edible": recipes_doc["meta"].get("edible", []),
             # слоты снаряжения: в каждый надевается одна вещь (D-146)
