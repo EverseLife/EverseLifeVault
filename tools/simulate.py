@@ -143,7 +143,7 @@ FOOD = ["Хлеб", "Похлёбка"]      # готовое: сытнее, н�
 FOOD_RAW = ["Овощи"]             # сырое: репа с грядки. Голодным не оставит
 QUALITY_COOKED = 55.0            # выше cook.hot_quality_min — даёт сытость
 QUALITY_RAW = 25.0               # ниже: просто еда
-POWERED = {"кузнец", "мельник"}  # чьи станки берут энергию из пула (D-135)
+POWERED = {"кузнец", "мельник"}  # чьи станции берут энергию из пула (D-135)
 
 # Стартовые цены: считаются от якоря руды по трудоёмкости, а не назначаются.
 # Час труда должен стоить примерно одинаково — это И2, и симуляция проверит,
@@ -295,7 +295,7 @@ class Treasury:
         self.repair_done = 0.0
 
     def energy_bill(self, a: "Agent") -> float:
-        """Счёт по счётчику: быт с метра плюс работа станков (D-135)."""
+        """Счёт по счётчику: быт с метра плюс работа станций (D-135)."""
         area = A("city.built_area_per_agent")
         home = C["energy.home_draw_per_m2"] * area * C["energy.meter_period"]
         stations = C["energy.auto_bench_draw"] * a.hours if a.job in POWERED else 0.0

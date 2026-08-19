@@ -28,16 +28,19 @@ DATA = ROOT / "data"
 TEMPLATES = ROOT / "templates"
 BUILD = ROOT / "build"
 
-# Станки, которых нет и не должно быть в списке рецептов
+# Рабочие станции, которых нет и не должно быть в списке рецептов
 VIRTUAL_STATIONS = {"Руками", "Стройка"}
-# Разговорное название станка -> рецепт, которым он делается
+# Разговорное название станции -> рецепт, которым она делается
 STATION_ALIASES = {"Печь": "Плавильная печь"}
 
 PREFIX_UNITS = {"×", "±", "до +", "до "}
 
 # Тип рецепта -> как он называется в тексте (D-090)
 KIND_LABEL = {
-    "station": "станок",
+    "station": "рабочая станция",
+    #: Мебель обустраивает здание, но станцией не является: на ней не работают.
+    #: Кровать — гибернация, стеллаж — хранение
+    "furniture": "мебель",
     "tool": "инструмент",
     "gear": "снаряжение",
     "vehicle": "транспорт",
@@ -128,7 +131,7 @@ def render_recipe_table(recipes: list[dict], amounts: dict | None = None) -> str
     show_station = any(r.get("station") != "Руками" for r in recipes)
     head = ["| Рецепт | Тип | Входы |", "|---|---|---|"]
     if show_station:
-        head = ["| Рецепт | Тип | Входы | Станок |", "|---|---|---|---|"]
+        head = ["| Рецепт | Тип | Входы | Станция |", "|---|---|---|---|"]
 
     rows = list(head)
     for r in recipes:
@@ -352,6 +355,97 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
     return amounts, op_amounts, labor, problems
 
 
+def with_seed_mass(mass: dict, plants: list[dict], constants: dict) -> dict[str, float]:
+    """Добавить к массам семена культур (D-146).
+
+    Семена описаны в `plants.yaml`, а не рецептом, и потому мимо `compute_mass`
+    проходят. Вес у всех один — `farm.seed_mass`: семена мелкие, и разница
+    между культурами для носимого несущественна. Без этого семенной фонд не
+    весил бы ничего, а предел носимого имел бы дыру ровно там, где фермер.
+    """
+    за_семя = flatten_constants(constants).get("farm.seed_mass")
+    if за_семя is None:  # pragma: no cover — величина обязана быть в вольте
+        return dict(mass)
+    итог = dict(mass)
+    for plant in plants:
+        итог.setdefault(plant["seed"], float(за_семя))
+    return итог
+
+
+def with_seed_bulk(bulk: list[str], plants: list[dict]) -> list[str]:
+    """Добавить к весовому семена культур (D-212).
+
+    Семена описаны в `plants.yaml`, а не рецептом, и в список весового руками
+    их не впишешь: культура заводится там, и строка здесь про неё забылась бы.
+    Сеются они нормой на квадратный метр — величиной заведомо дробной.
+    """
+    итог = list(bulk)
+    for plant in plants:
+        if plant["seed"] not in итог:
+            итог.append(plant["seed"])
+    return итог
+
+
+def compute_mass(
+    doc: dict, constants: dict, op_amounts: dict
+) -> tuple[dict[str, float], list[str]]:
+    """Масса единицы каждого предмета, кг (D-146).
+
+    **Масса задаётся, а не выводится** — в отличие от количеств (D-133) и
+    урожайности (D-136), и на то есть причина, стоившая одной попытки.
+
+    Вывести массу изделия из масс его входов не получается: количества входов
+    заданы **трудом**, а не физическим составом. Час работы съедает час чужого
+    труда, поэтому в кирку «входит» столько железа, сколько стоит её
+    изготовление, — а не столько, сколько в ней есть. Сложение таких входов
+    давало кирку в 18 кг, хлеб в 11 кг и золотую монету в 4.9 кг при заданном
+    вольтом весе монеты в грамм.
+
+    Поэтому здесь три источника, в порядке убывания точности:
+
+    1. `mass:` у рецепта — там, где вес важен и известен;
+    2. `meta.mass` — сырьё и то, что берётся из мира;
+    3. `inventory.mass_by_kind` — умолчание по типу предмета. Грубое, но
+       осмысленное: инструмент весит как инструмент, пока кто-то не уточнит.
+    """
+    meta = doc["meta"]
+    synonyms = {**STATION_ALIASES, **meta.get("synonyms", {})}
+
+    def canon(name: str) -> str:
+        return synonyms.get(name, name)
+
+    mass: dict[str, float] = {canon(k): float(v) for k, v in meta.get("mass", {}).items()}
+    by_kind = flatten_constants(constants).get("inventory.mass_by_kind") or {}
+    problems: list[str] = []
+
+    for _, _, r in all_recipes(doc):
+        имя = canon(r["name"])
+        если_задано = r.get("mass")
+        if если_задано is not None:
+            mass[имя] = float(если_задано)
+            continue
+        if имя in mass:
+            continue
+        по_типу = by_kind.get(r.get("kind", "material"))
+        if по_типу is None:
+            problems.append(
+                f"«{r['name']}»: массы нет — задай `mass:` у рецепта либо "
+                f"умолчание для типа «{r.get('kind')}» в `inventory.mass_by_kind`"
+            )
+            continue
+        mass[имя] = float(по_типу)
+
+    #: Выходы операций — то, что берётся из мира или дробится из него. Их масса
+    #: обязана быть задана руками: выводить её не из чего.
+    for g in op_amounts:
+        if canon(g) not in mass:
+            problems.append(
+                f"«{g}»: продукт операции без массы — задай его в `meta.mass` "
+                "(D-146)"
+            )
+    return mass, problems
+
+
 def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     """Проверяет то, что документ обещает словами.
 
@@ -377,14 +471,14 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
 
     known = set(recipes) | raw | op_outputs | VIRTUAL_STATIONS | set(tool_classes)
 
-    # 1. неизвестные входы и станки
+    # 1. неизвестные входы и рабочие станции
     for name, r in recipes.items():
         for i in r["inputs"]:
             if canon(i) not in known:
                 problems.append(f"«{name}»: вход «{i}» не рецепт, не сырьё и не продукт операции")
         st = r.get("station")
         if st and canon(st) not in known:
-            problems.append(f"«{name}»: станок «{st}» ничем не делается")
+            problems.append(f"«{name}»: рабочая станция «{st}» ничем не делается")
     for op in doc["operations"]:
         for q in op["requires"]:
             if canon(q) not in known:
@@ -393,6 +487,12 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
             if canon(i) not in known:
                 problems.append(f"операция «{op['name']}»: расходует «{i}», который не рецепт, "
                                 "не сырьё и не продукт операции")
+
+    # 1b. весовое (D-212): список обязан называть существующие вещи —
+    #     опечатка сделала бы песок штучным молча
+    for name in meta.get("bulk", []):
+        if canon(name) not in known:
+            problems.append(f"весовое «{name}»: такой вещи нет ни в рецептах, ни в сырье")
 
     # 2. проходимость: можно ли собрать всё, начав с голого сырья.
     #    Заодно ловит любой цикл — зацикленное просто никогда не откроется.
@@ -507,6 +607,43 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     return fresh, known_problems
 
 
+def check_compositions(doc: dict, amounts: dict) -> list[str]:
+    """Состав на одной рабочей станции называет ровно один рецепт (D-209).
+
+    Изобретение узнаёт рецепт по составу с количествами на единицу выхода:
+    игрок кладёт материалы, и движок ищет, что из них здесь получается. Два
+    рецепта с одним и тем же составом на одной станции — неразрешимая
+    неоднозначность, и она ловится здесь, а не в момент изобретения. Блюда и
+    монета в изобретении не участвуют: у них своя дверь (котёл, чеканка).
+    """
+    synonyms: dict[str, str] = {**STATION_ALIASES, **doc["meta"].get("synonyms", {})}
+
+    def canon(name: str) -> str:
+        return synonyms.get(name, name)
+
+    seen: dict[tuple, list[str]] = {}
+    for _, _, r in all_recipes(doc):
+        if r.get("roles") or r.get("kind") == "money":
+            continue
+        station = canon(r.get("station") or "Руками")
+        composition = tuple(sorted(
+            (canon(k), round(float(v), 3)) for k, v in amounts.get(r["name"], {}).items()
+        ))
+        seen.setdefault((station, composition), []).append(r["name"])
+
+    problems: list[str] = []
+    for (station, composition), names in sorted(seen.items()):
+        if len(names) < 2:
+            continue
+        recipe = ", ".join(f"{k} {fmt_qty(v)}" for k, v in composition) or "пусто"
+        problems.append(
+            f"один состав — {len(names)} рецепта на станции «{station}» ({recipe}): "
+            + ", ".join(f"«{n}»" for n in names)
+            + " — задай количества руками, чтобы изобретение различало их (D-209)"
+        )
+    return problems
+
+
 # ------------------------------------------------------------------ шаблоны
 
 def render_template(text: str, resolve) -> str:
@@ -527,10 +664,14 @@ def build_constants() -> tuple[str, dict]:
     return render_template(tmpl, resolve), doc
 
 
-def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, list[str]]:
+def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, dict, list[str]]:
     doc = yaml.safe_load((DATA / "recipes.yaml").read_text(encoding="utf-8"))
     levels = {str(l["id"]): l for l in doc["levels"]}
     amounts, op_amounts, labor, qty_problems = compute_amounts(doc, constants)
+    #: Масса задаётся данными: вывести её из количеств нельзя, те заданы
+    #: трудом, а не составом (D-146).
+    mass, mass_problems = compute_mass(doc, constants, op_amounts)
+    qty_problems = qty_problems + mass_problems
 
     def section_of(level_id: str, sec_id: str) -> dict:
         for s in levels[level_id].get("sections", []):
@@ -565,7 +706,7 @@ def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, list[st
         raise KeyError(f"неизвестный плейсхолдер {{{{{token}}}}}")
 
     tmpl = (TEMPLATES / "recipes-mvp.md.tmpl").read_text(encoding="utf-8")
-    return render_template(tmpl, resolve), doc, amounts, op_amounts, labor, qty_problems
+    return render_template(tmpl, resolve), doc, amounts, op_amounts, labor, mass, qty_problems
 
 
 # ----------------------------------------------------------------- культуры
@@ -641,6 +782,8 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
 
         out.append({
             "id": p["id"], "name": p["name"], "gives": p["gives"],
+            # чем сеют: семена — предмет, отдельный от продукта (D-057)
+            "seed": p["seed"],
             "byproduct": p.get("byproduct"), "cycle_days": p["cycle"],
             "yield_per_m2": round(total / area, 3),
             "yield_per_cycle": round(total, 1),
@@ -889,11 +1032,12 @@ def main() -> int:
     check_only = "--check" in sys.argv
 
     constants_md, constants_doc = build_constants()
-    recipes_md, recipes_doc, amounts, op_amounts, labor, qty_problems = build_recipes(constants_doc)
+    recipes_md, recipes_doc, amounts, op_amounts, labor, mass, qty_problems = build_recipes(constants_doc)
     harvest_rates = flatten_constants(constants_doc).get("harvest.rates", {})
     plants_md, plants, plant_problems = build_plants(constants_doc, recipes_doc)
     laws_md, laws_doc = build_laws()
     problems, known_problems = check_recipes(recipes_doc)
+    problems += check_compositions(recipes_doc, amounts)
     problems += qty_problems
     problems += plant_problems
     problems += check_laws(laws_doc)
@@ -941,6 +1085,9 @@ def main() -> int:
                     "requires": op["requires"],
                     "gives": op["gives"],
                     "consumes": op.get("consumes", []),
+                    # где операция возможна: свойство узла (D-177). Пусто —
+                    # операция не привязана к месту
+                    "place": op.get("place"),
                     # количества и время — по каждому выходу отдельно
                     "amounts": {g: op_amounts.get(g, {}) for g in op["gives"]},
                     "hours_per_unit": {
@@ -960,6 +1107,20 @@ def main() -> int:
                 for op in recipes_doc["operations"]
             ],
             "raw": recipes_doc["meta"]["raw"],
+            # весовое: количество бывает дробным (D-212). Всё остальное
+            # штучное — целое всегда, и половины слитка не бывает
+            "bulk": sorted(with_seed_bulk(recipes_doc["meta"].get("bulk", []), plants)),
+            # что годится в котёл: движку нельзя гадать съедобность по имени
+            "edible": recipes_doc["meta"].get("edible", []),
+            # слоты снаряжения: в каждый надевается одна вещь (D-146)
+            "gear_slots": recipes_doc["meta"].get("gear_slots", []),
+            # масса единицы, кг. Задана данными: см. compute_mass. Семена
+            # культур добавляются отдельно: они описаны в plants.yaml, а не
+            # рецептом, и без этого проходили бы мимо предела носимого (D-146)
+            "mass": {
+                k: round(v, 3)
+                for k, v in sorted(with_seed_mass(mass, plants, constants_doc).items())
+            },
             "labor_hours": {k: round(v, 3) for k, v in sorted(labor.items())},
             "recipes": [
                 {
@@ -970,6 +1131,15 @@ def main() -> int:
                     "key": bool(r.get("key")),
                     "mix": bool(r.get("mix")),
                     "roles": bool(r.get("roles")),
+                    # Съедобность и «горячее» — данные: движку нельзя гадать,
+                    # что человек ест, по названию предмета (D-065 по духу).
+                    "food": bool(r.get("food")),
+                    "hot": bool(r.get("hot")),
+                    # в какой слот надевается: у не-снаряжения пусто (D-146)
+                    "slot": r.get("slot"),
+                    # сколько килограммов вмещает как хранилище (D-181).
+                    # Пусто — вещь не хранилище: движок не гадает по названию
+                    "store": r.get("store"),
                     "inputs": r["inputs"],
                     "amounts": amounts.get(r["name"], {}),
                     "manual_amounts": bool(r.get("amounts")),
