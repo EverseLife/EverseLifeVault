@@ -270,6 +270,7 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
             return float(manual)
         return base_step * growth ** (depth_of(name) - 1)
     synonyms = {**STATION_ALIASES, **doc["meta"].get("synonyms", {})}
+    bulk = {canon(name) for name in doc["meta"].get("bulk", [])}
     op_outputs = {g: op for op in doc["operations"] for g in op["gives"]}
     problems: list[str] = []
 
@@ -359,7 +360,13 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
             # Сверху — потолок, иначе дешёвое сырьё уходит вёдрами
             q = w * ratio * step / li
             q = max(1.0, min(cap, q))
-            out[i] = round(q) if q >= 2 else round(q, 1)
+            if canon(i) not in bulk:
+                # Штучное целое всегда (D-212): половины слитка не бывает ни в
+                # руках, ни в составе. Округление здесь, а не проверкой после:
+                # проверка сказала бы, что мир противоречив, и была бы права
+                out[i] = float(max(1, round(q)))
+            else:
+                out[i] = round(q) if q >= 2 else round(q, 1)
         return out
 
     # Операции считаются первыми: их продукты — входы половины рецептов,
@@ -403,7 +410,7 @@ def with_seed_bulk(bulk: list[str], plants: list[dict]) -> list[str]:
 
 
 def compute_mass(
-    doc: dict, constants: dict, op_amounts: dict
+    doc: dict, constants: dict, op_amounts: dict, amounts: dict | None = None
 ) -> tuple[dict[str, float], list[str]]:
     """Масса единицы каждого предмета, кг (D-146).
 
@@ -423,6 +430,12 @@ def compute_mass(
     2. `meta.mass` — сырьё и то, что берётся из мира;
     3. `inventory.mass_by_kind` — умолчание по типу предмета. Грубое, но
        осмысленное: инструмент весит как инструмент, пока кто-то не уточнит.
+
+    **Сверху всё это подрезано вошедшим веществом.** Материя при переделе не
+    появляется: вещь не может весить больше, чем сумма масс её входов. Снизу
+    ограничения нет — часть вещества уходит в отход, и монета в грамм из
+    навески металла законна. Подрезка идёт по лестнице: подрезанная масса
+    входа уменьшает потолок того, что из него делают.
     """
     meta = doc["meta"]
     synonyms = {**STATION_ALIASES, **meta.get("synonyms", {})}
@@ -459,6 +472,31 @@ def compute_mass(
                 f"«{g}»: продукт операции без массы — задай его в `meta.mass` "
                 "(D-146)"
             )
+
+    recipes = {canon(r["name"]): r for _, _, r in all_recipes(doc)}
+    capped: dict[str, float] = {}
+
+    def limited(name: str, seen: frozenset = frozenset()) -> float:
+        """Масса вещи, подрезанная тем, что в неё вошло."""
+        name = canon(name)
+        if name in capped:
+            return capped[name]
+        own = mass.get(name, 0.0)
+        r = recipes.get(name)
+        if r is None or name in seen:
+            return own
+        into = sum(
+            float(q) * limited(i, seen | {name})
+            for i, q in (amounts or {}).get(r["name"], {}).items()
+        )
+        # Пустой состав не подрезает: вещь без известных входов взвесить не по
+        # чему, и нулём её делать нельзя
+        capped[name] = min(own, into) if into > 0 else own
+        return capped[name]
+
+    for name in list(recipes):
+        limited(name)
+    mass.update(capped)
     return mass, problems
 
 
@@ -653,6 +691,32 @@ def check_compositions(doc: dict, amounts: dict) -> list[str]:
         seen.setdefault((station, composition), []).append(r["name"])
 
     problems: list[str] = []
+
+    # Штучное считают штуками (D-212). Вывод даёт целые сам, но `amounts`
+    # задаются руками — и «0.5 стали» в рецепте означает, что игроку придётся
+    # положить полкуска стали, чего движок ему не позволит.
+    bulk = {canon(name) for name in doc["meta"].get("bulk", [])}
+    for _, _, r in all_recipes(doc):
+        for item, quantity in amounts.get(r["name"], {}).items():
+            if canon(item) in bulk or float(quantity).is_integer():
+                continue
+            problems.append(
+                f"«{r['name']}»: «{item}» штучное, а требуется {fmt_qty(quantity)} — "
+                "задай целое количество либо назови вещь весовой в `meta.bulk` (D-212)"
+            )
+    for op in doc["operations"]:
+        for give, spent in (op.get("amounts") or {}).items():
+            # Где выход мельче входа, дробь осмысленна: одно бревно даёт пять
+            # досок, и «0.2 бревна на доску» — та же партия, записанная иначе
+            if (op.get("yield") or {}).get(give):
+                continue
+            for item, quantity in spent.items():
+                if canon(item) not in bulk and not float(quantity).is_integer():
+                    problems.append(
+                        f"операция «{op['name']}»: «{item}» штучное, а на {give} "
+                        f"идёт {fmt_qty(quantity)} (D-212)"
+                    )
+
     for (station, composition), names in sorted(seen.items()):
         if len(names) < 2:
             continue
@@ -691,7 +755,7 @@ def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, dict, l
     amounts, op_amounts, labor, qty_problems = compute_amounts(doc, constants)
     #: Масса задаётся данными: вывести её из количеств нельзя, те заданы
     #: трудом, а не составом (D-146).
-    mass, mass_problems = compute_mass(doc, constants, op_amounts)
+    mass, mass_problems = compute_mass(doc, constants, op_amounts, amounts)
     qty_problems = qty_problems + mass_problems
 
     def section_of(level_id: str, sec_id: str) -> dict:
@@ -1167,7 +1231,9 @@ def main() -> int:
                     "inputs": r["inputs"],
                     "amounts": amounts.get(r["name"], {}),
                     "manual_amounts": bool(r.get("amounts")),
-                    "labor_hours": round(labor.get(r["name"], 0.0), 3),
+                    # Трудоёмкости здесь нет: она лежит одной картой ниже, и
+                    # там же трудоёмкость сырья и продуктов операций. Второй
+                    # экземпляр того же числа читать было некому
                     "station": r.get("station"),
                 }
                 for lvl, sec, r in all_recipes(recipes_doc)
