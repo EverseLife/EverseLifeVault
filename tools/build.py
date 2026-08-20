@@ -1071,7 +1071,7 @@ def build_status_index() -> str:
 
     for path in sorted(ROOT.rglob("*.md")):
         rel = path.relative_to(ROOT).as_posix()
-        if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md"):
+        if rel.startswith((".obsidian/", ".pytest_cache/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md"):
             continue
         if rel == "90-production/03-status.md":
             continue
