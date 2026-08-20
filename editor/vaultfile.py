@@ -630,9 +630,19 @@ def _find_recipe(doc: dict, name: str) -> dict | None:
 
 
 def _backup(path: Path) -> Path:
-    BACKUPS.mkdir(exist_ok=True)
+    BACKUPS.mkdir(parents=True, exist_ok=True)
     stamp = time.strftime("%Y%m%d-%H%M%S")
-    target = BACKUPS / f"recipes-{stamp}-{int(time.time() * 1000) % 1000:03d}.yaml"
+    #: Two saves inside one millisecond used to land on the same name, and the
+    #: second copy overwrote the first. On a fast machine that is not exotic:
+    #: `undo` makes its own backup right before restoring, and a collision made
+    #: it roll back to the very edit it was undoing. The suffix keeps names
+    #: unique and their order chronological.
+    base = f"recipes-{stamp}-{int(time.time() * 1000) % 1000:03d}"
+    target = BACKUPS / f"{base}.yaml"
+    twin = 0
+    while target.exists():
+        twin += 1
+        target = BACKUPS / f"{base}-{twin:02d}.yaml"
     shutil.copy2(path, target)
     _trim_backups()
     return target
@@ -656,7 +666,10 @@ def undo(path: Path) -> str:
     backup = last_backup()
     if backup is None:
         raise VaultError("отменять нечего: правок в этой копии ещё не было")
+    #: Read before writing: what is being restored must not depend on the
+    #: backup file surviving the backup that `undo` itself makes.
+    restored = backup.read_bytes()
     _backup(path)
-    shutil.copy2(backup, path)
+    path.write_bytes(restored)
     backup.unlink(missing_ok=True)
     return backup.name
