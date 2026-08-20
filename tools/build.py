@@ -666,7 +666,7 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     return fresh, known_problems
 
 
-def check_compositions(doc: dict, amounts: dict) -> list[str]:
+def check_compositions(doc: dict, amounts: dict, batch_cap: float) -> list[str]:
     """Состав на одной рабочей станции называет ровно один рецепт (D-209).
 
     Изобретение узнаёт рецепт по составу с количествами на единицу выхода:
@@ -692,17 +692,24 @@ def check_compositions(doc: dict, amounts: dict) -> list[str]:
 
     problems: list[str] = []
 
-    # Штучное считают штуками (D-212). Вывод даёт целые сам, но `amounts`
-    # задаются руками — и «0.5 стали» в рецепте означает, что игроку придётся
-    # положить полкуска стали, чего движок ему не позволит.
+    # Штучное считают штуками (D-212), но норма рецепта дробной быть вправе
+    # (D-133): движок берёт целые куски **на партию**, а не на единицу. Десятая
+    # слитка в монете значит слиток на десять монет — это законно и так и
+    # задумано. Незаконна доля, которая не складывается в целое ни при какой
+    # партии: с «0.3 слитка» игрок переплачивает всегда, сколько ни чекань.
     bulk = {canon(name) for name in doc["meta"].get("bulk", [])}
     for _, _, r in all_recipes(doc):
         for item, quantity in amounts.get(r["name"], {}).items():
             if canon(item) in bulk or float(quantity).is_integer():
                 continue
+            batch = 1 / float(quantity)
+            if batch.is_integer() and batch <= batch_cap:
+                continue
             problems.append(
                 f"«{r['name']}»: «{item}» штучное, а требуется {fmt_qty(quantity)} — "
-                "задай целое количество либо назови вещь весовой в `meta.bulk` (D-212)"
+                "доля не складывается в целое разумной партией: задай целое "
+                "количество, долю вида 1/N либо назови вещь весовой в "
+                "`meta.bulk` (D-212, D-133)"
             )
     for op in doc["operations"]:
         for give, spent in (op.get("amounts") or {}).items():
@@ -1122,7 +1129,9 @@ def main() -> int:
     plants_md, plants, plant_problems = build_plants(constants_doc, recipes_doc)
     laws_md, laws_doc = build_laws()
     problems, known_problems = check_recipes(recipes_doc)
-    problems += check_compositions(recipes_doc, amounts)
+    problems += check_compositions(
+        recipes_doc, amounts, flatten_constants(constants_doc).get("craft.amount_cap", 10)
+    )
     problems += qty_problems
     problems += plant_problems
     problems += check_laws(laws_doc)
