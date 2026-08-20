@@ -1,0 +1,40 @@
+# The vault is what the game's numbers come from: since the game's CI builds
+# `vault/*.json` straight from here, a broken vault means a broken world. So
+# the check runs where the change happens.
+#
+# Nothing is deployed from this repository. New numbers reach the alpha only
+# when the game's run is called -- by a push there or by hand.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  vault:
+    name: Vault
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: pip install --quiet pyyaml==6.0.2 pytest==8.3.4
+
+      # The vault's own verdict on itself: circles in the ladder, dead ends,
+      # coinciding compositions (D-209).
+      - name: The vault checks itself
+        run: python tools/build.py --check
+
+      # It has to build, too: the game's run does exactly this and takes the
+      # four files away.
+      - name: It builds
+        run: python tools/build.py
+
+      - name: The editor's tests
+        run: python -m pytest editor/tests -q
