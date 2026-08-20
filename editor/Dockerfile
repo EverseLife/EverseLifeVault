@@ -29,7 +29,6 @@ ENV OCTOVERSE_VAULT=/vault \
     PYTHONUTF8=1 \
     PYTHONIOENCODING=utf-8 \
     PYTHONDONTWRITEBYTECODE=1 \
-    # Иначе `docker logs` пуст до заполнения буфера, и запуск выглядит немым.
     PYTHONUNBUFFERED=1
 
 EXPOSE 8765
