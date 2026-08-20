@@ -489,7 +489,7 @@ levels:
           - {name: Реле, kind: material, inputs: [Медь, Сталь, Провод], station: Мастерская}
           - {name: Автоматическая станция, kind: station, inputs: [Стальная рама, Электродвигатель, Точная деталь, Реле], station: Мастерская}
           - {name: Полевой автомат, kind: station, key: true, inputs: [Стальная рама, Электродвигатель, Реле, Труба], station: Мастерская}
-          - {name: Экзоскелет, kind: gear, key: true, slot: каркас, inputs: [Стальная рама, Электродвигатель, Аккумулятор, Реле], station: Мастерская, note: носимое}
+          - {name: Экзоскелет, kind: gear, key: true, slot: каркас, mass: 35, inputs: [Стальная рама, Электродвигатель, Аккумулятор, Реле], station: Мастерская, note: носимое}
       - id: electronics
         title: Электроника
         recipes:
