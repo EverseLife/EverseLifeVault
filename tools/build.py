@@ -1034,7 +1034,7 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
         # Журнал решений — архив: замороженные записи законно ссылаются на
         # константы, которых в реестре уже нет. Отчёт симуляции — наоборот:
         # он существует ради того, чтобы называть недостающие величины.
-        if rel.startswith((".obsidian/", "build/", "templates/")) or rel in (
+        if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in (
                 "90-production/02-decision-log.md", "90-production/04-simulation.md"):
             continue
         for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
@@ -1064,7 +1064,7 @@ def build_status_index() -> str:
 
     for path in sorted(ROOT.rglob("*.md")):
         rel = path.relative_to(ROOT).as_posix()
-        if rel.startswith((".obsidian/", "build/", "templates/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md"):
+        if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md"):
             continue
         if rel == "90-production/03-status.md":
             continue
