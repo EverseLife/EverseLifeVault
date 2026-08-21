@@ -1249,6 +1249,7 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
     Ловит обратную ошибку тоже: константу удалили решением, а текст на неё ссылается.
     """
     known = set(flatten_constants(constants_doc))
+    namespaces = {key.split(".", 1)[0] for key in known}
     problems: list[str] = []
     for path in sorted(ROOT.rglob("*.md")):
         rel = path.relative_to(ROOT).as_posix()
@@ -1262,6 +1263,12 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
             continue
         for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
             if key.rsplit(".", 1)[-1] in FILE_SUFFIXES:
+                continue
+            #: Точка между словами ещё не делает имя константой: `everse.life`
+            #: — домен, а не величина. Отсюда правило: имя проверяется, только
+            #: если его пространство есть в реестре. Опечатка внутри живого
+            #: пространства (`craft.time_per_unitt`) при этом ловится по-прежнему.
+            if key.split(".", 1)[0] not in namespaces:
                 continue
             if key not in known:
                 problems.append(f"{rel}: ссылается на константу «{key}», которой нет в реестре")
