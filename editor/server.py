@@ -689,8 +689,8 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Редактор рецептов вольта OctoVerse")
-    port = int(os.environ.get("OCTOVERSE_EDITOR_PORT", 8765))
+    parser = argparse.ArgumentParser(description="Редактор рецептов вольта Everse.Life")
+    port = int(os.environ.get("EVERSELIFE_EDITOR_PORT", 8765))
     parser.add_argument("--port", type=int, default=port)
     parser.add_argument("--vault", default=None, help="путь к вольту гейм-дизайна")
     # Loopback by default: инструмент пишет в файлы. В контейнере петля своя, и
@@ -698,14 +698,14 @@ def main() -> int:
     # границей там служит проброс порта, а не адрес.
     parser.add_argument(
         "--host",
-        default=os.environ.get("OCTOVERSE_EDITOR_HOST", "127.0.0.1"),
+        default=os.environ.get("EVERSELIFE_EDITOR_HOST", "127.0.0.1"),
         help="адрес, на котором слушать (по умолчанию только петля)",
     )
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
 
     if args.vault:
-        os.environ["OCTOVERSE_VAULT"] = args.vault
+        os.environ["EVERSELIFE_VAULT"] = args.vault
     try:
         root = vault.vault_root()
     except vault.VaultError as error:

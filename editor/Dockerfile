@@ -4,12 +4,12 @@
 # того, чтобы менять файл, а копия в образе — это правки, которые никто не
 # увидит. Вольт подключается томом:
 #
-#   docker build -t octoverse-vault-editor editor
+#   docker build -t everselife-vault-editor editor
 #   docker run --rm -p 8765:8765 \
-#       -v /path/to/octoverse-game-design:/vault \
-#       -v /path/to/octoverse/vault:/repo/vault \
-#       -v /path/to/octoverse-vault/editor/backups:/backups \
-#       octoverse-vault-editor
+#       -v /path/to/everselife-vault:/vault \
+#       -v /path/to/everselife/vault:/repo/vault \
+#       -v /path/to/everselife-vault/editor/backups:/backups \
+#       everselife-vault-editor
 #
 # Проще — `docker compose -f editor/compose.yaml up`, там всё это уже
 # описано.
@@ -23,9 +23,9 @@ RUN pip install --no-cache-dir pyyaml==6.0.2
 WORKDIR /app
 COPY . /app
 
-ENV OCTOVERSE_VAULT=/vault \
-    OCTOVERSE_EDITOR_BACKUPS=/backups \
-    OCTOVERSE_EDITOR_HOST=0.0.0.0 \
+ENV EVERSELIFE_VAULT=/vault \
+    EVERSELIFE_EDITOR_BACKUPS=/backups \
+    EVERSELIFE_EDITOR_HOST=0.0.0.0 \
     PYTHONUTF8=1 \
     PYTHONIOENCODING=utf-8 \
     PYTHONDONTWRITEBYTECODE=1 \

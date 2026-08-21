@@ -32,7 +32,7 @@ import yaml
 # Both are overridable because the editor also runs in a container, where the
 # repository and the backups live on mounted volumes rather than beside the code.
 BACKUPS = Path(
-    os.environ.get("OCTOVERSE_EDITOR_BACKUPS") or Path(__file__).resolve().parent / "backups"
+    os.environ.get("EVERSELIFE_EDITOR_BACKUPS") or Path(__file__).resolve().parent / "backups"
 )
 
 # The one word that stands for "no machine needed" (D-216), and the spoken name
@@ -107,7 +107,7 @@ class VaultError(Exception):
 
 def vault_root() -> Path:
     """Where the vault lies. The editor is part of it unless told otherwise."""
-    env = os.environ.get("OCTOVERSE_VAULT")
+    env = os.environ.get("EVERSELIFE_VAULT")
     if env:
         root = Path(env).expanduser().resolve()
     else:
@@ -116,7 +116,7 @@ def vault_root() -> Path:
     if not (root / "data" / "recipes.yaml").exists():
         raise VaultError(
             f"вольт не найден: {root}\n"
-            "Укажите путь переменной OCTOVERSE_VAULT."
+            "Укажите путь переменной EVERSELIFE_VAULT."
         )
     return root
 

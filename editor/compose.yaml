@@ -12,14 +12,14 @@ services:
   vault-editor:
     build:
       context: .
-    image: octoverse-vault-editor
+    image: everselife-vault-editor
     ports:
       # Только петля хоста: инструмент пишет в файлы, наружу ему незачем.
       - "127.0.0.1:8765:8765"
     volumes:
       # Сам вольт: редактор живёт внутри него, поэтому это каталог выше.
-      # Путь переопределяется переменной OCTOVERSE_VAULT.
-      - ${OCTOVERSE_VAULT:-..}:/vault
+      # Путь переопределяется переменной EVERSELIFE_VAULT.
+      - ${EVERSELIFE_VAULT:-..}:/vault
       # Бэкапы переживают пересоздание контейнера — иначе «Отменить правку»
       # забывала бы всё при каждом `up`.
       - ./backups:/backups

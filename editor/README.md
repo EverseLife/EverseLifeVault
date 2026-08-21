@@ -19,11 +19,11 @@ python editor/server.py
 
 | Ключ | Переменная | По умолчанию |
 |---|---|---|
-| `--vault ПУТЬ` | `OCTOVERSE_VAULT` | вольт, в котором лежит редактор |
-| `--port` | `OCTOVERSE_EDITOR_PORT` | 8765 |
-| `--host` | `OCTOVERSE_EDITOR_HOST` | 127.0.0.1 |
+| `--vault ПУТЬ` | `EVERSELIFE_VAULT` | вольт, в котором лежит редактор |
+| `--port` | `EVERSELIFE_EDITOR_PORT` | 8765 |
+| `--host` | `EVERSELIFE_EDITOR_HOST` | 127.0.0.1 |
 | `--no-browser` | — | браузер открывается сам |
-| — | `OCTOVERSE_EDITOR_BACKUPS` | `editor/backups` |
+| — | `EVERSELIFE_EDITOR_BACKUPS` | `editor/backups` |
 
 ---
 
@@ -41,7 +41,7 @@ docker compose -f editor/compose.yaml up --build
 
 | Том | Зачем |
 |---|---|
-| `<вольт>:/vault` | то, что правится. Путь задаётся переменной `OCTOVERSE_VAULT` |
+| `<вольт>:/vault` | то, что правится. Путь задаётся переменной `EVERSELIFE_VAULT` |
 | `./backups:/backups` | «Отменить правку» переживает пересоздание контейнера |
 
 Два тома, и больше редактору ничего не нужно.
