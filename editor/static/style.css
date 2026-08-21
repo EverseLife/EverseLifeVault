@@ -190,7 +190,6 @@ main {
 .ctl { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 11px; }
 .ctl input[type="range"] { width: 74px; }
 .ctl output { font-family: var(--mono); color: var(--text); width: 12px; }
-.chk { display: flex; align-items: center; gap: 4px; color: var(--text-dim); font-size: 11px; cursor: pointer; }
 .spacer { flex: 1; }
 .hint { color: var(--text-faint); font-size: 11px; font-family: var(--mono); }
 

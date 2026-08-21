@@ -43,9 +43,14 @@ const app = {
   modes: { recipes: 'focus', stations: 'all' },
   back: 2,
   forward: 1,
-  stations: false,
-  amounts: true,
 };
+
+// Количества на стрелках — свойство взгляда, а не выбор: на всей лестнице их
+// сотни и они сливаются в шум, в окрестности одной вещи они и есть ответ.
+const showsAmounts = () => app.mode === 'focus';
+// Центр сетки: в фокусе колонки считаются от выбранной вещи, на всей лестнице —
+// от голого сырья.
+const centreOfGrid = () => (app.mode === 'focus' ? app.selected : null);
 
 const dom = {
   list: document.getElementById('list'),
@@ -273,7 +278,16 @@ function renderLegend() {
       TYPE_LABEL[type] || type,
     )),
     h('span', {}, h('i', { style: 'background:var(--warn);border-radius:50%' }), 'веха'),
-    h('span', { text: '· колонка — ступень лестницы от голого сырья' }),
+    h('span', {
+      text: app.mode === 'focus'
+        ? '· колонки считаны от выбранной вещи: слева — из чего, справа — во что'
+        : '· колонка — ступень лестницы от голого сырья',
+    }),
+    h('span', {
+      text: app.mode === 'focus'
+        ? '· число на стрелке — сколько идёт на единицу'
+        : '· количества показываются в фокусе',
+    }),
     h('span', { text: '· двойной щелчок — сделать центром' }),
   );
 }
@@ -282,7 +296,10 @@ function renderLegend() {
 
 function drawGraph() {
   const picture = app.tab === 'stations' ? stationPicture() : recipePicture();
-  graph.render(picture.nodes, picture.edges, { amounts: app.amounts });
+  graph.render(picture.nodes, picture.edges, {
+    amounts: showsAmounts(),
+    centre: centreOfGrid(),
+  });
   graph.setSelected(app.selected);
   graph.fit();
 }
@@ -338,7 +355,9 @@ function stationPicture() {
 
 function recipePicture() {
   const all = app.state.nodes;
-  const edges = app.state.edges.filter((edge) => (app.stations ? true : edge.rel === 'input'));
+  // Только «из чего делается»: на какой станции — это вкладка «Станции», и
+  // рисовать оба отношения одной картинкой значило бы спорить с самим собой.
+  const edges = app.state.edges.filter((edge) => edge.rel === 'input');
   let nodes;
   if (app.mode === 'all') {
     const shown = new Set(all.filter((node) => !app.hidden.has(typeOf(node))).map((n) => n.name));
@@ -348,7 +367,7 @@ function recipePicture() {
     nodes = [];
     dom.hint.textContent = 'выберите вещь';
   } else {
-    const near = neighbourhood(app.selected, edges, app.back, app.forward, app.stations);
+    const near = neighbourhood(app.selected, edges, app.back, app.forward);
     nodes = all.filter((node) => near.has(node.name));
     dom.hint.textContent = `${things(nodes.length)} вокруг «${app.selected}»`;
   }
@@ -362,6 +381,8 @@ function setMode(mode, redraw = true) {
   for (const button of document.getElementById('mode').children) {
     button.classList.toggle('on', button.dataset.mode === mode);
   }
+  //: Легенда объясняет, что значит колонка, а значит она у режимов разная.
+  renderLegend();
   if (redraw) drawGraph();
 }
 
@@ -480,14 +501,6 @@ for (const [id, key] of [['depth-in', 'back'], ['depth-out', 'forward']]) {
   });
 }
 
-document.getElementById('show-stations').addEventListener('change', (event) => {
-  app.stations = event.target.checked;
-  drawGraph();
-});
-document.getElementById('show-amounts').addEventListener('change', (event) => {
-  app.amounts = event.target.checked;
-  drawGraph();
-});
 document.getElementById('act-fit').addEventListener('click', () => graph.fit());
 
 document.getElementById('act-new').addEventListener('click', () => {

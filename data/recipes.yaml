@@ -296,7 +296,7 @@ levels:
       - {name: Простой рюкзак, kind: gear, slot: спина, mass: 2, inputs: [Ткань, Верёвка], amounts: {Ткань: 8, Верёвка: 4}, station: Верстак, note: носимое}
       - {name: Ведро, kind: gear, inputs: [Дерево, Верёвка], amounts: {Дерево: 4, Верёвка: 1}, station: Верстак}
       - {name: Бочка, kind: gear, inputs: [Дерево, Верёвка], amounts: {Дерево: 12, Верёвка: 2}, station: Верстак}
-      - {name: Шахтная крепь, kind: consumable, class: Крепь, key: true, inputs: [Дерево, Верёвка], amounts: {Дерево: 8, Верёвка: 2}, station: Верстак}
+      - {name: Шахтная крепь, kind: consumable, class: Крепь, key: true, inputs: [Дерево], amounts: {Дерево: 2}, station: Верстак}
       - {name: Тачка, kind: vehicle, class: Тачка, inputs: [Дерево, Верёвка], amounts: {Дерево: 14, Верёвка: 3}, station: Верстак}
       # Кровать и стеллаж — мебель, а не рабочие станции: на них не работают, они
       # обустраивают здание (гибернация, хранение)

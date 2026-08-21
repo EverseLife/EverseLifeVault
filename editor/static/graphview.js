@@ -139,7 +139,7 @@ export function createGraph(svg, { onSelect, onFocus, onHover } = {}) {
   // -- drawing ---------------------------------------------------------------
 
   function render(nodes, edges, options = {}) {
-    const placed = layout(nodes, edges);
+    const placed = layout(nodes, edges, { centre: options.centre || null });
     size = { width: placed.width, height: placed.height };
     edgeLayer.replaceChildren();
     labelLayer.replaceChildren();
