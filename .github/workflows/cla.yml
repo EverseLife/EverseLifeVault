@@ -1,0 +1,56 @@
+# Contributor License Agreement: подписывается в pull request, хранится здесь же.
+#
+# В вольте это важнее, чем в движке. Двойное лицензирование движка и
+# коммерческая лицензия на мир работают, пока права на код и на содержимое
+# собраны у одного лица, а вклад сюда — это и текст, и числа, и рецепты.
+#
+# Экшен — CLA Assistant Lite. Апстрим архивирован, v2.6.1 — последний релиз;
+# прибит тегом намеренно, чтобы брошенный `master` не начал исполняться сам.
+
+name: CLA
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, closed, synchronize]
+
+# Расписано явно: токен репозитория может быть «только чтение», а экшену нужно
+# писать файл подписей и ставить проверку на pull request.
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  cla:
+    name: Подпись
+    runs-on: ubuntu-latest
+    steps:
+      - name: CLA Assistant Lite
+        # Фраза здесь обязана совпадать с `custom-pr-sign-comment` ниже посимвольно,
+        # иначе подпись будет поставлена и не засчитана.
+        if: >-
+          github.event_name == 'pull_request_target' ||
+          github.event.comment.body == 'recheck' ||
+          github.event.comment.body == 'Я принимаю условия CLA и подписываю его'
+        uses: contributor-assistant/github-action@v2.6.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Файл заводит сам экшен при первой подписи. Созданный руками — прогон падает,
+          # об этом прямо сказано в его README.
+          path-to-signatures: 'signatures/version1/cla.json'
+          path-to-document: 'https://github.com/EverseLife/EverseLifeVault/blob/main/CLA.md'
+          # Подписи коммитятся сюда, поэтому ветка не должна быть защищённой.
+          branch: 'main'
+          # Правообладатель сам себе ничего не подписывает; боты подписать не могут.
+          allowlist: sumrak10,bot*
+          custom-notsigned-prcomment: >-
+            Спасибо за вклад. Прежде чем его принять, нужно, чтобы $you
+            подписали
+            [соглашение с контрибьютором (CLA)](https://github.com/EverseLife/EverseLifeVault/blob/main/CLA.md).
+            Подпись — комментарий к этому pull request ровно такого вида:
+          custom-pr-sign-comment: 'Я принимаю условия CLA и подписываю его'
+          custom-allsigned-prcomment: 'CLA подписан всеми авторами коммитов ✍️ ✅'
