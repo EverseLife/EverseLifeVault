@@ -110,32 +110,51 @@
   "trade.reference_price_window": 48,
   "trade.report_window": 24,
   "trade.report_retention": 30,
-  "build.area_min": 20,
-  "build.area_max": 400,
-  "build.floors_max": 8,
-  "build.floor_cost_growth": 1.1,
-  "build.reinforce_from_floor": 5,
-  "build.reinforce_k": 1.5,
+  "build.area_min": 10,
   "build.slots_per_area": 10,
   "build.floor_per_m2": 20,
   "build.cost_per_area": {
-    "formula": "materials_per_m2 * footprint * strength_k * sum(build.floor_cost_growth^(n-1) * (build.reinforce_k if n >= build.reinforce_from_floor else 1) for n in 1..floors)"
+    "formula": "types[kind] * footprint * sum(build.floor_growth_by_type[kind]^(n-1) for n in 1..floors)"
   },
-  "build.strength_levels": 3,
-  "build.strength_k": {
-    "1": 1,
-    "2": 2,
-    "3": 4
+  "build.types": {
+    "деревянный": {
+      "Дерево": 10
+    },
+    "каменный": {
+      "Дерево": 5,
+      "Камень": 10
+    },
+    "бетонный": {
+      "Камень": 15,
+      "Раствор": 5
+    },
+    "железобетонный": {
+      "Слиток железа": 5,
+      "Камень": 15,
+      "Раствор": 5,
+      "Стекло": 1
+    },
+    "цельнометаллический": {
+      "Слиток железа": 25,
+      "Стекло": 5
+    }
   },
-  "build.floors_by_strength": {
-    "1": 2,
-    "2": 4,
-    "3": 8
+  "build.floor_growth_by_type": {
+    "деревянный": 2,
+    "каменный": 1.5,
+    "бетонный": 1.25,
+    "железобетонный": 1.13,
+    "цельнометаллический": 1.13
   },
-  "build.materials_per_m2": {
-    "Дерево": 0.8,
-    "Верёвка": 0.2
+  "build.decay_by_type": {
+    "деревянный": 0.5,
+    "каменный": 0.3,
+    "бетонный": 0.2,
+    "железобетонный": 0.1,
+    "цельнометаллический": 0.05
   },
+  "build.repair_materials_k": 0.4,
+  "build.repair_labor_k": 0.35,
   "build.labor_per_m2": 0.4,
   "build.labor_stamina_rate": 12,
   "build.upkeep_per_area": 0.5,
@@ -529,10 +548,12 @@
   "upkeep.territory_exponent": 1.4,
   "upkeep.materials_share": 40,
   "upkeep.labor_share": 35,
-  "upkeep.by_strength": {
-    "1": 1.6,
-    "2": 1.0,
-    "3": 0.5
+  "upkeep.by_type": {
+    "деревянный": 1.6,
+    "каменный": 1.2,
+    "бетонный": 1,
+    "железобетонный": 0.7,
+    "цельнометаллический": 0.5
   },
   "upkeep.decay_rate": 2,
   "spoilage.food_base": 5,

@@ -41,7 +41,7 @@
 | Карта-граф и переходы | [07-map-topology](../10-world/07-map-topology.md), [05-map-and-movement](../50-interface/05-map-and-movement.md) | D-045, D-097, D-107 | `travel.*`, `road.*`, `map.*` | Бездорожье не пропускает транспорт; автопуть строится на сервере |
 | Свойства места | [07-map-topology](../10-world/07-map-topology.md) | D-126 | `site.*` | Идеального места не выпадает: сумма достоинств ограничена |
 | Транспорт и караваны | [07-logistics](../20-systems/07-logistics.md) | D-107, D-129 | `transport.*`, `inventory.*` | Маршрут идёт офлайн и останавливается при срыве условия |
-| Участок, смета, двор | [10-buildings-and-land](../20-systems/10-buildings-and-land.md) | D-089, D-106, D-125, D-131 | `build.*`, `land.*` | Этаж дороже предыдущего в `build.floor_cost_growth`; двор бесплатен |
+| Участок, смета, двор | [10-buildings-and-land](../20-systems/10-buildings-and-land.md) | D-089, D-106, D-125, D-131, D-218 | `build.*`, `land.*` | Тип задаёт состав, рост этажа и порчу; пятно не больше участка, высота без потолка; двор бесплатен |
 | Делянки и уход | [06-farming](../20-systems/06-farming.md), [17-plant-catalog](../20-systems/17-plant-catalog.md) | D-118, D-105 | `farm.*`, `plants.json` | Плодородие переживает передел границ; сводка читается удалённо, уход — нет |
 | Готовка | [16-cooking](../20-systems/16-cooking.md), [15-quality](../20-systems/15-quality.md) | D-119, D-128 | `cook.*`, `recipes.json` с `roles` | Пустая роль бьёт сильнее плохого продукта; сочетание меняет вид, не качество |
 | Монета и чеканка | [01-currency](../30-economy/01-currency.md) | D-016, D-086 | `coin.*` | Проба задаётся при чеканке и может быть занижена |

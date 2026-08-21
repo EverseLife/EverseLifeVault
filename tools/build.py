@@ -74,6 +74,14 @@ def fmt_value(c: dict) -> str:
     if isinstance(v, dict):
         if "min" in v and "max" in v:
             body = f"{v['min']}–{v['max']}"
+        elif any(isinstance(x, dict) for x in v.values()):
+            # Карта карт: у имени не число, а состав (`build.types`). В реестре
+            # на константу отведена одна ячейка, поэтому состав разворачивается
+            # строкой, а не вложенной таблицей
+            return " · ".join(
+                "**{}**: {}".format(k, ", ".join(f"{n} {q}" for n, q in x.items()))
+                for k, x in v.items()
+            )
         elif unit == "×":  # карта модификаторов
             return " · ".join(f"{k} ×{val}" for k, val in v.items())
         else:  # карта величин: единица своя, и множителем она не является
@@ -1275,6 +1283,57 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
     return problems
 
 
+BUILDING_MAPS = (
+    "build.types",
+    "build.floor_growth_by_type",
+    "build.decay_by_type",
+    "upkeep.by_type",
+)
+
+
+def check_building_types(constants_doc: dict, recipes_doc: dict) -> list[str]:
+    """Тип здания живёт в четырёх картах, и они обязаны совпадать (D-218).
+
+    Состав, рост этажа, порча и содержание задаются по отдельности — добавить
+    тип в одну карту и забыть про три остальные слишком легко, а движок узнает
+    об этом на тике, спустя часы. Здесь же — и состав: имя материала с опечаткой
+    пройдёт и YAML, и сборку, и откажет только в момент стройки.
+    """
+    flat = flatten_constants(constants_doc)
+    composition = flat.get(BUILDING_MAPS[0])
+    if not isinstance(composition, dict):
+        return [f"{BUILDING_MAPS[0]}: нет карты типов зданий"]
+
+    problems: list[str] = []
+    for key in BUILDING_MAPS[1:]:
+        values = flat.get(key)
+        if not isinstance(values, dict):
+            problems.append(f"{key}: нет карты по типам зданий")
+            continue
+        for missing in composition.keys() - values.keys():
+            problems.append(f"{key}: нет значения для типа «{missing}»")
+        for extra in values.keys() - composition.keys():
+            problems.append(f"{key}: тип «{extra}» есть здесь, но не в {BUILDING_MAPS[0]}")
+
+    known = {rec["name"] for _, _, rec in all_recipes(recipes_doc)}
+    known |= {m["name"] for m in (recipes_doc["meta"].get("materials") or [])}
+    known |= {g["name"] for g in (recipes_doc["meta"].get("operations") or [])}
+    for kind, parts in composition.items():
+        if not isinstance(parts, dict) or not parts:
+            problems.append(f"{BUILDING_MAPS[0]}: у типа «{kind}» пустой состав")
+            continue
+        for name, amount in parts.items():
+            if known and name not in known:
+                problems.append(
+                    f"{BUILDING_MAPS[0]}: у типа «{kind}» материала «{name}» нет в вольте"
+                )
+            if not isinstance(amount, (int, float)) or amount <= 0:
+                problems.append(
+                    f"{BUILDING_MAPS[0]}: у типа «{kind}» расход «{name}» не больше нуля"
+                )
+    return problems
+
+
 # ------------------------------------------------------------ индекс статусов
 
 STATUS_ORDER = ["реализовано", "в реализации", "согласовано", "идея", "живой", "генерируется"]
@@ -1365,6 +1424,7 @@ def main() -> int:
     problems += plant_problems
     problems += check_laws(laws_doc)
     problems += check_constant_refs(constants_doc)
+    problems += check_building_types(constants_doc, recipes_doc)
 
     if known_problems:
         print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
