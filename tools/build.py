@@ -106,6 +106,151 @@ def flatten_constants(doc: dict) -> dict:
     return flat
 
 
+# ------------------------------------------------------- материалы и классы
+
+def normalize_recipes(doc: dict) -> list[str]:
+    """Реестр материалов и классы (D-215) -> прежние плоские представления.
+
+    Источник — `meta.materials` (одна строка на вещь, которая не делается
+    рецептом) и поле `class` у рецептов. Отсюда синтезируются `meta.mass`,
+    `meta.bulk`, `meta.edible`, `meta.raw`, `meta.tool_classes` и карта
+    `meta.classes_map`, которыми пользуется весь остальной код сборки:
+    он написан про плоские списки, и переписывать его незачем.
+
+    Заодно разворачивается `gives: {class: X}` у операций — так «Добыча»
+    получает все ископаемые из реестра, и новая порода добывается без правки
+    самой операции.
+    """
+    meta = doc["meta"]
+    problems: list[str] = []
+
+    declared: list[str] = []
+    for c in meta.get("classes", []):
+        name = c.get("name")
+        if not name:
+            problems.append("классы: запись без имени")
+            continue
+        if name in declared:
+            problems.append(f"класс «{name}» объявлен дважды")
+        declared.append(name)
+    declared_set = set(declared)
+
+    materials: list[dict] = meta.get("materials", [])
+    material_names: set[str] = set()
+    for m in materials:
+        name = m.get("name")
+        if not name:
+            problems.append("материалы: запись без имени")
+            continue
+        if name in material_names:
+            problems.append(f"материал «{name}» описан дважды")
+        material_names.add(name)
+        if not isinstance(m.get("mass"), (int, float)) or m["mass"] < 0:
+            problems.append(f"материал «{name}»: `mass` обязана быть числом ≥ 0")
+        cls = m.get("class")
+        if cls is not None and cls not in declared_set:
+            problems.append(f"материал «{name}»: класс «{cls}» не объявлен в meta.classes")
+        rate = m.get("rate")
+        if rate is not None and (not isinstance(rate, (int, float)) or rate <= 0):
+            problems.append(f"материал «{name}»: `rate` обязан быть числом больше нуля")
+        fuel = m.get("fuel")
+        if fuel is not None and (not isinstance(fuel, (int, float)) or fuel <= 0):
+            problems.append(f"материал «{name}»: `fuel` обязан быть числом больше нуля")
+        forage = m.get("forage")
+        if forage is not None:
+            finds, handful = forage.get("finds"), forage.get("handful")
+            if not isinstance(finds, (int, float)) or finds <= 0:
+                problems.append(f"материал «{name}»: `forage.finds` обязан быть больше нуля")
+            if not isinstance(handful, (int, float)) or handful < 1:
+                problems.append(f"материал «{name}»: `forage.handful` меньше единицы не бывает")
+
+    members: dict[str, list[str]] = {}
+    for m in materials:
+        if m.get("class") and m.get("name"):
+            members.setdefault(m["class"], []).append(m["name"])
+    recipe_kind: dict[str, str] = {}
+    for _, _, r in all_recipes(doc):
+        recipe_kind[r["name"]] = r.get("kind", "material")
+        cls = r.get("class")
+        if cls is None:
+            continue
+        if cls not in declared_set:
+            problems.append(f"«{r['name']}»: класс «{cls}» не объявлен в meta.classes")
+            continue
+        members.setdefault(cls, []).append(r["name"])
+
+    # Операции: класс вместо перечня выходов
+    for op in doc["operations"]:
+        gives = op.get("gives")
+        if isinstance(gives, dict):
+            cls = gives.get("class")
+            expanded = members.get(cls, [])
+            if cls not in declared_set:
+                problems.append(f"операция «{op['name']}»: класс «{cls}» не объявлен")
+            elif not expanded:
+                problems.append(f"операция «{op['name']}»: класс «{cls}» пуст — давать нечего")
+            op["gives"] = list(expanded)
+            op["gives_class"] = cls
+
+    # Плоские представления для остального кода сборки и для движка
+    meta["classes_map"] = {cls: sorted(names) for cls, names in sorted(members.items())}
+    meta["mass"] = {m["name"]: m["mass"] for m in materials if m.get("name")}
+    meta["bulk"] = (
+        [m["name"] for m in materials if m.get("bulk")]
+        + [r["name"] for _, _, r in all_recipes(doc) if r.get("bulk")]
+    )
+    meta["edible"] = (
+        [m["name"] for m in materials if m.get("edible")]
+        + [r["name"] for _, _, r in all_recipes(doc) if r.get("edible")]
+    )
+    #: Сырьё — то, что берётся из мира, а не переделывается: материал,
+    #: который не является выходом расходующей операции. Рубка и добыча
+    #: (consumes пуст) берут материю из мира — их выходы остаются сырьём.
+    produced = {
+        g
+        for op in doc["operations"]
+        if op.get("consumes")
+        for g in (op["gives"] if isinstance(op["gives"], list) else [])
+    }
+    meta["raw"] = [m["name"] for m in materials if m.get("name") and m["name"] not in produced]
+    #: Прежний вид для клиента и движка: класс, все члены которого —
+    #: инструменты. Общая карта классов лежит рядом в `classes_map`.
+    meta["tool_classes"] = {
+        cls: names
+        for cls, names in meta["classes_map"].items()
+        if names and all(recipe_kind.get(n) == "tool" for n in names)
+    }
+    return problems
+
+
+def load_recipes_doc() -> tuple[dict, list[str]]:
+    doc = yaml.safe_load((DATA / "recipes.yaml").read_text(encoding="utf-8"))
+    return doc, normalize_recipes(doc)
+
+
+def material_tables(doc: dict) -> dict[str, dict[str, float]]:
+    """Таблицы констант, собираемые из реестра материалов (D-215).
+
+    В `constants.yaml` эти ключи объявлены с `value_from` вместо `value`:
+    смысл и единица живут в реестре констант, числа — в реестре материалов.
+    """
+    materials = doc["meta"].get("materials", [])
+    return {
+        "harvest.rates": {
+            m["name"]: m["rate"] for m in materials if m.get("rate")
+        },
+        "forage.finds": {
+            m["name"]: m["forage"]["finds"] for m in materials if m.get("forage")
+        },
+        "forage.handful": {
+            m["name"]: m["forage"]["handful"] for m in materials if m.get("forage")
+        },
+        "energy.fuel_energy": {
+            m["name"]: m["fuel"] for m in materials if m.get("fuel")
+        },
+    }
+
+
 # ------------------------------------------------------------------ рецепты
 
 def all_recipes(doc: dict):
@@ -204,7 +349,7 @@ def render_totals(doc: dict) -> str:
     return "\n".join(rows)
 
 
-def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[str]]:
+def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, dict, list[str]]:
     """Количества входов выводятся из трудоёмкости, а не задаются руками (D-133).
 
     Правило одно: **час работы съедает `craft.input_labor_ratio` часов чужого
@@ -375,7 +520,11 @@ def compute_amounts(doc: dict, constants: dict) -> tuple[dict, dict, dict, list[
         resolve_op(g)
     for name in recipes:
         resolve(name)
-    return amounts, op_amounts, labor, problems
+    #: Собственное время шага на единицу — отдельно от суммарной трудоёмкости:
+    #: движок и редактор восстанавливали его вычитанием труда входов, и оба
+    #: держали копию одной и той же формулы. Теперь оно едет готовым.
+    steps = {name: step_of(name) for name in recipes}
+    return amounts, op_amounts, labor, steps, problems
 
 
 def with_seed_mass(mass: dict, plants: list[dict], constants: dict) -> dict[str, float]:
@@ -436,6 +585,11 @@ def compute_mass(
     ограничения нет — часть вещества уходит в отход, и монета в грамм из
     навески металла законна. Подрезка идёт по лестнице: подрезанная масса
     входа уменьшает потолок того, что из него делают.
+
+    Ручная `mass:`, превышающая вошедшее, — **ошибка сборки** (D-215), а не
+    молчаливая подрезка: до этого Экзоскелет был объявлен в 35 кг, собирался
+    в 13, и никто об этом не знал. Умолчание по типу подрезается тихо — оно и
+    есть грубая заглушка, точным ему быть не обещали.
     """
     meta = doc["meta"]
     synonyms = {**STATION_ALIASES, **meta.get("synonyms", {})}
@@ -474,6 +628,7 @@ def compute_mass(
             )
 
     recipes = {canon(r["name"]): r for _, _, r in all_recipes(doc)}
+    authored = {canon(r["name"]) for _, _, r in all_recipes(doc) if r.get("mass") is not None}
     capped: dict[str, float] = {}
 
     def limited(name: str, seen: frozenset = frozenset()) -> float:
@@ -491,6 +646,12 @@ def compute_mass(
         )
         # Пустой состав не подрезает: вещь без известных входов взвесить не по
         # чему, и нулём её делать нельзя
+        if into > 0 and own > into and name in authored:
+            problems.append(
+                f"«{r['name']}»: масса {fmt_qty(own)} кг больше вошедшей материи "
+                f"{fmt_qty(round(into, 3))} кг — материя при переделе не появляется: "
+                "уменьши `mass:` либо утяжели состав (D-215)"
+            )
         capped[name] = min(own, into) if into > 0 else own
         return capped[name]
 
@@ -512,7 +673,9 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     recipes = {r["name"]: r for _, _, r in all_recipes(doc)}
     raw = set(meta["raw"])
     synonyms: dict[str, str] = {**STATION_ALIASES, **meta.get("synonyms", {})}
-    tool_classes: dict[str, list[str]] = meta.get("tool_classes", {})
+    #: Требование закрывается любым членом класса (D-215): раньше так умели
+    #: только инструменты (tool_classes), теперь — любой класс вещей.
+    classes: dict[str, list[str]] = meta.get("classes_map") or meta.get("tool_classes", {})
     op_outputs = {g for op in doc["operations"] for g in op["gives"]}
 
     def canon(name: str) -> str:
@@ -521,9 +684,9 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     def options(name: str) -> list[str]:
         """Чем можно закрыть требование: сам предмет либо любой из класса."""
         name = canon(name)
-        return tool_classes.get(name, [name])
+        return classes.get(name, [name])
 
-    known = set(recipes) | raw | op_outputs | VIRTUAL_STATIONS | set(tool_classes)
+    known = set(recipes) | raw | op_outputs | VIRTUAL_STATIONS | set(classes)
 
     # 1. неизвестные входы и рабочие станции
     for name, r in recipes.items():
@@ -742,8 +905,58 @@ def render_template(text: str, resolve) -> str:
     return re.sub(r"\{\{([^}]+)\}\}", lambda m: resolve(m.group(1).strip()), text)
 
 
-def build_constants() -> tuple[str, dict]:
+def build_constants(recipes_doc: dict) -> tuple[str, dict, list[str]]:
     doc = yaml.safe_load((DATA / "constants.yaml").read_text(encoding="utf-8"))
+    problems: list[str] = []
+
+    # Таблицы, ключуемые именами материалов, собираются из реестра (D-215):
+    # запись в constants.yaml держит ключ, единицу и смысл (`value_from:
+    # materials`), а числа лежат у самих материалов — один источник на вещь
+    tables = material_tables(recipes_doc)
+    declared_keys = {c["key"] for g in doc["groups"] for c in g["constants"]}
+    for group in doc["groups"]:
+        for c in group["constants"]:
+            source = c.get("value_from")
+            if source is None:
+                if c["key"] in tables:
+                    problems.append(
+                        f"константа «{c['key']}» задана значением в constants.yaml, "
+                        "а числа для неё живут в реестре материалов — поставь "
+                        "`value_from: materials` (D-215)"
+                    )
+                continue
+            if source != "materials" or c["key"] not in tables:
+                problems.append(
+                    f"константа «{c['key']}»: `value_from: {source}` — сборка "
+                    "умеет наполнять из материалов только "
+                    + ", ".join(f"`{k}`" for k in sorted(tables))
+                )
+                continue
+            c["value"] = tables[c["key"]]
+    for key in tables:
+        if key not in declared_keys:
+            problems.append(
+                f"таблица «{key}» собирается из реестра материалов, но в "
+                "constants.yaml нет записи с `value_from: materials` — ключ, "
+                "единица и смысл живут там"
+            )
+
+    # Именованные дубли темпа обязаны совпадать с реестром: два числа об одном
+    # и том же врозь — это два источника истины
+    flat = flatten_constants(doc)
+    rates = tables.get("harvest.rates", {})
+    for key, resource in (
+        ("mining.iron_per_hour", "Железная руда"),
+        ("mining.gold_per_hour", "Золотоносная порода"),
+        ("mining.silver_per_hour", "Серебряная порода"),
+    ):
+        own, reg = flat.get(key), rates.get(resource)
+        if own is not None and reg is not None and float(own) != float(reg):
+            problems.append(
+                f"«{key}» = {own} расходится с rate «{resource}» = {reg} "
+                "в реестре материалов"
+            )
+
     groups = {g["id"]: g for g in doc["groups"]}
 
     def resolve(token: str) -> str:
@@ -753,13 +966,14 @@ def build_constants() -> tuple[str, dict]:
         raise KeyError(f"неизвестный плейсхолдер {{{{{token}}}}}")
 
     tmpl = (TEMPLATES / "constants.md.tmpl").read_text(encoding="utf-8")
-    return render_template(tmpl, resolve), doc
+    return render_template(tmpl, resolve), doc, problems
 
 
-def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, dict, list[str]]:
-    doc = yaml.safe_load((DATA / "recipes.yaml").read_text(encoding="utf-8"))
+def build_recipes(
+    constants: dict, doc: dict
+) -> tuple[str, dict, dict, dict, dict, dict, dict, list[str]]:
     levels = {str(l["id"]): l for l in doc["levels"]}
-    amounts, op_amounts, labor, qty_problems = compute_amounts(doc, constants)
+    amounts, op_amounts, labor, steps, qty_problems = compute_amounts(doc, constants)
     #: Масса задаётся данными: вывести её из количеств нельзя, те заданы
     #: трудом, а не составом (D-146).
     mass, mass_problems = compute_mass(doc, constants, op_amounts, amounts)
@@ -798,7 +1012,7 @@ def build_recipes(constants: dict) -> tuple[str, dict, dict, dict, dict, dict, l
         raise KeyError(f"неизвестный плейсхолдер {{{{{token}}}}}")
 
     tmpl = (TEMPLATES / "recipes-mvp.md.tmpl").read_text(encoding="utf-8")
-    return render_template(tmpl, resolve), doc, amounts, op_amounts, labor, mass, qty_problems
+    return render_template(tmpl, resolve), doc, amounts, op_amounts, labor, steps, mass, qty_problems
 
 
 # ----------------------------------------------------------------- культуры
@@ -1123,12 +1337,18 @@ def relative_link(rel: str) -> str:
 def main() -> int:
     check_only = "--check" in sys.argv
 
-    constants_md, constants_doc = build_constants()
-    recipes_md, recipes_doc, amounts, op_amounts, labor, mass, qty_problems = build_recipes(constants_doc)
+    # Реестр материалов читается первым: из него наполняются таблицы констант
+    recipes_doc, registry_problems = load_recipes_doc()
+    constants_md, constants_doc, constant_problems = build_constants(recipes_doc)
+    recipes_md, recipes_doc, amounts, op_amounts, labor, steps, mass, qty_problems = (
+        build_recipes(constants_doc, recipes_doc)
+    )
     harvest_rates = flatten_constants(constants_doc).get("harvest.rates", {})
     plants_md, plants, plant_problems = build_plants(constants_doc, recipes_doc)
     laws_md, laws_doc = build_laws()
-    problems, known_problems = check_recipes(recipes_doc)
+    problems = registry_problems + constant_problems
+    fresh, known_problems = check_recipes(recipes_doc)
+    problems += fresh
     problems += check_compositions(
         recipes_doc, amounts, flatten_constants(constants_doc).get("craft.amount_cap", 10)
     )
@@ -1172,12 +1392,34 @@ def main() -> int:
             # годится ли каменная кирка для операции «Добыча» и что «Печь» —
             # это «Плавильная печь»: в data/ они есть, а тут их не было
             "synonyms": {**STATION_ALIASES, **recipes_doc["meta"].get("synonyms", {})},
+            # Классы вещей (D-215): класс -> члены. Поведение движка привязано
+            # к классу, а не к имени. tool_classes — производное представление
+            # (классы, целиком состоящие из инструментов) для клиента
+            "classes": recipes_doc["meta"].get("classes_map", {}),
             "tool_classes": recipes_doc["meta"].get("tool_classes", {}),
+            # Реестр материалов (D-215): всё, что не делается рецептом, одной
+            # записью — класс, масса, весовое, съедобность, темп, находка, топливо
+            "materials": [
+                {
+                    "name": m["name"],
+                    "class": m.get("class"),
+                    "mass": m.get("mass", 0.0),
+                    "bulk": bool(m.get("bulk")),
+                    "edible": bool(m.get("edible")),
+                    "rate": m.get("rate"),
+                    "forage": m.get("forage"),
+                    "fuel": m.get("fuel"),
+                }
+                for m in recipes_doc["meta"].get("materials", [])
+            ],
             "operations": [
                 {
                     "name": op["name"],
                     "requires": op["requires"],
                     "gives": op["gives"],
+                    # класс, которым перечень выходов был задан (пусто — задан
+                    # перечнем). Новый материал класса попадает сюда сборкой
+                    "gives_class": op.get("gives_class"),
                     "consumes": op.get("consumes", []),
                     # где операция возможна: свойство узла (D-177). Пусто —
                     # операция не привязана к месту
@@ -1219,12 +1461,18 @@ def main() -> int:
                 for k, v in sorted(with_seed_mass(mass, plants, constants_doc).items())
             },
             "labor_hours": {k: round(v, 3) for k, v in sorted(labor.items())},
+            # Собственное время шага на единицу, часов: раньше движок и
+            # редактор восстанавливали его вычитанием труда входов из
+            # labor_hours — две копии одной формулы (D-215)
+            "step_hours": {k: round(v, 4) for k, v in sorted(steps.items())},
             "recipes": [
                 {
                     "name": r["name"],
                     "level": lvl["id"],
                     "section": sec["id"] if sec else None,
                     "kind": r.get("kind", "material"),
+                    # класс вещи (D-215): поведение движка привязано к нему
+                    "class": r.get("class"),
                     "key": bool(r.get("key")),
                     "mix": bool(r.get("mix")),
                     "roles": bool(r.get("roles")),
