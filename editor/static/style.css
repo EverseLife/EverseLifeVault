@@ -274,6 +274,9 @@ legend { color: var(--text-faint); font-size: 11px; padding: 0 4px; }
   gap: 4px;
   align-items: center;
 }
+/* Строка состава класса: количества и «узкого места» у неё нет — есть вещь и
+   крестик, и больше ничего. */
+.inp.cls { grid-template-columns: 1fr 22px; }
 .inp .star, .inp .del {
   padding: 2px 0;
   text-align: center;

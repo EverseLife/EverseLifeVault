@@ -253,11 +253,13 @@ function tooltip(node) {
     lines.push('сырьё');
   } else if (node.type === 'operation') {
     lines.push(`операция: ${(node.operations || []).join(', ')}`);
-  } else if (node.type === 'class') {
-    lines.push(`класс инструмента: ${(node.members || []).join(', ')}`);
   } else if (node.type === 'virtual') {
     lines.push('рабочее место без рецепта: руки либо стройплощадка');
   }
+  // Про класс говорится отдельной строкой, а не веткой разбора типа: класс,
+  // названный именем вещи, лежит на её узле и типа `class` не имеет — так
+  // «Топор» и пропадал с картинки целиком.
+  if (node.is_class) lines.push(`класс инструмента: ${(node.members || []).join(', ')}`);
   if (node.depth != null) lines.push(`ступень ${node.depth}`);
   if (node.labor_hours != null) lines.push(`труд: ${format(node.labor_hours)} ч`);
   if (node.mass != null) lines.push(`масса: ${format(node.mass)} кг`);

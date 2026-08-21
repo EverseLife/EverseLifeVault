@@ -50,19 +50,33 @@ export function createPanel(root, deps) {
       return;
     }
     detail = payload;
+    const node = deps.getNode(name) || {};
+    if (node.type === 'class') {
+      state = { kind: 'class', original: name, isNew: false, klass: classState(name) };
+      renderClass();
+      return;
+    }
     if (!payload.editable) {
-      const node = deps.getNode(name) || {};
-      state = { original: name, isNew: false, readOnly: true, measure: measureState(name, node) };
+      state = {
+        kind: 'info',
+        original: name,
+        isNew: false,
+        readOnly: true,
+        measure: measureState(name, node),
+        classes: memberOf(name),
+      };
       renderInfo(payload);
       return;
     }
     state = {
+      kind: 'recipe',
       original: name,
       isNew: false,
       level: payload.level,
       section: payload.section,
       data: structuredClone(payload.data),
-      measure: measureState(name, deps.getNode(name) || {}),
+      measure: measureState(name, node),
+      classes: memberOf(name),
     };
     render();
   }
@@ -83,6 +97,7 @@ export function createPanel(root, deps) {
     const [level, section] = placeIn(defaults.level ?? levels[0]?.id, defaults.section);
     detail = null;
     state = {
+      kind: 'recipe',
       original: null,
       isNew: true,
       level,
@@ -94,8 +109,226 @@ export function createPanel(root, deps) {
         station: defaults.station || 'Верстак',
       },
       measure: { name: '', unit: '', mass: '', bulk: false, withMass: false },
+      classes: { in: [], was: [] },
     };
     render();
+  }
+
+  // -- tool classes ----------------------------------------------------------
+
+  /** A new class, with the thing being looked at already in it: a class is
+   *  never made in the abstract -- it is made when a second pickaxe appears. */
+  function openNewClass(defaults = {}) {
+    detail = null;
+    state = {
+      kind: 'class',
+      original: null,
+      isNew: true,
+      klass: { name: '', members: defaults.members?.length ? [...defaults.members] : [''] },
+    };
+    renderClass();
+  }
+
+  function classState(name) {
+    const members = (deps.vocabulary().tool_classes || {})[name] || [];
+    return { name, members: [...members] };
+  }
+
+  /** Which classes this thing closes, as written now and as the form has it. */
+  function memberOf(name) {
+    const classes = deps.vocabulary().tool_classes || {};
+    const inside = Object.entries(classes)
+      .filter(([, members]) => members.includes(name))
+      .map(([klass]) => klass)
+      .sort((a, b) => a.localeCompare(b, 'ru'));
+    return { in: [...inside], was: [...inside] };
+  }
+
+  function classesChanged() {
+    const chosen = state.classes;
+    if (!chosen) return false;
+    const same = chosen.in.length === chosen.was.length
+      && chosen.in.every((klass) => chosen.was.includes(klass));
+    return !same;
+  }
+
+  /** Who asks for this class. Empty here is the whole story of «Утвари»:
+   *  a class nothing requires hangs on the ladder on its own. */
+  function classDemand(name) {
+    if (!name) return [];
+    const operations = (deps.operations() || [])
+      .filter((op) => (op.requires || []).includes(name))
+      .map((op) => op.name);
+    const stations = (deps.nodes() || [])
+      .filter((node) => node.station === name)
+      .map((node) => node.name);
+    return [...operations, ...stations];
+  }
+
+  function classesBlock() {
+    const chosen = state.classes;
+    if (!chosen) return null;
+    const all = Object.keys(deps.vocabulary().tool_classes || {})
+      .sort((a, b) => a.localeCompare(b, 'ru'));
+    const name = state.data?.name || state.original;
+    return h('fieldset', {},
+      h('legend', { text: 'классы инструмента' }),
+      all.length
+        ? h('div', { class: 'refs' }, all.map((klass) => h('button', {
+          class: 'chip' + (chosen.in.includes(klass) ? ' on' : ''),
+          title: `${klass}: ${(deps.vocabulary().tool_classes[klass] || []).join(', ')}`,
+          text: klass,
+          onclick: () => {
+            const found = chosen.in.indexOf(klass);
+            if (found >= 0) chosen.in.splice(found, 1);
+            else chosen.in.push(klass);
+            chosen.in.sort((a, b) => a.localeCompare(b, 'ru'));
+            if (state.kind === 'recipe') render(); else renderInfo(detail);
+          },
+        })))
+        : h('div', { class: 'note-line', text: 'классов в вольте пока нет' }),
+      h('div', { class: 'panel-actions' },
+        h('button', {
+          text: '+ класс',
+          title: name
+            ? `завести новый класс, закрываемый вещью «${name}»`
+            : 'сперва назовите вещь',
+          disabled: !name,
+          onclick: () => openNewClass({ members: [name] }),
+        }),
+        h('div', { class: 'spacer' }),
+        state.kind === 'recipe'
+          ? h('span', {
+            class: 'note-line',
+            text: classesChanged() ? 'запишется вместе с рецептом' : 'требование «любой из класса»',
+          })
+          : h('button', {
+            text: 'Записать',
+            disabled: !classesChanged(),
+            onclick: (event) => saveClasses(event.target),
+          }),
+      ),
+    );
+  }
+
+  function renderClass() {
+    const klass = state.klass;
+    const node = deps.getNode(state.original) || {};
+    const demand = classDemand(state.original);
+    const rows = klass.members.map((member, index) => h('div', { class: 'inp cls' },
+      h('input', {
+        value: member,
+        list: 'all-names',
+        placeholder: 'чем закрывается',
+        oninput: (event) => { klass.members[index] = event.target.value; touch(); },
+      }),
+      h('button', {
+        class: 'del', text: '×', title: 'убрать из класса',
+        onclick: () => { klass.members.splice(index, 1); renderClass(); },
+      }),
+    ));
+
+    root.replaceChildren(
+      head(state.isNew ? 'Новый класс' : state.original, node.type ? node : { type: 'class' },
+        { onRemove: state.isNew ? null : removeClass }),
+      h('div', { class: 'form' },
+        h('div', { class: 'note-line',
+          text: 'класс инструмента — дырка в требовании: «нужна кирка, любая». '
+            + 'Закрывается любой вещью из состава.' }),
+        h('div', { class: 'field' },
+          h('label', { text: 'название' }),
+          state.isNew
+            ? h('input', {
+              value: klass.name, autofocus: true, list: 'all-names',
+              placeholder: 'Кирка, Топор, Утварь',
+              oninput: (event) => { klass.name = event.target.value; touch(); },
+            })
+            : h('input', {
+              value: klass.name, disabled: true,
+              title: 'переименование класса здесь не делается: имя стоит в требованиях '
+                + 'операций и в станциях рецептов. Заведите новый, перенесите состав, '
+                + 'старый удалите',
+            }),
+        ),
+        h('fieldset', {},
+          h('legend', { text: 'чем закрывается' }),
+          h('div', { class: 'inputs' }, rows),
+          h('div', { class: 'panel-actions' },
+            h('button', {
+              text: '+ вещь',
+              onclick: () => { klass.members.push(''); renderClass(); },
+            }),
+            h('div', { class: 'spacer' }),
+            h('span', {
+              class: 'note-line',
+              text: 'годится любая из перечисленных',
+            }),
+          ),
+        ),
+        h('div', { class: 'note-line', id: 'class-demand' },
+          state.isNew
+            ? 'новый класс никто пока не требует — впишите его в требования операции '
+              + 'либо в станцию рецепта, иначе он повиснет сам по себе'
+            : (demand.length
+              ? `требуется здесь: ${demand.join(', ')}`
+              : 'класс никто не требует: ни операция, ни станция рецепта. '
+                + 'На лестнице он висит сам по себе — закрыт снизу, не спрошен сверху'),
+        ),
+        h('div', { class: 'err', id: 'panel-error' }),
+        h('div', { class: 'panel-actions' },
+          h('button', {
+            class: 'primary', onclick: saveClass, text: state.isNew ? 'Создать' : 'Записать',
+          }),
+          h('button', {
+            onclick: () => (state.isNew ? clear() : open(state.original)),
+            text: 'Сбросить',
+          }),
+        ),
+        state.isNew ? null : referencesBlock(detail?.references),
+      ),
+    );
+  }
+
+  async function saveClass() {
+    const klass = state.klass;
+    const name = (klass.name || '').trim();
+    const members = klass.members.map((item) => item.trim()).filter(Boolean);
+    try {
+      const result = await api.putClass(name, members);
+      if (result.warning) deps.notify(result.warning, false);
+      deps.onWrite(result, name);
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function removeClass() {
+    const demand = classDemand(state.original);
+    const answer = await ask({
+      title: `Удалить класс «${state.original}»?`,
+      body: demand.length
+        ? `Его требуют: ${demand.join(', ')}. После удаления требование останется `
+          + 'без класса, и проверка вольта покажет разрыв.'
+        : 'Ничто его не требует. Вещи, которыми он закрывался, останутся на месте — '
+          + 'исчезнет только строка класса.',
+      ok: 'Удалить',
+    });
+    if (!answer) return;
+    try {
+      deps.onWrite(await api.dropClass(state.original), null);
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function saveClasses(button) {
+    button.disabled = true;
+    try {
+      deps.onWrite(await api.classesOf(state.original, state.classes.in), state.original);
+    } catch (error) {
+      fail(error);
+      button.disabled = false;
+    }
   }
 
   // -- read-only things ------------------------------------------------------
@@ -105,7 +338,6 @@ export function createPanel(root, deps) {
     const what = {
       raw: 'сырьё — берётся из мира, ничем не изготавливается',
       operation: 'продукт операции — делается без рецепта',
-      class: 'класс инструмента — закрывается любым из списка',
       virtual: 'рабочее место без рецепта: руки либо стройплощадка. '
         + 'Рецепта у него нет и быть не может',
     }[node.type] || 'вещь вольта';
@@ -117,8 +349,6 @@ export function createPanel(root, deps) {
         node.type === 'operation' && node.operations
           ? h('div', { class: 'note-line', text: `операции: ${node.operations.join(', ')}` })
           : null,
-        node.type === 'class' && node.members
-          ? h('div', { class: 'refs' }, node.members.map((m) => refButton(m))) : null,
         h('fieldset', {},
           h('legend', { text: 'измерение' }),
           measureFields(),
@@ -128,10 +358,11 @@ export function createPanel(root, deps) {
             h('span', { class: 'note-line', id: 'panel-error' }),
           ),
         ),
+        node.type === 'virtual' ? null : classesBlock(),
         derivedBlock(payload, node),
         referencesBlock(payload.references),
         h('div', { class: 'note-line' },
-          'Сырьё, операции и классы правятся в файле руками: у них нет формы, '
+          'Сырьё и операции правятся в файле руками: формы у них нет, '
           + 'потому что их немного и каждая строка там объясняется комментарием.'),
       ),
     );
@@ -249,6 +480,16 @@ export function createPanel(root, deps) {
         // делить это на два окна значило бы объяснять читателю устройство файла.
         measureFields(),
       ),
+      // Класс живёт в `meta`, как и измерение, и по той же причине стоит здесь:
+      // для того, кто правит кирку, «это кирка вообще» — свойство вещи, а не
+      // устройство файла. Пишется одной кнопкой вместе с рецептом.
+      classesBlock(),
+      node.is_class
+        ? h('div', { class: 'note-line' },
+          `«${state.original}» — ещё и класс инструмента: `
+          + `${(deps.vocabulary().tool_classes || {})[state.original]?.join(', ') || ''}. `
+          + 'На графе класс и вещь показаны одним узлом.')
+        : null,
       h('div', { class: 'err', id: 'panel-error' }),
       h('div', { class: 'panel-actions' },
         h('button', { class: 'primary', onclick: save, text: state.isNew ? 'Создать' : 'Сохранить' }),
@@ -276,7 +517,8 @@ export function createPanel(root, deps) {
 
   // -- pieces ----------------------------------------------------------------
 
-  function head(title, node, { removable = false } = {}) {
+  function head(title, node, { removable = false, onRemove = null } = {}) {
+    const drop = onRemove || (removable ? remove : null);
     return h('div', { class: 'panel-head' },
       h('span', {
         class: 'dot',
@@ -286,8 +528,8 @@ export function createPanel(root, deps) {
       node.depth != null ? h('span', { class: 'tag', text: `ступень ${node.depth}` }) : null,
       // Удаление стоит у названия, а не под формой: оно про вещь целиком, а не
       // про то, что в форме набрано, и его не ищут среди «Сохранить».
-      removable
-        ? h('button', { class: 'danger', onclick: remove, text: 'Удалить', title: 'вырезать рецепт из файла' })
+      drop
+        ? h('button', { class: 'danger', onclick: drop, text: 'Удалить', title: 'вырезать строку из файла' })
         : null,
     );
   }
@@ -594,7 +836,7 @@ export function createPanel(root, deps) {
     try {
       if (state.isNew) {
         const made = await api.create(body);
-        deps.onWrite(await alsoMeasure(made, data.name), data.name);
+        deps.onWrite(await alsoClasses(await alsoMeasure(made, data.name), data.name), data.name);
         return;
       }
       if (data.name !== state.original) {
@@ -617,7 +859,7 @@ export function createPanel(root, deps) {
         }
       }
       const saved = await api.update(state.original, body);
-      deps.onWrite(await alsoMeasure(saved, data.name), data.name);
+      deps.onWrite(await alsoClasses(await alsoMeasure(saved, data.name), data.name), data.name);
     } catch (error) {
       fail(error);
     }
@@ -628,6 +870,12 @@ export function createPanel(root, deps) {
   async function alsoMeasure(result, name) {
     if (!measureChanged()) return result;
     return api.measure(name, measurePayload(name));
+  }
+
+  /** И классы — той же очередью и по той же причине. */
+  async function alsoClasses(result, name) {
+    if (!classesChanged()) return result;
+    return api.classesOf(name, state.classes.in);
   }
 
   async function saveMeasure(button) {
@@ -667,8 +915,13 @@ export function createPanel(root, deps) {
   return {
     open,
     openNew,
+    openNewClass,
     clear,
-    save: () => (state ? save() : null),
+    //: Ctrl+S пишет то, что открыто, а открыт может быть и класс.
+    save: () => {
+      if (!state) return null;
+      return state.kind === 'class' ? saveClass() : save();
+    },
     get current() { return state?.original || null; },
   };
 }

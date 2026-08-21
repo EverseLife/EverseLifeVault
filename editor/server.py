@@ -268,6 +268,115 @@ def _mass_for(name: str, mass: Any, ladder: model.Ladder) -> float | None:
     return int(mass) if float(mass).is_integer() else float(mass)
 
 
+def put_class(session: Session, query: dict, body: dict) -> dict:
+    """Create a tool class or set what closes it.
+
+    A class lives in `meta.tool_classes` as one line -- `Кирка: [каменная,
+    железная, стальная]` -- and it is written the same way everything in `meta`
+    is written here: that one line changes, the comments around it do not.
+
+    Renaming is deliberately not offered. A class name is used by operations and
+    by recipe stations, and a sweep over the file would also catch the thing of
+    the same name where there is one («Топор»). Make the new class, move the
+    members, delete the old one -- three visible steps instead of one blind sweep.
+    """
+    name = _need(query, "name").strip()
+    members = [str(item).strip() for item in (body.get("members") or []) if str(item).strip()]
+    with session.lock:
+        file, ladder = session.open()
+        original = name if name in ladder.tool_classes else None
+        model.validate_class(name, members, ladder, original=original)
+
+        expect = copy.deepcopy(file.doc)
+        expect["meta"]["tool_classes"] = {
+            **(expect["meta"].get("tool_classes") or {}),
+            name: members,
+        }
+        lines = vault.MetaBlock(file, "tool_classes").put(name, members)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+        #: Said about the file as it now is, not as it was: the warning is about
+        #: what the person will see on the picture after this write.
+        warning = model.class_warning(name, session.open()[1])
+    return {
+        "class": name,
+        "created": original is None,
+        "warning": warning,
+        "check": _check(session),
+    }
+
+
+def drop_class(session: Session, query: dict, _body: dict) -> dict:
+    """Take a tool class out of the file. What it was made of stays, of course."""
+    name = _need(query, "name")
+    with session.lock:
+        file, ladder = session.open()
+        if name not in ladder.tool_classes:
+            raise vault.VaultError(f"класса «{name}» в вольте нет")
+        expect = copy.deepcopy(file.doc)
+        expect["meta"]["tool_classes"] = {
+            klass: members
+            for klass, members in (expect["meta"].get("tool_classes") or {}).items()
+            if klass != name
+        }
+        lines = vault.MetaBlock(file, "tool_classes").put(name, None)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    return {"deleted": name, "check": _check(session)}
+
+
+def membership(session: Session, query: dict, body: dict) -> dict:
+    """Which classes one thing closes -- set from the side of the thing.
+
+    The same `meta.tool_classes` seen the other way round. A person editing a
+    pickaxe thinks "this is a pickaxe", not "add a member to the class", and the
+    file is written the way the class file reads: the whole answer for this thing
+    in one write, so a half-applied change cannot happen.
+    """
+    name = _need(query, "name")
+    wanted = {str(item).strip() for item in (body.get("classes") or []) if str(item).strip()}
+    with session.lock:
+        file, ladder = session.open()
+        if name not in ladder.known_names():
+            raise vault.VaultError(f"«{name}» нет в вольте")
+        unknown = sorted(klass for klass in wanted if klass not in ladder.tool_classes)
+        if unknown:
+            raise vault.VaultError(
+                f"класса «{unknown[0]}» в вольте нет — сперва заведите его"
+            )
+
+        touched: dict[str, list[str]] = {}
+        for klass, members in ladder.tool_classes.items():
+            inside = any(ladder.canon(member) == name for member in members)
+            if inside == (klass in wanted):
+                continue
+            if klass in wanted:
+                touched[klass] = [*members, name]
+            else:
+                left = [member for member in members if ladder.canon(member) != name]
+                if not left:
+                    raise vault.VaultError(
+                        f"«{name}» — последнее, чем закрывается класс «{klass}». "
+                        "Класс без состава не откроется никогда: удалите класс целиком."
+                    )
+                touched[klass] = left
+        if not touched:
+            return {"name": name, "classes": sorted(wanted), "check": None}
+
+        expect = copy.deepcopy(file.doc)
+        expect["meta"]["tool_classes"] = {
+            **(expect["meta"].get("tool_classes") or {}),
+            **touched,
+        }
+        # Each entry is written into the file the previous one produced: line
+        # numbers move, and a block that measured the old text would cut the
+        # wrong line. The write itself happens once, at the end.
+        lines = file.lines
+        for klass, members in touched.items():
+            step = vault.RecipesFile(session.source, text="\n".join(lines), newline=file.newline)
+            lines = vault.MetaBlock(step, "tool_classes").put(klass, members)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    return {"name": name, "classes": sorted(wanted), "check": _check(session)}
+
+
 def undo(session: Session, _query: dict, _body: dict) -> dict:
     with session.lock:
         restored = vault.undo(session.source)
@@ -290,6 +399,9 @@ ROUTES = {
     ("PUT", "/api/recipe"): update,
     ("DELETE", "/api/recipe"): delete,
     ("PUT", "/api/measure"): measure,
+    ("PUT", "/api/class"): put_class,
+    ("DELETE", "/api/class"): drop_class,
+    ("PUT", "/api/classes"): membership,
     ("POST", "/api/check"): check,
     ("POST", "/api/build"): build,
     ("POST", "/api/undo"): undo,

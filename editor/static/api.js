@@ -31,6 +31,11 @@ export const api = {
   update: (name, body) => req('PUT', '/api/recipe', { name }, body),
   remove: (name, body) => req('DELETE', '/api/recipe', { name }, body),
   measure: (name, body) => req('PUT', '/api/measure', { name }, body),
+  // Класс правится с двух сторон: со стороны класса — его состав, со стороны
+  // вещи — в каких классах она числится. Файл один и тот же, вопрос разный.
+  putClass: (name, members) => req('PUT', '/api/class', { name }, { members }),
+  dropClass: (name) => req('DELETE', '/api/class', { name }),
+  classesOf: (name, classes) => req('PUT', '/api/classes', { name }, { classes }),
   check: () => req('POST', '/api/check'),
   build: () => req('POST', '/api/build'),
   undo: () => req('POST', '/api/undo'),

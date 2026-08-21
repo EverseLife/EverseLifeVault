@@ -175,7 +175,12 @@ class Ladder:
                 cut_candidate=name in self.cut_candidates,
             )
         for klass, members in self.tool_classes.items():
-            put(klass, CLASS, members=list(members))
+            # `is_class` on top of the type, because the two can disagree: a
+            # class named after a thing -- «Топор» -- lands on the node that
+            # thing already made, and keeps that node's type. Without the flag
+            # the class would vanish from the picture entirely, which is how it
+            # went unnoticed that nothing requires «Утварь».
+            put(klass, CLASS, members=list(members), is_class=True)
         # A station named by a synonym is the same node as the recipe it means,
         # so nothing else is added here: `canon` already pointed the edges home.
         return sorted(out.values(), key=lambda node: (node.get("depth") is None, node["name"]))
@@ -489,6 +494,66 @@ def validate(data: dict, ladder: Ladder, original: str | None = None) -> None:
             f"на станции «{station}» уже есть рецепт с таким же составом: «{twin}» (D-209). "
             "Изобретение узнаёт рецепт по составу, и различить их будет нечем."
         )
+
+
+def validate_class(
+    name: str, members: list[str], ladder: Ladder, original: str | None = None
+) -> None:
+    """Refuse a tool class the ladder could not walk.
+
+    A class is a hole in a requirement -- «нужна кирка, любая» -- so the two
+    things that can go wrong with it are both about closing that hole: a class
+    nothing closes stops the ladder dead (nothing requiring it ever opens), and
+    a member nobody makes is the same hole one level down.
+
+    A name that already belongs to a thing is **allowed**: the file does exactly
+    that with «Топор», where the class is named after its own best member. It is
+    reported back as a warning instead, because the picture merges the two into
+    one node and a person should know that before choosing the name.
+    """
+    name = (name or "").strip()
+    if not name:
+        raise VaultError("у класса должно быть название")
+    if name != original and name in ladder.tool_classes:
+        raise VaultError(f"класс «{name}» уже есть")
+
+    members = [member.strip() for member in members if member and member.strip()]
+    if not members:
+        raise VaultError(
+            f"класс «{name}» некому закрыть: без состава требование, которое им "
+            "написано, не откроется никогда. Впишите хотя бы одну вещь либо удалите класс."
+        )
+    if len(set(members)) != len(members):
+        raise VaultError("одна и та же вещь перечислена в составе дважды")
+    known = ladder.known_names()
+    for member in members:
+        if ladder.canon(member) not in known:
+            raise VaultError(f"«{member}» не рецепт, не сырьё и не продукт операции")
+        if ladder.canon(member) in ladder.tool_classes:
+            raise VaultError(
+                f"«{member}» — сам класс. Класс закрывается вещью, а не другим классом: "
+                "вложенных классов в вольте нет."
+            )
+
+
+def class_warning(name: str, ladder: Ladder) -> str | None:
+    """What is worth saying about a class without refusing to write it."""
+    name = (name or "").strip()
+    if name in ladder.recipes or name in ladder.raw or name in ladder.op_outputs:
+        return (
+            f"«{name}» — ещё и название вещи. Так уже сделано с «Топором», и это "
+            "работает, но на графе класс и вещь сливаются в один узел."
+        )
+    if not any(
+        name in (op.get("requires") or []) for op in ladder.operations
+    ) and not any(
+        recipe.get("station") == name for recipe in ladder.recipes.values()
+    ):
+        return (
+            f"класс «{name}» никто не требует: ни операция, ни станция рецепта. "
+            "Он будет висеть на лестнице сам по себе, как «Утварь»."
+        )
+    return None
 
 
 def _same_composition(data: dict, ladder: Ladder, original: str | None) -> str | None:

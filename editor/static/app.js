@@ -69,6 +69,10 @@ const graph = createGraph(document.getElementById('graph'), {
 const panel = createPanel(document.getElementById('panel'), {
   getNode: (name) => app.nodes.get(name) || app.extra.get(name),
   vocabulary: () => app.state.vocabulary,
+  // Кому нужен класс, видно только по операциям и станциям рецептов: в графе
+  // такого ребра нет, потому что требование закрывается любым из состава.
+  operations: () => app.state.operations,
+  nodes: () => app.state.nodes,
   onSelect: (name) => select(name),
   onWrite: afterWrite,
   notify: (text, bad) => say(text, bad),
@@ -490,6 +494,13 @@ document.getElementById('act-new').addEventListener('click', () => {
   panel.openNew(node && node.type === 'recipe'
     ? { level: node.level, section: node.section, station: node.station }
     : {});
+});
+
+// Класс заводят не в пустоте, а когда у вещи появился второй вариант: то, что
+// выбрано сейчас, становится первым, чем класс закрывается.
+document.getElementById('act-new-class').addEventListener('click', () => {
+  const node = app.nodes.get(app.selected);
+  panel.openNewClass(node && node.type !== 'class' ? { members: [node.name] } : {});
 });
 
 document.getElementById('act-check').addEventListener('click', (event) => {
