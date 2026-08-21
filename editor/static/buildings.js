@@ -113,7 +113,6 @@ export function renderBoard(root, rows, { selected, footprint, onFootprint }) {
         h('th', { class: 'rt', title: 'во столько раз следующий этаж дороже предыдущего', text: 'этаж' }),
         h('th', { class: 'rt', title: 'процентов состояния в сутки', text: 'порча' }),
         h('th', { class: 'rt', title: 'через столько суток дом обрушится, если не чинить', text: 'без ремонта' }),
-        h('th', { class: 'rt', title: 'множитель содержания', text: 'содержание' }),
       )),
       h('tbody', {}, ...rows.map((row) => {
         const days = lifetime(row.decay);
@@ -123,7 +122,6 @@ export function renderBoard(root, rows, { selected, footprint, onFootprint }) {
           h('td', { class: 'rt', text: `×${num(row.growth)}` }),
           h('td', { class: 'rt', text: `${num(row.decay)}%` }),
           h('td', { class: 'rt', text: days === null ? 'вечно' : `${days} сут.` }),
-          h('td', { class: 'rt', text: `×${num(row.upkeep)}` }),
         );
       })),
     ),

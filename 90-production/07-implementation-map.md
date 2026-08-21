@@ -31,7 +31,7 @@
 | Добыча | [02-proof-of-work](../20-systems/02-proof-of-work.md), [11-resources](../20-systems/11-resources.md) | D-001, D-093, D-099, D-110 | `mining.*`, `vein.*`, `pow.*` | Час добычи даёт `mining.iron_per_hour`; сессия стоит одной оценки Argon2id |
 | Крафт и качество | [03-crafting](../20-systems/03-crafting.md), [15-quality](../20-systems/15-quality.md) | D-060, D-064, D-092, D-129, D-133 | `recipes.json`, `craft.*`, `quality.*` | Количества входов берутся из данных; прогноз качества показан числом до партии |
 | Стакан и ордера | [02-markets](../30-economy/02-markets.md) | D-003, D-047, D-127 | `market.*`, `tax_trade` | Ордер живёт на сервере; товар грузится физически; налог платит продавец |
-| Износ и содержание | [04-items](../20-systems/04-items.md), [15-quality](../20-systems/15-quality.md) | D-129 | `wear.*`, `upkeep.*` | Инструмент кончается за `100 / wear.tool_per_session` сессий |
+| Износ | [04-items](../20-systems/04-items.md), [15-quality](../20-systems/15-quality.md) | D-129 | `wear.*` | Инструмент кончается за `100 / wear.tool_per_session` сессий |
 | Чат локации | [02-channels](../50-interface/02-channels.md), [03-screens](../50-interface/03-screens.md) | D-043, D-050 | `chat.*` | Три типа сообщений различимы с одного взгляда; утечка между группами работает |
 
 ### Э2. География, логистика, земля, еда
@@ -61,7 +61,7 @@
 | Задача | Документы | Решения | Данные | Готово, когда |
 |---|---|---|---|---|
 | Устав и код-законы | [02-law-engine](../40-society/02-law-engine.md), [07-law-catalog](../40-society/07-law-catalog.md) | D-004, D-036, D-094, D-130 | `laws.json` | Новый город работает на умолчаниях, ничего не заполняя |
-| Казна | [04-taxes-and-treasury](../30-economy/04-taxes-and-treasury.md) | D-127, D-134 | `tax_*`, `salary`, `upkeep.*`, `treasury.grace_days` | Содержание — заказ людям; пустая казна сыпется в видимом порядке |
+| Казна | [04-taxes-and-treasury](../30-economy/04-taxes-and-treasury.md) | D-127, D-134, D-219 | `tax_*`, `salary`, `treasury.grace_days` | Ремонт — заказ людям, а не списание; пустая казна сыпется в видимом порядке |
 | Пошлины и сводка | [02-markets](../30-economy/02-markets.md), [00-city-states](../40-society/00-city-states.md) | D-122, D-123, D-124 | `trade.*`, `price_cap`, `ration` | Потолок цены без нормы отпуска скупают за день — и это видно в сводке |
 | Экономическая панель города | [00-city-states](../40-society/00-city-states.md), [04-metrics](../60-meta/04-metrics.md) | D-124, D-140, D-139 | `trade.report_*`, агрегаты | Формула одна на панель, дашборд и симуляцию; без содержания администрации панель не обновляется |
 | Договоры | [03-contracts](../30-economy/03-contracts.md) | D-116, D-117, D-131 | `contract.*` | Заказ с эскроу закрывается сам; всё вне списка идёт в суд |

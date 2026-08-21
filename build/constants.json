@@ -144,7 +144,7 @@
     "каменный": 1.5,
     "бетонный": 1.25,
     "железобетонный": 1.13,
-    "цельнометаллический": 1.13
+    "цельнометаллический": 1.06
   },
   "build.decay_by_type": {
     "деревянный": 0.5,
@@ -157,7 +157,6 @@
   "build.repair_labor_k": 0.35,
   "build.labor_per_m2": 0.4,
   "build.labor_stamina_rate": 12,
-  "build.upkeep_per_area": 0.5,
   "build.demolish_labor_k": 0.5,
   "build.demolish_salvage": 0.3,
   "road.trail_multiplier": 2.5,
@@ -545,17 +544,6 @@
   "credit.no_overdue_bonus": 20,
   "credit.report_penalty": 10,
   "credit.trust_floor": 20,
-  "upkeep.territory_exponent": 1.4,
-  "upkeep.materials_share": 40,
-  "upkeep.labor_share": 35,
-  "upkeep.by_type": {
-    "деревянный": 1.6,
-    "каменный": 1.2,
-    "бетонный": 1,
-    "железобетонный": 0.7,
-    "цельнометаллический": 0.5
-  },
-  "upkeep.decay_rate": 2,
   "spoilage.food_base": 5,
   "spoilage.cold_storage_multiplier": 0.2,
   "spoilage.salted_multiplier": 0.05,

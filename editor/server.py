@@ -457,7 +457,6 @@ def _buildings(session: Session) -> list[dict]:
 BUILDING_NUMBERS = (
     ("growth", "рост цены этажа", 1.0),
     ("decay", "порча, % в сутки", 0.0),
-    ("upkeep", "множитель содержания", 0.0),
 )
 
 
@@ -526,7 +525,7 @@ def _save_types(session: Session, rows: list[dict]) -> None:
 
 
 def building_create(session: Session, _query: dict, body: dict) -> dict:
-    """A new building type: one row, and all four maps get it at once (D-218)."""
+    """A new building type: one row, and all three maps get it at once (D-218)."""
     with session.lock:
         _, ladder = session.open()
         row = _clean_building(body.get("data") or {}, ladder)

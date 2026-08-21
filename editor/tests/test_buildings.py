@@ -1,10 +1,10 @@
-"""Building types (D-218): four maps that must agree, edited as one row.
+"""Building types (D-218): three maps that must agree, edited as one row.
 
 The point of the whole tab is checked here. A type is a composition, a price of
-the next floor, a rate of decay and a cost of upkeep, and those live in four
-different maps of `data/constants.yaml`. Editing them by hand means keeping four
-lists in step; forget one and the engine finds a house it cannot price or age.
-Here one write touches all four, or none of them.
+the next floor and a rate of decay, and those live in three different maps of
+`data/constants.yaml`. Editing them by hand means keeping three lists in step;
+forget one and the engine finds a house it cannot price or age. Here one write
+touches all three, or none of them.
 """
 
 from __future__ import annotations
@@ -46,7 +46,6 @@ BRICK = {
     "per_m2": {"Кирпич": 30, "Раствор": 6},
     "growth": 1.4,
     "decay": 0.25,
-    "upkeep": 1.1,
 }
 
 
@@ -54,12 +53,12 @@ BRICK = {
 
 
 def test_the_ladder_reads_as_rows(constants: Path):
-    """Every type comes back whole: what it is built of and all three numbers."""
+    """Every type comes back whole: what it is built of and both numbers."""
     rows = consts.ConstantsFile(constants).types()
     assert rows, "в вольте должны быть типы зданий"
     for row in rows:
         assert row["per_m2"], f"у «{row['kind']}» пустой состав"
-        assert row["growth"] and row["decay"] is not None and row["upkeep"] is not None
+        assert row["growth"] and row["decay"] is not None
 
     #: The order is the file's own and it means something: cheapest first, and
     #: the engine takes the first of it as the default for an unnamed house.
@@ -69,14 +68,13 @@ def test_the_ladder_reads_as_rows(constants: Path):
 # ------------------------------------------------------------------- writing
 
 
-def test_a_new_type_lands_in_all_four_maps(session: server.Session, constants: Path):
+def test_a_new_type_lands_in_every_map(session: server.Session, constants: Path):
     server.building_create(session, {}, {"data": BRICK})
 
     maps = maps_of(constants)
     assert maps[consts.COMPOSITION]["кирпичный"] == {"Кирпич": 30, "Раствор": 6}
     assert maps[consts.GROWTH]["кирпичный"] == 1.4
     assert maps[consts.DECAY]["кирпичный"] == 0.25
-    assert maps[consts.UPKEEP]["кирпичный"] == 1.1
 
     #: The same set of names in every map is exactly what the build checks, and
     #: it must hold the moment the write returns -- not after a later fix-up.
@@ -132,7 +130,6 @@ def test_editing_a_type_rewrites_its_composition(session: server.Session, consta
             "per_m2": {"Дерево": 12, "Верёвка": 1},
             "growth": 2.5,
             "decay": 0.6,
-            "upkeep": 1.7,
         }},
     )
     maps = maps_of(constants)
@@ -143,7 +140,7 @@ def test_editing_a_type_rewrites_its_composition(session: server.Session, consta
     assert [row["kind"] for row in consts.ConstantsFile(constants).types()][0] == "деревянный"
 
 
-def test_renaming_carries_the_type_through_all_four(session: server.Session, constants: Path):
+def test_renaming_carries_the_type_through_every_map(session: server.Session, constants: Path):
     result = server.building_update(
         session, {"name": ["бетонный"]}, {"data": {**BRICK, "kind": "бетонный-новый"}}
     )

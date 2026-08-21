@@ -5,13 +5,12 @@ edited in the file by hand -- there are hundreds, each explained by the comment
 above it, and a form over all of them would only invite editing them blindly.
 
 **Building types are the exception**, and for one reason: a type is not one
-number but four maps that have to agree. `build.types` says what goes into the
+number but three maps that have to agree. `build.types` says what goes into the
 wall, `build.floor_growth_by_type` how much dearer the next floor is,
-`build.decay_by_type` how fast the house rots, `upkeep.by_type` what it costs to
-keep. Add a type to the first and forget the other three, and the engine finds a
-composition with no rate of decay -- a crash on a tick, hours after the edit.
-Keeping four maps in step is exactly the work a tool should do instead of a
-person, so here it does.
+`build.decay_by_type` how fast the house rots. Add a type to the first and
+forget the other two, and the engine finds a composition with no rate of decay
+-- a crash on a tick, hours after the edit. Keeping three maps in step is
+exactly the work a tool should do instead of a person, so here it does.
 
 The edit is line surgery on one `value:` block at a time, and it is safe for the
 same reason the recipe edits are: the whole document is parsed back and compared
@@ -33,20 +32,19 @@ import yaml
 #: differently than it was meant.
 from vaultfile import VaultError, _number, _scalar
 
-#: The four maps a building type lives in, and what each one holds. The order is
-#: the order they are written in; `build.types` leads because it is the one that
-#: names the types -- the other three follow its ladder.
+#: The three maps a building type lives in. The order is the order they are
+#: written in; `build.types` leads because it is the one that names the types --
+#: the other two follow its ladder. Upkeep used to be a fourth; it went with the
+#: mechanic itself (D-219): the land tax takes the money, decay takes the walls.
 COMPOSITION = "build.types"
 GROWTH = "build.floor_growth_by_type"
 DECAY = "build.decay_by_type"
-UPKEEP = "upkeep.by_type"
-BUILDING_KEYS = (COMPOSITION, GROWTH, DECAY, UPKEEP)
+BUILDING_KEYS = (COMPOSITION, GROWTH, DECAY)
 
 #: What each map holds per type, for the messages and for the form.
 FLAT_KEYS = {
     GROWTH: ("growth", "во сколько раз следующий этаж дороже предыдущего"),
     DECAY: ("decay", "процентов состояния в сутки"),
-    UPKEEP: ("upkeep", "множитель содержания"),
 }
 
 KEY_LINE = re.compile(r"^(\s*)- key: (\S+)\s*$")
@@ -80,7 +78,7 @@ class ConstantsFile:
         raise VaultError(f"константы «{key}» нет в реестре")
 
     def types(self) -> list[dict]:
-        """Every building type as one row: composition and all three numbers.
+        """Every building type as one row: composition and both numbers.
 
         The ladder's order is the order of `build.types` and nothing else: it
         runs from the log hut to the all-metal house, and the shop window in the
@@ -147,9 +145,9 @@ class ConstantsFile:
         self.lines[first:last] = _render_map(mapping, indent, nested=nested)
 
     def set_types(self, rows: list[dict]) -> dict:
-        """Write all four maps from one ladder of types, and say what was meant.
+        """Write all three maps from one ladder of types, and say what was meant.
 
-        The four blocks are written from the bottom of the file upwards, so that
+        The blocks are written from the bottom of the file upwards, so that
         splicing one does not move the line numbers of the ones still to come.
 
         Returns the document as it must read afterwards -- the caller hands that
