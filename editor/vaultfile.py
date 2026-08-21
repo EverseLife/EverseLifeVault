@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """Reading and surgical editing of the vault's `data/recipes.yaml`.
 
 The file is not rewritten by a YAML dumper. Every entry there is a one-line flow

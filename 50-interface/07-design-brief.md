@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Визуальный язык интерфейса — ТЗ на дизайн
 
 > **Статус:** идея (D-055, D-074, D-075) · **Зависит от:** [00-ux-principles](00-ux-principles.md), [01-interaction-model](01-interaction-model.md), [03-screens](03-screens.md), [02-channels](02-channels.md)

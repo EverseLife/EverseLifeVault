@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Опасность и конфликт
 
 > **Статус:** согласовано (D-096) · **бой заморожен (D-111)** · **Война между государствами отложена (D-020)**

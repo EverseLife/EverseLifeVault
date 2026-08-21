@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Жизненный цикл мира
 
 > **Статус:** согласовано (D-007, D-018)

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Nurlan Urazkulov
+
 // The glue: state, the list on the left, the graph in the middle, the form on
 // the right, and the strip at the bottom where the vault's own check speaks.
 //

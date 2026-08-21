@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Промпт для Claude Design
 
 > **Статус:** живой · рабочий инструмент · **Источник:** [07-design-brief](07-design-brief.md)

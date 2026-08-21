@@ -24,6 +24,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      # Nothing to install for this one -- the standard library is enough, so
+      # it runs before the rest and costs nothing. Which file is under which
+      # licence is decided by `tools/spdx.py`, not by this file.
+      - name: A licence header in every file
+        run: python tools/spdx.py
+
       - run: pip install --quiet pyyaml==6.0.2 pytest==8.3.4
 
       # The vault's own verdict on itself: circles in the ladder, dead ends,

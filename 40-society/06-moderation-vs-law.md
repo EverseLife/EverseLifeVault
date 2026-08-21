@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Игровое право и модерация платформы
 
 > **Статус:** идея — **прочитать до реализации движка законов**

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Nurlan Urazkulov
+
 // The graph itself: boxes, arrows, panning, and the highlight that answers the
 // only question the picture is for -- what does this thing touch.
 //

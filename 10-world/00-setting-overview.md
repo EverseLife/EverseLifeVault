@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Сеттинг: обзор
 
 > **Статус:** идея · **Зависит от:** [00-core/00-vision](../00-core/00-vision.md)

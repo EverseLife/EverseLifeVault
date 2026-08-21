@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Готовка
 
 > **Статус:** в реализации (D-119, D-121, D-128) — котёл по ролям, сухое и горячее, сытость, разнообразие и порча в `engine/craft.py` и `engine/food.py`; в котёл идёт только съедобное — список `edible` в данных; авторские сочетания, годность продуктов конкретным ролям, соль и холодный склад ещё нет · **Зависит от:** [03-crafting](03-crafting.md), [15-quality](15-quality.md), [06-farming](06-farming.md), [04-items](04-items.md)

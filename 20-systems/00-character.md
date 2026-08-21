@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Персонаж
 
 > **Статус:** в реализации в части личности, тела, инвентаря, гибернации и смерти (D-011, D-012, D-091) — `engine/world.py`, `engine/rest.py`, `engine/food.py`, `engine/death.py`; статусов (ранение как модификатор действий, болезни) ещё нет

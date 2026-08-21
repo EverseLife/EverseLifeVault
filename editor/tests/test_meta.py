@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """How a thing is measured: whole or fractional, and by what word.
 
 Since D-215 the fraction sign is `bulk: true` on the thing's own line -- a

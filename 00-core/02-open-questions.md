@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Реестр открытых вопросов
 
 > **Статус:** живой · только нерешённое. Закрытые — в [04-closed-questions](04-closed-questions.md), обоснования — в [журнале решений](../90-production/02-decision-log.md)

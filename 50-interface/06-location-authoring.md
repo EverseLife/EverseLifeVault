@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Оформление локаций игроками
 
 > **Статус:** идея (D-046, D-072, D-073)

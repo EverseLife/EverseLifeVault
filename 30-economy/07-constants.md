@@ -1,4 +1,7 @@
 <!-- СГЕНЕРИРОВАНО tools/build.py — правки в этом файле будут затёрты. Источник: data/constants.yaml -->
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Реестр констант
 
 > **Статус:** генерируется · **Источник:** [`data/constants.yaml`](../data/constants.yaml) · **Решение:** D-065

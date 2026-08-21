@@ -1,4 +1,7 @@
 <!-- СГЕНЕРИРОВАНО tools/build.py — правки в этом файле будут затёрты. Источник: data/laws.yaml -->
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Каталог законов
 
 > **Статус:** генерируется · **Источник:** [`data/laws.yaml`](../data/laws.yaml) · **Решения:** D-004, D-036, D-094 · **Зависит от:** [01-government-forms](01-government-forms.md), [02-law-engine](02-law-engine.md)

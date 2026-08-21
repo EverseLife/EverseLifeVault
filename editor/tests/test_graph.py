@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """The ladder as the editor reads it, and the refusals it hands back.
 
 Nothing here names a recipe. The vault is a living document -- «Дикий лён»

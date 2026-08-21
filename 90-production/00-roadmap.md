@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Дорожная карта
 
 > **Статус:** живой · стек выбран (D-139), бумажные прототипы сняты с критического пути (D-138)

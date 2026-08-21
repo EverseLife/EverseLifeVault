@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Модель взаимодействия
 
 > **Статус:** идея (заменяет прежний язык команд, D-042)

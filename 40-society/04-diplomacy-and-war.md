@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Дипломатия (война отложена)
 
 > **Статус:** согласовано (D-020) · военная часть **вынесена за рамки текущего объёма**

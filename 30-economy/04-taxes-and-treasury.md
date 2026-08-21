@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Налоги и казна
 
 > **Статус:** согласовано (D-127) · **единственный документ о казне.** Город как политический институт — [40-society/00](../40-society/00-city-states.md)

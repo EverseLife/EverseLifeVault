@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Принципы интерфейса
 
 > **Статус:** идея — переработано после отказа от текстового управления (D-042)

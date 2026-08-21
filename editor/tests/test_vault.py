@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """What the editor promises about the file it writes.
 
 Nothing here names a recipe: the vault is a living document, and a test tied to

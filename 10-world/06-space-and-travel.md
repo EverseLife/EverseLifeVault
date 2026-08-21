@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Космос и перемещение
 
 > **Статус:** в реализации (D-201, D-202) · согласовано (D-009, D-010, D-203) · **Открытые вопросы:** OQ-026

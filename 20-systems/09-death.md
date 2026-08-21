@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Смерть и печать тела
 
 > **Статус:** в реализации (D-012, D-013, D-028, D-032, D-033, D-040) — `engine/death.py`: гибель уничтожает тело и карман, `death.salvage_ratio` носимого остаётся на месте и в повреждённом виде; печать двумя дверями — городской принтер за `energy.body_print` энергии по тарифу и `death.iron_cost` железа со двора, Принтер Предтеч бесплатно и `death.print_time_capital` часов; кто платит, решает код-закон `body_print`. Единственный источник гибели в альфе — среда: обвал свода с `mine.collapse_death_chance`. **Ещё нет:** кредита на тело (Э4, D-030), страховщика, нимф

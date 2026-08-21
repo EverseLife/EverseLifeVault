@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Балансная модель
 
 > **Статус:** идея · каркас модели · **числа живут в [реестре констант](07-constants.md)** (D-065)

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Модель предметной области
 
 > **Статус:** согласовано (D-137) · **Для кого:** тот, кто пишет движок

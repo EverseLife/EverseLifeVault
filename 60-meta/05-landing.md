@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Лендинг — ТЗ
 
 > **Статус:** идея (D-056, D-078, D-079) · **переделывается целиком** · **Зависит от:** [00-core/00-vision](../00-core/00-vision.md), [00-core/01-design-pillars](../00-core/01-design-pillars.md), [50-interface/07-design-brief](../50-interface/07-design-brief.md), [02-monetization](02-monetization.md), [00-onboarding](00-onboarding.md), [90-production/00-roadmap](../90-production/00-roadmap.md)

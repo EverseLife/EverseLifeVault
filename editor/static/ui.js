@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Nurlan Urazkulov
+
 // Small shared bits: element building and the one modal the tool needs.
 
 export function h(tag, attrs = {}, ...children) {

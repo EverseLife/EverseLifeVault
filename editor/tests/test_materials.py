@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """The material registry (D-215): one row is all a new raw thing needs.
 
 The point of the whole redesign is checked here: adding «Алмаз» is a single

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Редактор рецептов
 
 Инструмент разработчика: смотреть на лестницу рецептов как на граф, искать по

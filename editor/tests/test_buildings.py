@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """Building types (D-218): three maps that must agree, edited as one row.
 
 The point of the whole tab is checked here. A type is a composition, a price of

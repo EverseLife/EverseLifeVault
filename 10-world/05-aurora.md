@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Аврора
 
 > **Статус:** согласовано (D-017) · **Открытые вопросы:** OQ-025, OQ-026

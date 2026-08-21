@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Реестр действий
 
 > **Статус:** согласовано (D-137) · **Для кого:** тот, кто пишет движок и интерфейс

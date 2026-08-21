@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Ресурсы и руды
 
 > **Статус:** идея (ответ на OQ-022) · **Зависит от:** [02-proof-of-work](02-proof-of-work.md), [03-crafting](03-crafting.md)

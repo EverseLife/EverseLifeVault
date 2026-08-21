@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """Сборка вольта: данные -> документы + артефакты для движка.
 
     python tools/build.py           собрать всё, показать предупреждения
@@ -1352,11 +1355,16 @@ def build_status_index() -> str:
 
     for path in sorted(ROOT.rglob("*.md")):
         rel = path.relative_to(ROOT).as_posix()
-        if rel.startswith((".obsidian/", ".pytest_cache/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md"):
+        # Служебные документы корня статуса не имеют и в индексе не нужны: они
+        # не про игру, а про то, как с репозиторием обращаться.
+        if rel.startswith((".obsidian/", ".pytest_cache/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md", "CLA.md", "CONTENT-LICENSE.md"):
             continue
         if rel == "90-production/03-status.md":
             continue
-        head = path.read_text(encoding="utf-8").split("\n", 6)[:6]
+        # Двенадцать строк, а не шесть: над заголовком документа стоит ещё
+        # комментарий с лицензией (tools/spdx.py), и в шести строках шапка
+        # «> **Статус:**» помещалась впритык — у сгенерированных не помещалась вовсе.
+        head = path.read_text(encoding="utf-8").split("\n", 12)[:12]
         line = next((l for l in head if l.startswith("> **Статус:**")), None)
         title = next((l.lstrip("# ").strip() for l in head if l.startswith("# ")), rel)
         if line is None:

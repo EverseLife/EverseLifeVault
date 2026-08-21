@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Лор: Предтечи, Биопринтер и облако
 
 > **Статус:** идея (обновлён после D-069, D-076)

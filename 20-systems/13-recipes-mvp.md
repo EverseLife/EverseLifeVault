@@ -1,4 +1,7 @@
 <!-- СГЕНЕРИРОВАНО tools/build.py — правки в этом файле будут затёрты. Источник: data/recipes.yaml -->
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Рецепты MVP
 
 > **Статус:** генерируется · **Источник:** [`data/recipes.yaml`](../data/recipes.yaml) · **Решения:** D-052, D-054, D-057, D-060, D-084, D-090, D-092, D-119 · **Зависит от:** [03-crafting](03-crafting.md), [11-resources](11-resources.md), [12-energy](12-energy.md), [15-quality](15-quality.md)

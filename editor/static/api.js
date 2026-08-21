@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Nurlan Urazkulov
+
 // The whole conversation with the server. Every failure arrives as an Error with
 // the server's own words in it: the reasons are written for a human to read, and
 // re-phrasing them here would only make them vaguer.

@@ -11,7 +11,7 @@ _пусто_
 ## в реализации — обязан совпадать с кодом (24)
 
 - [Космос и перемещение](../10-world/06-space-and-travel.md)
-- [10-world/07-map-topology.md](../10-world/07-map-topology.md)
+- [Топология карты](../10-world/07-map-topology.md)
 - [Персонаж](../20-systems/00-character.md)
 - [Модель времени](../20-systems/01-time-model.md)
 - [Доказательство труда (добыча сырья)](../20-systems/02-proof-of-work.md)

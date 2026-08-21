@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Общение
 
 > **Статус:** в реализации в части живого общения (D-043, D-050) — чат локации, кружки и утечки в `engine/chat.py`; Сеть-мессенджер, запись разговора и городские каналы ещё нет

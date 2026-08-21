@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Видение
 
 > **Статус:** идея · базовые решения приняты, см. [журнал решений](../90-production/02-decision-log.md)

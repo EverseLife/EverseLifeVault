@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """Thing classes: declaring them, filling them, and taking them out (D-215).
 
 A class is a declaration in `meta.classes` plus a `class:` field on each

@@ -1,4 +1,7 @@
 <!-- СГЕНЕРИРОВАНО tools/build.py — правки в этом файле будут затёрты. Источник: data/plants.yaml -->
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Каталог культур
 
 > **Статус:** генерируется · **Источник:** [`data/plants.yaml`](../data/plants.yaml) · **Решения:** D-057, D-105, D-136 · **Замысел:** [14-plants-and-breeding](14-plants-and-breeding.md)

@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Вход в игру и онбординг
 
 > **Статус:** в реализации (D-013, D-028, D-040, D-041, D-182, D-208) · **экзистенциальный риск проекта**

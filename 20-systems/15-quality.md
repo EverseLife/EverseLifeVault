@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Качество
 
 > **Статус:** в реализации (D-058, D-060, D-092) — потолок, приближение к нему, ступени и износ в `engine/craft.py` и `engine/wear.py` · **Зависит от:** [03-crafting](03-crafting.md), [04-items](04-items.md), [11-resources](11-resources.md)

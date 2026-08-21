@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """Симуляция экономики: автотест баланса до того, как его проверят игроки.
 
     python tools/simulate.py              прогнать 30 дней, собрать отчёт

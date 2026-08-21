@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Карта и перемещение
 
 > **Статус:** идея (D-045) · **Зависит от:** [10-world/07](../10-world/07-map-topology.md)

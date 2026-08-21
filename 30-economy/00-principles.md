@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Принципы экономики
 
 > **Статус:** идея — **фундамент, читать первым в этом разделе**

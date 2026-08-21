@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (C) 2026 Nurlan Urazkulov
+
 // The right-hand panel: the form that writes a recipe, and everything the build
 // derived from it.
 //

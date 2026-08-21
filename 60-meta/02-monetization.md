@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Монетизация
 
 > **Статус:** согласовано (D-027, D-038, D-041) — подписка, 3 месяца бесплатно

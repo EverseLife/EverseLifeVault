@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """The recipe ladder as a graph, plus the checks the editor runs before writing.
 
 Two layers meet here and they must not be confused:

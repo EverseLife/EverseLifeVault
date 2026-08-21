@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Журнал решений
 
 > **Статус:** живой · последнее обновление: D-214, одинаковые стопки складываются

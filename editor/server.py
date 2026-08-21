@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """The local server of the recipe editor.
 
 Standard library only, on purpose: the tool has to start in a fresh clone with

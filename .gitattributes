@@ -4,3 +4,6 @@
 *.png binary
 *.jpg binary
 *.webp binary
+
+# Текст AGPL по определению дословный — никакой нормализации.
+LICENSE -text

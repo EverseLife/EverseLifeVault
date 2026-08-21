@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 Nurlan Urazkulov
+
 """`data/constants.yaml` as text: the building types the editor may change (D-218).
 
 Numbers live in the vault and only there (D-065), and almost all of them are

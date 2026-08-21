@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Модель времени
 
 > **Статус:** в реализации — тик мира, длительные действия и сроки в `engine/tick.py` и `engine/jobs.py`; сутки планет заданы (D-008), очередь действий ещё нет · **Открытые вопросы:** OQ-028

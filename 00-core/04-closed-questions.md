@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Закрытые вопросы
 
 > **Статус:** живой · архив. Открытые — [02-open-questions](02-open-questions.md). Обоснования и следствия каждого решения — [журнал решений](../90-production/02-decision-log.md).

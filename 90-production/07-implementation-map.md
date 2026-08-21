@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Карта реализации
 
 > **Статус:** живой (D-137) · **Для кого:** тот, кто ставит задачи агенту-разработчику

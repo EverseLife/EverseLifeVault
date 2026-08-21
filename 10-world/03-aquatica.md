@@ -1,3 +1,6 @@
+<!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
+     Copyright (C) 2026 Nurlan Urazkulov -->
+
 # Акватика — в разработке
 
 > **Статус:** идея · **вне альфы** (D-104). Планета и линия нимф отложены без назначенного срока
