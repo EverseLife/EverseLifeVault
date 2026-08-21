@@ -43,20 +43,75 @@ class Ladder:
         self.file = file
         self.derived = derived or {}
         meta = file.meta()
-        self.raw: list[str] = list(meta.get("raw") or [])
-        self.bulk = set(meta.get("bulk") or [])
-        self.edible = set(meta.get("edible") or [])
         self.gear_slots: list[str] = list(meta.get("gear_slots") or [])
         self.synonyms: dict[str, str] = {**STATION_ALIASES, **(meta.get("synonyms") or {})}
-        self.tool_classes: dict[str, list[str]] = dict(meta.get("tool_classes") or {})
         self.cut_candidates = set(file.doc.get("cut_candidates") or [])
         self.recipes = {recipe["name"]: recipe for recipe in file.recipes()}
-        self.operations = file.operations()
+
+        #: The material registry and thing classes (D-215): the authored source
+        #: of everything that is not made by a recipe.
+        self.materials: dict[str, dict] = {
+            material["name"]: material
+            for material in (meta.get("materials") or [])
+            if material.get("name")
+        }
+        self.class_notes: dict[str, str | None] = {
+            entry["name"]: entry.get("note")
+            for entry in (meta.get("classes") or [])
+            if entry.get("name")
+        }
+        members: dict[str, list[str]] = {}
+        for name, material in self.materials.items():
+            if material.get("class"):
+                members.setdefault(material["class"], []).append(name)
+        for name, recipe in self.recipes.items():
+            if recipe.get("class"):
+                members.setdefault(recipe["class"], []).append(name)
+        self.classes: dict[str, list[str]] = {
+            klass: sorted(names) for klass, names in sorted(members.items())
+        }
+        #: The tools-only view older UI code reads: a class whose every member
+        #: is a tool.
+        self.tool_classes: dict[str, list[str]] = {
+            klass: names
+            for klass, names in self.classes.items()
+            if names
+            and all((self.recipes.get(n) or {}).get("kind") == "tool" for n in names)
+        }
+
+        #: Operations may give a whole class (`gives: {class: Ископаемое}`):
+        #: expanded here the way the build expands them, on copies -- `file.doc`
+        #: must stay exactly what the file parses to.
+        self.operations = []
+        for op in file.operations():
+            gives = op.get("gives")
+            if isinstance(gives, dict):
+                op = {**op, "gives": list(members.get(gives.get("class"), [])),
+                      "gives_class": gives.get("class")}
+            self.operations.append(op)
         self.op_outputs = {give: op for op in self.operations for give in op["gives"]}
+
+        #: Raw is derived, not listed (D-215): a material nothing consuming
+        #: produces is taken from the world.
+        produced = {
+            give
+            for op in self.operations
+            if op.get("consumes")
+            for give in op["gives"]
+        }
+        self.raw: list[str] = [name for name in self.materials if name not in produced]
+        self.bulk = {name for name, m in self.materials.items() if m.get("bulk")} | {
+            name for name, r in self.recipes.items() if r.get("bulk")
+        }
+        self.edible = {name for name, m in self.materials.items() if m.get("edible")} | {
+            name for name, r in self.recipes.items() if r.get("edible")
+        }
+
         self.derived_recipes = {r["name"]: r for r in self.derived.get("recipes", [])}
         self.derived_ops = {op["name"]: op for op in self.derived.get("operations", [])}
         self.mass: dict[str, float] = dict(self.derived.get("mass") or {})
         self.labor: dict[str, float] = dict(self.derived.get("labor_hours") or {})
+        self.step_hours: dict[str, float] = dict(self.derived.get("step_hours") or {})
 
     # -- naming ------------------------------------------------------------
 
@@ -66,14 +121,15 @@ class Ladder:
     def options(self, name: str) -> list[str]:
         """What can close a requirement: the thing itself or any of its class."""
         name = self.canon(name)
-        return self.tool_classes.get(name, [name])
+        return self.classes.get(name, [name])
 
     def known_names(self) -> set[str]:
         return (
             set(self.recipes)
-            | set(self.raw)
+            | set(self.materials)
             | set(self.op_outputs)
-            | set(self.tool_classes)
+            | set(self.classes)
+            | set(self.class_notes)
             | set(VIRTUAL_STATIONS)
             | set(self.synonyms)
         )
@@ -117,7 +173,7 @@ class Ladder:
             for name in opened:
                 depth[name] = step
             available |= opened
-        for klass, members in self.tool_classes.items():
+        for klass, members in self.classes.items():
             reached = [depth[member] for member in members if member in depth]
             if reached and klass not in depth:
                 depth[klass] = min(reached)
@@ -140,8 +196,14 @@ class Ladder:
             node["labor_hours"] = self.labor.get(name)
             return node
 
-        for name in self.raw:
-            put(name, RAW)
+        for name, material in self.materials.items():
+            node = put(name, RAW if name in self.raw else OPERATION)
+            node["material"] = True
+            node["thing_class"] = material.get("class")
+            node["rate"] = material.get("rate")
+            node["forage"] = material.get("forage")
+            node["fuel"] = material.get("fuel")
+            node["authored_mass"] = material.get("mass")
         for give, op in self.op_outputs.items():
             node = put(give, OPERATION if give not in self.raw else RAW)
             node.setdefault("operations", [])
@@ -152,6 +214,7 @@ class Ladder:
                 name,
                 RECIPE,
                 kind=recipe.get("kind", "material"),
+                thing_class=recipe.get("class"),
                 station=recipe.get("station"),
                 level=recipe.get("level"),
                 section=recipe.get("section"),
@@ -174,13 +237,14 @@ class Ladder:
                 note=recipe.get("note"),
                 cut_candidate=name in self.cut_candidates,
             )
-        for klass, members in self.tool_classes.items():
+        for klass, members in self.classes.items():
             # `is_class` on top of the type, because the two can disagree: a
             # class named after a thing -- «Топор» -- lands on the node that
             # thing already made, and keeps that node's type. Without the flag
             # the class would vanish from the picture entirely, which is how it
             # went unnoticed that nothing requires «Утварь».
-            put(klass, CLASS, members=list(members), is_class=True)
+            node = put(klass, CLASS, members=list(members), is_class=True)
+            node["class_note"] = self.class_notes.get(klass)
         # A station named by a synonym is the same node as the recipe it means,
         # so nothing else is added here: `canon` already pointed the edges home.
         return sorted(out.values(), key=lambda node: (node.get("depth") is None, node["name"]))
@@ -201,6 +265,11 @@ class Ladder:
         return round(into, 3) if into > 0 else None
 
     def _own_hours(self, name: str, derived: dict) -> float | None:
+        #: Since D-215 the build ships the step ready-made; the subtraction
+        #: below stays as a fallback for a snapshot built before that.
+        ready = self.step_hours.get(name)
+        if ready is not None:
+            return ready
         labour = self.labor.get(name)
         if labour is None:
             return None
@@ -241,7 +310,7 @@ class Ladder:
                     add(item, give, "input", op["name"], amounts.get(item))
                 for tool in op["requires"]:
                     add(tool, give, "tool", op["name"])
-        for klass, members in self.tool_classes.items():
+        for klass, members in self.classes.items():
             for member in members:
                 add(member, klass, "class", klass)
         return out
@@ -389,17 +458,25 @@ class Ladder:
         )
         return {
             "units": dict(self.file.meta().get("units") or {}),
-            # Заданные руками массы сырья и продуктов операций. Отдельно от
-            # выведенных: сразу после правки сборка ещё не считала, и поле
-            # должно показывать написанное, а не вчерашнее
-            "masses": dict(self.file.meta().get("mass") or {}),
+            # Заданные руками массы материалов. Отдельно от выведенных: сразу
+            # после правки сборка ещё не считала, и поле должно показывать
+            # написанное, а не вчерашнее
+            "masses": {
+                name: material.get("mass")
+                for name, material in self.materials.items()
+            },
             "kinds": kinds,
             "stations": stations,
             "slots": self.gear_slots,
             "levels": self.file.levels(),
             "names": sorted(self.known_names()),
             "raw": sorted(self.raw),
+            # Классы вещей (D-215): объявление с пояснением и членство.
+            # tool_classes — прежний узкий вид для старого кода интерфейса
+            "classes": self.classes,
+            "class_notes": self.class_notes,
             "tool_classes": self.tool_classes,
+            "materials": [self.materials[name] for name in sorted(self.materials)],
             "synonyms": self.synonyms,
             "virtual_stations": list(VIRTUAL_STATIONS),
         }
@@ -420,12 +497,20 @@ def validate(data: dict, ladder: Ladder, original: str | None = None) -> None:
         raise VaultError("у рецепта должно быть название")
     if name != original and name in ladder.recipes:
         raise VaultError(f"рецепт «{name}» уже есть")
-    if name != original and (name in ladder.raw or name in ladder.op_outputs):
-        raise VaultError(f"«{name}» уже существует как сырьё или продукт операции")
+    if name != original and (name in ladder.materials or name in ladder.op_outputs):
+        raise VaultError(f"«{name}» уже существует как материал или продукт операции")
 
     kind = data.get("kind")
     if not kind:
         raise VaultError("не выбран тип рецепта")
+
+    thing_class = data.get("class")
+    if thing_class and thing_class not in ladder.class_notes:
+        known_classes = ", ".join(sorted(ladder.class_notes)) or "—"
+        raise VaultError(
+            f"класс «{thing_class}» не объявлен в meta.classes (есть: {known_classes}). "
+            "Опечатка не должна рождать тихий новый класс (D-215)."
+        )
 
     inputs = data.get("inputs") or []
     if not inputs:
@@ -496,10 +581,51 @@ def validate(data: dict, ladder: Ladder, original: str | None = None) -> None:
         )
 
 
+def validate_material(data: dict, ladder: Ladder, original: str | None = None) -> None:
+    """Refuse a material row the build would refuse anyway (D-215)."""
+    name = (data.get("name") or "").strip()
+    if not name:
+        raise VaultError("у материала должно быть название")
+    if name != original and name in ladder.materials:
+        raise VaultError(f"материал «{name}» уже есть")
+    if name != original and name in ladder.recipes:
+        raise VaultError(f"«{name}» уже существует как рецепт")
+
+    mass = data.get("mass")
+    if not isinstance(mass, (int, float)) or isinstance(mass, bool) or mass < 0:
+        raise VaultError("масса материала обязана быть числом не меньше нуля")
+    thing_class = data.get("class")
+    if thing_class and thing_class not in ladder.class_notes:
+        known_classes = ", ".join(sorted(ladder.class_notes)) or "—"
+        raise VaultError(
+            f"класс «{thing_class}» не объявлен в meta.classes (есть: {known_classes})"
+        )
+    for field in ("rate", "fuel"):
+        value = data.get(field)
+        if value is not None and (
+            not isinstance(value, (int, float)) or isinstance(value, bool) or value <= 0
+        ):
+            raise VaultError(f"«{field}» обязано быть числом больше нуля")
+    forage = data.get("forage")
+    if forage is not None:
+        finds, handful = forage.get("finds"), forage.get("handful")
+        if not isinstance(finds, (int, float)) or finds <= 0:
+            raise VaultError("`forage.finds` обязано быть числом больше нуля")
+        if not isinstance(handful, (int, float)) or handful < 1:
+            raise VaultError("`forage.handful` меньше единицы не бывает: горсть не пуста")
+    #: An ore without a pace is invisible to exploration: the weight of the
+    #: vein species comes from `rate`, and zero weight silently drops it.
+    if thing_class == "Ископаемое" and not data.get("rate"):
+        raise VaultError(
+            "у ископаемого обязан быть темп `rate`: без него разведка не найдёт "
+            "жилу, а добыча не выведет время"
+        )
+
+
 def validate_class(
     name: str, members: list[str], ladder: Ladder, original: str | None = None
 ) -> None:
-    """Refuse a tool class the ladder could not walk.
+    """Refuse a thing class the ladder could not walk (D-215).
 
     A class is a hole in a requirement -- «нужна кирка, любая» -- so the two
     things that can go wrong with it are both about closing that hole: a class
@@ -514,25 +640,28 @@ def validate_class(
     name = (name or "").strip()
     if not name:
         raise VaultError("у класса должно быть название")
-    if name != original and name in ladder.tool_classes:
+    if name != original and name in ladder.class_notes:
         raise VaultError(f"класс «{name}» уже есть")
 
     members = [member.strip() for member in members if member and member.strip()]
-    if not members:
-        raise VaultError(
-            f"класс «{name}» некому закрыть: без состава требование, которое им "
-            "написано, не откроется никогда. Впишите хотя бы одну вещь либо удалите класс."
-        )
     if len(set(members)) != len(members):
         raise VaultError("одна и та же вещь перечислена в составе дважды")
     known = ladder.known_names()
     for member in members:
         if ladder.canon(member) not in known:
-            raise VaultError(f"«{member}» не рецепт, не сырьё и не продукт операции")
-        if ladder.canon(member) in ladder.tool_classes:
+            raise VaultError(f"«{member}» не рецепт, не материал и не продукт операции")
+        if ladder.canon(member) in ladder.class_notes:
             raise VaultError(
                 f"«{member}» — сам класс. Класс закрывается вещью, а не другим классом: "
                 "вложенных классов в вольте нет."
+            )
+        previous = (ladder.recipes.get(member) or ladder.materials.get(member) or {}).get(
+            "class"
+        )
+        if previous and previous != name:
+            raise VaultError(
+                f"«{member}» уже в классе «{previous}»: у вещи один класс (D-215). "
+                "Сначала уберите её оттуда."
             )
 
 
@@ -610,14 +739,14 @@ def references(name: str, ladder: Ladder) -> dict[str, list[str]]:
     ]
     classes = [
         klass
-        for klass, members in ladder.tool_classes.items()
+        for klass, members in ladder.classes.items()
         if any(ladder.canon(member) == name for member in members)
     ]
     lists = []
     if name in ladder.bulk:
-        lists.append("meta.bulk")
+        lists.append("весовое")
     if name in ladder.edible:
-        lists.append("meta.edible")
+        lists.append("съедобное")
     if name in ladder.cut_candidates:
         lists.append("cut_candidates")
     if name in ladder.synonyms.values():

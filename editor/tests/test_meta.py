@@ -1,9 +1,8 @@
-"""Editing the `meta` block: how a thing is measured.
+"""How a thing is measured: whole or fractional, and by what word.
 
-`bulk` decides whether a quantity may be fractional (D-212), `units` says what
-word to draw beside the number. Both are lists of names living among comments
-that explain the choice, so the same rule holds as for a recipe line: touch one
-line, leave the rest of the file alone.
+Since D-215 the fraction sign is `bulk: true` on the thing's own line -- a
+recipe or a material row -- and only `units` stays a `meta` map. The same rule
+holds as everywhere: touch one line, leave the rest of the file alone.
 """
 
 from __future__ import annotations
@@ -13,8 +12,17 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 import pytest
+import server
 import vaultfile as vault
 import yaml
+
+
+@pytest.fixture
+def session(recipes: Path, source: Path, monkeypatch) -> server.Session:
+    made = server.Session(source.parent.parent)
+    made.source = recipes
+    monkeypatch.setattr(server, "_check", lambda _session: None)
+    return made
 
 
 def doc_of(path: Path) -> dict:
@@ -42,54 +50,61 @@ def changed_lines(before: str, after: str) -> int:
     )
 
 
+def material_named(path: Path, name: str) -> dict:
+    return next(
+        row for row in doc_of(path)["meta"]["materials"] if row["name"] == name
+    )
+
+
 # ---------------------------------------------------------------------- bulk
 
 
-def test_a_thing_becomes_fractional_by_one_line(recipes: Path):
+def test_a_recipe_becomes_fractional_by_one_line(session: server.Session, recipes: Path):
     before = recipes.read_bytes().decode("utf-8")
-    file = vault.RecipesFile(recipes)
-    name = next(r["name"] for r in file.recipes() if r["name"] not in file.meta()["bulk"])
+    _, ladder = session.open()
+    name = next(
+        name for name, r in ladder.recipes.items() if not r.get("bulk")
+    )
 
-    expect = copy.deepcopy(file.doc)
-    expect["meta"]["bulk"] = [*expect["meta"]["bulk"], name]
-    doc = written(recipes, vault.MetaBlock(file, "bulk").toggle(name, True), expect)
+    server.measure(session, {"name": [name]}, {"bulk": True})
 
-    assert name in doc["meta"]["bulk"]
+    _, after = session.open()
+    assert name in after.bulk
     assert changed_lines(before, recipes.read_bytes().decode("utf-8")) == 1
 
 
-def test_a_thing_becomes_whole_again(recipes: Path):
-    file = vault.RecipesFile(recipes)
-    name = file.meta()["bulk"][0]
+def test_a_material_becomes_whole_again(session: server.Session, recipes: Path):
+    _, ladder = session.open()
+    name = next(
+        name for name, m in ladder.materials.items() if m.get("bulk")
+    )
 
-    expect = copy.deepcopy(file.doc)
-    expect["meta"]["bulk"] = [item for item in expect["meta"]["bulk"] if item != name]
-    doc = written(recipes, vault.MetaBlock(file, "bulk").toggle(name, False), expect)
+    server.measure(session, {"name": [name]}, {"bulk": False})
 
-    assert name not in doc["meta"]["bulk"]
-
-
-def test_toggling_what_is_already_so_changes_nothing(recipes: Path):
-    file = vault.RecipesFile(recipes)
-    name = file.meta()["bulk"][0]
-    assert vault.MetaBlock(file, "bulk").toggle(name, True) == file.lines
+    _, after = session.open()
+    assert name not in after.bulk
+    assert "bulk" not in material_named(recipes, name)
 
 
-def test_a_thing_already_fractional_keeps_its_place(recipes: Path):
-    """Position in the list is part of the file.
+def test_measuring_what_is_already_so_still_writes_the_same_line(
+    session: server.Session, recipes: Path
+):
+    """Idempotent in meaning: the document reads the same afterwards."""
+    _, ladder = session.open()
+    name = next(name for name, m in ladder.materials.items() if m.get("bulk"))
+    before = doc_of(recipes)
 
-    Re-saving something already listed must not move it to the end: the write is
-    verified by comparing whole documents, and a moved line is a changed document.
-    """
-    file = vault.RecipesFile(recipes)
-    listed = file.meta()["bulk"]
-    name = listed[len(listed) // 2]
-    lines = vault.MetaBlock(file, "bulk").toggle(name, True)
-    assert yaml.safe_load("\n".join(lines))["meta"]["bulk"] == listed
+    server.measure(session, {"name": [name]}, {"bulk": True})
+
+    assert doc_of(recipes) == before
 
 
 def test_an_emptied_list_stays_a_list(tmp_path: Path):
-    """`bulk:` with nothing under it reads as null, not as zero things."""
+    """`bulk:` with nothing under it reads as null, not as zero things.
+
+    The generic MetaBlock machinery is still used for `units`; the guard lives
+    on, so it stays proven.
+    """
     path = tmp_path / "recipes.yaml"
     path.write_text("meta:\n  bulk:\n    - Камень\nlevels: []\n", encoding="utf-8")
     file = vault.RecipesFile(path)
@@ -125,7 +140,6 @@ def test_a_unit_is_replaced_not_doubled(recipes: Path):
     lines = vault.MetaBlock(file, "units").put(name, "л")
     doc = yaml.safe_load("\n".join(lines))
     assert doc["meta"]["units"] == {name: "л"}
-    # counted inside the block only: `meta.mass` names the same things
     block = vault.MetaBlock(vault.RecipesFile(recipes, text="\n".join(lines)), "units")
     assert sum(1 for line in lines[block.start : block.end + 1] if name in line) == 1
 
@@ -140,54 +154,41 @@ def test_a_unit_with_a_colon_is_quoted_not_broken(recipes: Path):
 # ---------------------------------------------------------------------- mass
 
 
-def test_the_mass_of_raw_material_is_writable(recipes: Path):
-    """Raw mass is the floor of the whole system: everything made is capped by it."""
-    file = vault.RecipesFile(recipes)
-    name = file.meta()["raw"][0]
+def test_the_mass_of_a_material_is_writable(session: server.Session, recipes: Path):
+    """Material mass is the floor of the whole system: everything made is capped by it."""
+    _, ladder = session.open()
+    name = ladder.raw[0]
 
-    expect = copy.deepcopy(file.doc)
-    expect["meta"]["mass"] = {**(expect["meta"].get("mass") or {}), name: 2.5}
-    doc = written(recipes, vault.MetaBlock(file, "mass").put(name, 2.5), expect)
-    assert doc["meta"]["mass"][name] == 2.5
+    server.measure(session, {"name": [name]}, {"bulk": name in ladder.bulk, "mass": 2.5})
+
+    assert material_named(recipes, name)["mass"] == 2.5
 
 
-def test_a_weightless_thing_keeps_its_zero(recipes: Path):
+def test_a_weightless_thing_keeps_its_zero(session: server.Session, recipes: Path):
     """Energy weighs nothing, and that is a statement, not a missing number."""
-    file = vault.RecipesFile(recipes)
-    name = file.meta()["raw"][0]
-    lines = vault.MetaBlock(file, "mass").put(name, 0)
-    assert yaml.safe_load("\n".join(lines))["meta"]["mass"][name] == 0
+    _, ladder = session.open()
+    name = next(name for name, m in ladder.materials.items() if m.get("mass") == 0)
+
+    server.measure(session, {"name": [name]}, {"bulk": name in ladder.bulk, "mass": 0})
+
+    assert material_named(recipes, name)["mass"] == 0
 
 
-def test_a_mass_written_and_then_dropped(recipes: Path):
-    file = vault.RecipesFile(recipes)
-    name = file.meta()["raw"][0]
-    lines = vault.MetaBlock(file, "mass").put(name, None)
-    assert name not in yaml.safe_load("\n".join(lines))["meta"]["mass"]
-
-
-def test_a_recipe_may_be_measured_but_not_weighed_here(recipes: Path, source: Path):
-    """Unit and fractionality belong to any thing; mass belongs to the recipe line.
-
-    A second weight in `meta` would quietly win over the one written beside the
-    recipe, so the refusal fires on the mass alone -- not on the recipe.
-    """
-    import ladder as model
-    import server
-
-    derived, _ = model.load_derived(source.parent.parent)
-    ladder = model.Ladder(vault.RecipesFile(recipes), derived)
+def test_a_recipe_may_be_measured_but_not_weighed_here(session: server.Session):
+    """Unit and fractionality belong to any thing; mass belongs to the recipe line."""
+    _, ladder = session.open()
     name = next(iter(ladder.recipes))
-
-    assert server._mass_for(name, None, ladder) is None
     with pytest.raises(vault.VaultError, match="рецепт"):
-        server._mass_for(name, 3, ladder)
+        server.measure(session, {"name": [name]}, {"bulk": False, "mass": 3})
 
-    raw = ladder.raw[0]
-    assert server._mass_for(raw, 2.5, ladder) == 2.5
-    assert server._mass_for(raw, 0, ladder) == 0
+
+def test_a_negative_mass_is_refused(session: server.Session):
+    _, ladder = session.open()
+    name = ladder.raw[0]
     with pytest.raises(vault.VaultError, match="не меньше нуля"):
-        server._mass_for(raw, -1, ladder)
+        server.measure(
+            session, {"name": [name]}, {"bulk": name in ladder.bulk, "mass": -1}
+        )
 
 
 # ------------------------------------------------------------------ guarding

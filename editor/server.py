@@ -77,6 +77,8 @@ def state(session: Session, _query: dict, _body: dict) -> dict:
         "counts": {
             "recipes": len(ladder.recipes),
             "raw": len(ladder.raw),
+            "materials": len(ladder.materials),
+            "classes": len(ladder.class_notes),
             "operations": len(ladder.operations),
         },
         "undo": (backup.name if (backup := vault.last_backup()) else None),
@@ -98,6 +100,8 @@ def recipe(session: Session, query: dict, _body: dict) -> dict:
         "data": {k: v for k, v in authored.items() if k not in ("level", "section")},
         "level": authored.get("level"),
         "section": authored.get("section"),
+        #: The material registry row, when the name is a material (D-215).
+        "material": ladder.materials.get(name),
         "source": file.source_of(name),
         "comment": file.comment_above(name),
         "references": model.references(name, ladder),
@@ -145,6 +149,12 @@ def update(session: Session, query: dict, body: dict) -> dict:
 
         renamed = data["name"] != original
         text = file.text
+        if renamed and original in ladder.class_notes:
+            raise vault.VaultError(
+                f"«{original}» — ещё и имя класса, на которое завязано поведение "
+                "движка. Сплошная замена переименовала бы и класс: переименуйте "
+                "без обновления ссылок и поправьте их руками."
+            )
         if renamed and rename_refs:
             text = vault.rename_everywhere(file.text, original, data["name"])
             file = vault.RecipesFile(session.source, text=text, newline=file.newline)
@@ -196,103 +206,149 @@ def delete(session: Session, query: dict, body: dict) -> dict:
 def measure(session: Session, query: dict, body: dict) -> dict:
     """How a thing is measured: whole or fractional, and by what word.
 
-    Both live in `meta`, next to each other and next to the comments explaining
-    the choice -- `bulk` decides whether a quantity may be fractional (D-212),
-    `units` only says what to draw beside the number. They are written together
-    because that is how a person thinks of them, and in one write because half
-    an answer in the file is worse than none.
+    Since D-215 the fraction sign lives on the thing's own line -- `bulk: true`
+    on a recipe or a material row -- and `units` stays a `meta` map, because a
+    word to draw is presentation, not a property of the thing. Mass may be set
+    here for a material only: a recipe's mass belongs to its form.
     """
     name = _need(query, "name")
     unit = str(body.get("unit") or "").strip()
     bulk = bool(body.get("bulk"))
-    mass = body.get("mass")
     with session.lock:
         file, ladder = session.open()
         if name not in ladder.known_names():
             raise vault.VaultError(f"«{name}» нет в вольте")
-        mass = _mass_for(name, mass, ladder)
+        is_material = name in ladder.materials
+        if not is_material and name not in ladder.recipes:
+            raise vault.VaultError(
+                f"«{name}» не вещь, а требование — измерения у него нет"
+            )
+        if "mass" in body and not is_material:
+            raise vault.VaultError(
+                f"«{name}» — рецепт: его масса задаётся полем «масса, кг» в форме, "
+                "а не здесь. Иначе у одной вещи стало бы два веса."
+            )
+
+        data = _entry_data(ladder, name)
+        if bulk:
+            data["bulk"] = True
+        else:
+            data.pop("bulk", None)
+        if "mass" in body and is_material:
+            mass = body.get("mass")
+            if not isinstance(mass, (int, float)) or isinstance(mass, bool) or mass < 0:
+                raise vault.VaultError("масса должна быть числом не меньше нуля")
+            data["mass"] = int(mass) if float(mass).is_integer() else float(mass)
+            model.validate_material(data, ladder, original=name)
 
         expect = copy.deepcopy(file.doc)
-        meta = expect["meta"]
-        # Порядок списка беречь обязательно: запись на месте — не то же самое,
-        # что запись в конце, и сверка документа честно на это ругается.
-        listed = list(meta.get("bulk") or [])
-        if bulk and name not in listed:
-            listed.append(name)
-        elif not bulk:
-            listed = [item for item in listed if item != name]
-        meta["bulk"] = listed
-        units = {k: v for k, v in (meta.get("units") or {}).items() if k != name}
+        _expect_entry(expect, name, data, is_material=is_material)
+        units = {
+            k: v for k, v in (expect["meta"].get("units") or {}).items() if k != name
+        }
         if unit:
             units[name] = unit
-        meta["units"] = units
-        if "mass" in body:
-            weights = {k: v for k, v in (meta.get("mass") or {}).items() if k != name}
-            if mass is not None:
-                weights[name] = mass
-            meta["mass"] = weights
+        expect["meta"]["units"] = units
 
-        lines = vault.MetaBlock(file, "bulk").toggle(name, bulk)
+        lines = _write_entry(
+            session, file, list(file.lines), name, data, is_material=is_material
+        )
         after = vault.RecipesFile(
             session.source, text="\n".join(lines), newline=file.newline
         )
         lines = vault.MetaBlock(after, "units").put(name, unit or None)
-        if "mass" in body:
-            after = vault.RecipesFile(
-                session.source, text="\n".join(lines), newline=file.newline
-            )
-            lines = vault.MetaBlock(after, "mass").put(name, mass)
         vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
     return {"measured": name, "check": _check(session)}
 
 
-def _mass_for(name: str, mass: Any, ladder: model.Ladder) -> float | None:
-    """The mass a raw material or an operation product may be given.
+def _entry_data(ladder: model.Ladder, name: str) -> dict:
+    """The authored line of a thing -- a recipe or a material row."""
+    found = ladder.recipes.get(name)
+    if found is not None:
+        return {
+            key: value
+            for key, value in found.items()
+            if key not in ("level", "section") and value is not None
+        }
+    material = ladder.materials.get(name)
+    if material is not None:
+        return dict(material)
+    raise vault.VaultError(f"«{name}» — не вещь: класс носят рецепты и материалы")
 
-    `meta.mass` is the floor of the whole mass system: raw material weighs what
-    the vault says, and everything made of it is capped by what went in. A recipe
-    has no place here -- its own line carries the number, and a second one in
-    `meta` would quietly win over it.
-    """
-    if mass in (None, ""):
-        return None
-    if name in ladder.recipes:
-        raise vault.VaultError(
-            f"«{name}» — рецепт: его масса задаётся полем «масса, кг» в форме, "
-            "а не здесь. Иначе у одной вещи стало бы два веса."
-        )
-    if name not in ladder.raw and name not in ladder.op_outputs:
-        raise vault.VaultError(f"«{name}» не вещь, а требование — веса у него нет")
-    if not isinstance(mass, (int, float)) or isinstance(mass, bool) or mass < 0:
-        raise vault.VaultError("масса должна быть числом не меньше нуля")
-    return int(mass) if float(mass).is_integer() else float(mass)
+
+def _write_entry(
+    session: Session, file: vault.RecipesFile, lines: list[str], name: str, data: dict,
+    *, is_material: bool,
+) -> list[str]:
+    """Replace one thing's line in the running edit chain."""
+    step = vault.RecipesFile(session.source, text="\n".join(lines), newline=file.newline)
+    if is_material:
+        return step.replace_meta_entry("materials", name, data, vault.MATERIAL_KEY_ORDER)
+    return step.replace(name, data)
+
+
+def _expect_entry(expect: dict, name: str, data: dict, *, is_material: bool) -> None:
+    """Mutate the expected document the same way the lines were mutated."""
+    if is_material:
+        rows = expect["meta"]["materials"]
+        for index, row in enumerate(rows):
+            if row.get("name") == name:
+                rows[index] = data
+                return
+        raise vault.VaultError(f"в meta.materials нет «{name}»")
+    found = vault._find_recipe(expect, name)  # noqa: SLF001 -- one module family
+    if found is None:
+        raise vault.VaultError(f"рецепта «{name}» нет в файле")
+    found.clear()
+    found.update(data)
 
 
 def put_class(session: Session, query: dict, body: dict) -> dict:
-    """Create a tool class or set what closes it.
+    """Declare a thing class and set its members (D-215).
 
-    A class lives in `meta.tool_classes` as one line -- `Кирка: [каменная,
-    железная, стальная]` -- and it is written the same way everything in `meta`
-    is written here: that one line changes, the comments around it do not.
+    A class is a declaration in `meta.classes` plus a `class:` field on each
+    member's own line -- so this handler edits several lines, each with the
+    same one-line surgery, and verifies the whole document once.
 
-    Renaming is deliberately not offered. A class name is used by operations and
-    by recipe stations, and a sweep over the file would also catch the thing of
+    Renaming is deliberately not offered. A class name is what the engine
+    behaviour binds to, and a sweep over the file would also catch the thing of
     the same name where there is one («Топор»). Make the new class, move the
     members, delete the old one -- three visible steps instead of one blind sweep.
     """
     name = _need(query, "name").strip()
+    note = str(body.get("note") or "").strip()
     members = [str(item).strip() for item in (body.get("members") or []) if str(item).strip()]
     with session.lock:
         file, ladder = session.open()
-        original = name if name in ladder.tool_classes else None
+        original = name if name in ladder.class_notes else None
         model.validate_class(name, members, ladder, original=original)
 
         expect = copy.deepcopy(file.doc)
-        expect["meta"]["tool_classes"] = {
-            **(expect["meta"].get("tool_classes") or {}),
-            name: members,
-        }
-        lines = vault.MetaBlock(file, "tool_classes").put(name, members)
+        lines = list(file.lines)
+        if original is None:
+            declaration = {"name": name, **({"note": note} if note else {})}
+            expect["meta"].setdefault("classes", []).append(declaration)
+            step = vault.RecipesFile(
+                session.source, text="\n".join(lines), newline=file.newline
+            )
+            lines = step.insert_meta_entry("classes", declaration, ("name", "note"))
+
+        was = set(ladder.classes.get(name, ()))
+        for member in sorted(was - set(members)):
+            data = _entry_data(ladder, member)
+            data.pop("class", None)
+            is_material = member in ladder.materials
+            _expect_entry(expect, member, data, is_material=is_material)
+            lines = _write_entry(session, file, lines, member, data, is_material=is_material)
+        for member in members:
+            if member in was:
+                continue
+            data = _entry_data(ladder, member)
+            data["class"] = name
+            is_material = member in ladder.materials
+            _expect_entry(expect, member, data, is_material=is_material)
+            lines = _write_entry(session, file, lines, member, data, is_material=is_material)
+
         vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
         #: Said about the file as it now is, not as it was: the warning is about
         #: what the person will see on the picture after this write.
@@ -306,75 +362,166 @@ def put_class(session: Session, query: dict, body: dict) -> dict:
 
 
 def drop_class(session: Session, query: dict, _body: dict) -> dict:
-    """Take a tool class out of the file. What it was made of stays, of course."""
+    """Take a thing class out of the file: the declaration and every `class:`
+    field naming it. The things themselves stay, of course."""
     name = _need(query, "name")
     with session.lock:
         file, ladder = session.open()
-        if name not in ladder.tool_classes:
+        if name not in ladder.class_notes:
             raise vault.VaultError(f"класса «{name}» в вольте нет")
+        note = ladder.class_notes.get(name) or ""
+
         expect = copy.deepcopy(file.doc)
-        expect["meta"]["tool_classes"] = {
-            klass: members
-            for klass, members in (expect["meta"].get("tool_classes") or {}).items()
-            if klass != name
-        }
-        lines = vault.MetaBlock(file, "tool_classes").put(name, None)
+        expect["meta"]["classes"] = [
+            entry
+            for entry in (expect["meta"].get("classes") or [])
+            if entry.get("name") != name
+        ]
+        lines = file.cut_meta_entry("classes", name)
+        for member in ladder.classes.get(name, ()):
+            data = _entry_data(ladder, member)
+            data.pop("class", None)
+            is_material = member in ladder.materials
+            _expect_entry(expect, member, data, is_material=is_material)
+            lines = _write_entry(session, file, lines, member, data, is_material=is_material)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    warning = (
+        f"класс «{name}» помечен как поведение движка — без него это поведение "
+        "потеряет все свои вещи"
+        if note.startswith("поведение")
+        else None
+    )
+    return {"deleted": name, "warning": warning, "check": _check(session)}
+
+
+def membership(session: Session, query: dict, body: dict) -> dict:
+    """The class of one thing -- set from the side of the thing (D-215).
+
+    A person editing a pickaxe thinks "this is a pickaxe", not "add a member to
+    the class". A thing has one class, so more than one is refused up front.
+    """
+    name = _need(query, "name")
+    wanted = [str(item).strip() for item in (body.get("classes") or []) if str(item).strip()]
+    if len(wanted) > 1:
+        raise vault.VaultError(
+            f"у вещи один класс (D-215), а названо {len(wanted)}: {', '.join(wanted)}"
+        )
+    chosen = wanted[0] if wanted else None
+    with session.lock:
+        file, ladder = session.open()
+        if chosen is not None and chosen not in ladder.class_notes:
+            raise vault.VaultError(f"класса «{chosen}» в вольте нет — сперва заведите его")
+        data = _entry_data(ladder, name)
+        if data.get("class") == chosen or (chosen is None and "class" not in data):
+            return {"name": name, "classes": wanted, "check": None}
+        if chosen is None:
+            data.pop("class", None)
+        else:
+            data["class"] = chosen
+
+        expect = copy.deepcopy(file.doc)
+        is_material = name in ladder.materials
+        _expect_entry(expect, name, data, is_material=is_material)
+        lines = _write_entry(session, file, list(file.lines), name, data, is_material=is_material)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    return {"name": name, "classes": wanted, "check": _check(session)}
+
+
+def material_create(session: Session, _query: dict, body: dict) -> dict:
+    """A new material: one registry row is all a new raw thing needs (D-215)."""
+    data = _clean_material(body.get("data") or {})
+    with session.lock:
+        file, ladder = session.open()
+        model.validate_material(data, ladder)
+        expect = copy.deepcopy(file.doc)
+        expect["meta"].setdefault("materials", []).append(data)
+        lines = file.insert_meta_entry("materials", data, vault.MATERIAL_KEY_ORDER)
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    return {"saved": data["name"], "check": _check(session)}
+
+
+def material_update(session: Session, query: dict, body: dict) -> dict:
+    original = _need(query, "name")
+    data = _clean_material(body.get("data") or {})
+    if data.get("name") != original:
+        raise vault.VaultError(
+            "материал не переименовывается формой: на имя ссылаются рецепты, "
+            "операции и мир. Переименование — отдельный осознанный шаг."
+        )
+    with session.lock:
+        file, ladder = session.open()
+        if original not in ladder.materials:
+            raise vault.VaultError(f"материала «{original}» нет в файле")
+        model.validate_material(data, ladder, original=original)
+        expect = copy.deepcopy(file.doc)
+        _expect_entry(expect, original, data, is_material=True)
+        lines = file.replace_meta_entry(
+            "materials", original, data, vault.MATERIAL_KEY_ORDER
+        )
+        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
+    return {"saved": original, "check": _check(session)}
+
+
+def material_delete(session: Session, query: dict, _body: dict) -> dict:
+    name = _need(query, "name")
+    with session.lock:
+        file, ladder = session.open()
+        if name not in ladder.materials:
+            raise vault.VaultError(f"материала «{name}» нет в файле")
+        used = model.references(name, ladder)
+        holders = [*used["inputs"], *used["stations"], *used["operations"]]
+        if holders:
+            listed = ", ".join(f"«{x}»" for x in holders[:5])
+            raise vault.VaultError(
+                f"«{name}» используется: {listed}"
+                + (" и ещё" if len(holders) > 5 else "")
+                + ". Сначала уберите ссылки."
+            )
+        expect = copy.deepcopy(file.doc)
+        expect["meta"]["materials"] = [
+            row
+            for row in (expect["meta"].get("materials") or [])
+            if row.get("name") != name
+        ]
+        lines = file.cut_meta_entry("materials", name)
         vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
     return {"deleted": name, "check": _check(session)}
 
 
-def membership(session: Session, query: dict, body: dict) -> dict:
-    """Which classes one thing closes -- set from the side of the thing.
+MATERIAL_BOOL_FIELDS = ("bulk", "edible")
+MATERIAL_NUMBER_FIELDS = ("mass", "rate", "fuel")
 
-    The same `meta.tool_classes` seen the other way round. A person editing a
-    pickaxe thinks "this is a pickaxe", not "add a member to the class", and the
-    file is written the way the class file reads: the whole answer for this thing
-    in one write, so a half-applied change cannot happen.
-    """
-    name = _need(query, "name")
-    wanted = {str(item).strip() for item in (body.get("classes") or []) if str(item).strip()}
-    with session.lock:
-        file, ladder = session.open()
-        if name not in ladder.known_names():
-            raise vault.VaultError(f"«{name}» нет в вольте")
-        unknown = sorted(klass for klass in wanted if klass not in ladder.tool_classes)
-        if unknown:
-            raise vault.VaultError(
-                f"класса «{unknown[0]}» в вольте нет — сперва заведите его"
-            )
 
-        touched: dict[str, list[str]] = {}
-        for klass, members in ladder.tool_classes.items():
-            inside = any(ladder.canon(member) == name for member in members)
-            if inside == (klass in wanted):
+def _clean_material(data: dict) -> dict:
+    out: dict[str, Any] = {}
+    for key in vault.MATERIAL_KEY_ORDER:
+        if key not in data:
+            continue
+        value = data[key]
+        if value in (None, "", [], {}) or (key in MATERIAL_BOOL_FIELDS and not value):
+            continue
+        if key in MATERIAL_NUMBER_FIELDS:
+            value = float(value)
+            value = int(value) if float(value).is_integer() else value
+        if key == "forage":
+            value = {
+                part: (int(v) if float(v).is_integer() else float(v))
+                for part, v in value.items()
+                if part in ("finds", "handful") and v not in (None, "")
+            }
+            if not value:
                 continue
-            if klass in wanted:
-                touched[klass] = [*members, name]
-            else:
-                left = [member for member in members if ladder.canon(member) != name]
-                if not left:
-                    raise vault.VaultError(
-                        f"«{name}» — последнее, чем закрывается класс «{klass}». "
-                        "Класс без состава не откроется никогда: удалите класс целиком."
-                    )
-                touched[klass] = left
-        if not touched:
-            return {"name": name, "classes": sorted(wanted), "check": None}
-
-        expect = copy.deepcopy(file.doc)
-        expect["meta"]["tool_classes"] = {
-            **(expect["meta"].get("tool_classes") or {}),
-            **touched,
-        }
-        # Each entry is written into the file the previous one produced: line
-        # numbers move, and a block that measured the old text would cut the
-        # wrong line. The write itself happens once, at the end.
-        lines = file.lines
-        for klass, members in touched.items():
-            step = vault.RecipesFile(session.source, text="\n".join(lines), newline=file.newline)
-            lines = vault.MetaBlock(step, "tool_classes").put(klass, members)
-        vault.save_doc(session.source, lines, expect, file.mtime, file.newline)
-    return {"name": name, "classes": sorted(wanted), "check": _check(session)}
+        out[key] = value
+    if "name" not in out:
+        raise vault.VaultError("у материала должно быть название")
+    if "mass" not in out:
+        #: Zero is a legal mass (energy weighs nothing) -- it survives _clean
+        #: only if given explicitly as 0.
+        if isinstance(data.get("mass"), (int, float)):
+            out["mass"] = 0
+        else:
+            raise vault.VaultError("у материала должна быть масса (можно 0)")
+    return out
 
 
 def undo(session: Session, _query: dict, _body: dict) -> dict:
@@ -398,6 +545,9 @@ ROUTES = {
     ("POST", "/api/recipe"): create,
     ("PUT", "/api/recipe"): update,
     ("DELETE", "/api/recipe"): delete,
+    ("POST", "/api/material"): material_create,
+    ("PUT", "/api/material"): material_update,
+    ("DELETE", "/api/material"): material_delete,
     ("PUT", "/api/measure"): measure,
     ("PUT", "/api/class"): put_class,
     ("DELETE", "/api/class"): drop_class,

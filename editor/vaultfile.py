@@ -60,6 +60,9 @@ KNOWN_KINDS = (
 KEY_ORDER = (
     "name",
     "kind",
+    "class",
+    "bulk",
+    "edible",
     "key",
     "roles",
     "food",
@@ -77,9 +80,22 @@ KEY_ORDER = (
     "highlight",
 )
 
+# One material of the registry (D-215): everything not made by a recipe.
+MATERIAL_KEY_ORDER = (
+    "name",
+    "class",
+    "mass",
+    "bulk",
+    "edible",
+    "rate",
+    "forage",
+    "fuel",
+    "note",
+)
+
 # Fields the editor is allowed to write. `manual_amounts` and everything derived
 # is deliberately absent: it is computed by the build, not authored.
-BOOL_FIELDS = ("key", "mix", "roles", "food", "hot")
+BOOL_FIELDS = ("key", "mix", "roles", "food", "hot", "bulk", "edible")
 NUMBER_FIELDS = ("mass", "store", "hours")
 LIST_FIELDS = ("inputs", "highlight")
 MAP_FIELDS = ("amounts", "weights")
@@ -158,10 +174,10 @@ def _flow(value: Any) -> str:
     raise VaultError(f"нечего записать: {value!r}")
 
 
-def render_entry(data: dict, indent: int) -> str:
+def render_entry(data: dict, indent: int, order: tuple[str, ...] = KEY_ORDER) -> str:
     """One entry as a line of the file, verified by parsing it back."""
-    ordered = [key for key in KEY_ORDER if key in data]
-    ordered += [key for key in data if key not in KEY_ORDER]
+    ordered = [key for key in order if key in data]
+    ordered += [key for key in data if key not in order]
     body = ", ".join(f"{key}: {_flow(data[key])}" for key in ordered)
     line = " " * indent + "- {" + body + "}"
     back = yaml.safe_load(line[indent + 2 :])
@@ -364,6 +380,51 @@ class RecipesFile:
         header = self._recipes_key_line(level_id, section_id)
         indent = len(self.lines[header]) - len(self.lines[header].lstrip())
         return header, indent + 2
+
+    # -- meta list entries (D-215) ------------------------------------------
+
+    def meta_entries(self, key: str) -> list[Entry]:
+        """Flow-mapping entries of one `meta:` block list (`materials`, `classes`).
+
+        The same `- {name: ...}` shape as a recipe, so the same scanner reads
+        them -- only bounded to the block, because a class may share its name
+        with a recipe («Кровать») and a global lookup would find the wrong line.
+        """
+        block = MetaBlock(self, key)
+        return [
+            entry
+            for entry in scan_entries(self.lines)
+            if block.start < entry.start <= block.end
+        ]
+
+    def meta_entry(self, key: str, name: str) -> Entry:
+        found = [entry for entry in self.meta_entries(key) if entry.name == name]
+        if not found:
+            raise VaultError(f"в meta.{key} нет записи «{name}»")
+        return found[0]
+
+    def replace_meta_entry(
+        self, key: str, name: str, data: dict, order: tuple[str, ...]
+    ) -> list[str]:
+        entry = self.meta_entry(key, name)
+        line = render_entry(data, entry.indent, order)
+        return self.lines[: entry.start] + [line] + self.lines[entry.end + 1 :]
+
+    def insert_meta_entry(self, key: str, data: dict, order: tuple[str, ...]) -> list[str]:
+        """A new entry goes after the last one of the block."""
+        siblings = self.meta_entries(key)
+        if siblings:
+            last = max(siblings, key=lambda entry: entry.end)
+            after, indent = last.end, last.indent
+        else:
+            block = MetaBlock(self, key)
+            after, indent = block.start, block.indent
+        line = render_entry(data, indent, order)
+        return self.lines[: after + 1] + [line] + self.lines[after + 1 :]
+
+    def cut_meta_entry(self, key: str, name: str) -> list[str]:
+        entry = self.meta_entry(key, name)
+        return self.lines[: entry.start] + self.lines[entry.end + 1 :]
 
     def _recipes_key_line(self, level_id: int, section_id: str | None) -> int:
         in_level = False

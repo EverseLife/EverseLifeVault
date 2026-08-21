@@ -89,9 +89,10 @@ async function load(keepSelection = true) {
     .map((station) => [station.name, { name: station.name, type: 'virtual', depth: station.depth }]));
   dom.path.textContent = state.source;
   dom.stale.hidden = !state.stale;
-  const { recipes, raw, operations } = state.counts;
+  const { recipes, materials, classes, operations } = state.counts;
   dom.counts.textContent = `${recipes} ${plural(recipes, 'рецепт', 'рецепта', 'рецептов')}`
-    + ` · ${raw} ${plural(raw, 'вид', 'вида', 'видов')} сырья`
+    + ` · ${materials} ${plural(materials, 'материал', 'материала', 'материалов')}`
+    + ` · ${classes} ${plural(classes, 'класс', 'класса', 'классов')}`
     + ` · ${operations} ${plural(operations, 'операция', 'операции', 'операций')}`;
   document.getElementById('act-undo').disabled = !state.undo;
 
@@ -501,6 +502,10 @@ document.getElementById('act-new').addEventListener('click', () => {
 document.getElementById('act-new-class').addEventListener('click', () => {
   const node = app.nodes.get(app.selected);
   panel.openNewClass(node && node.type !== 'class' ? { members: [node.name] } : {});
+});
+
+document.getElementById('act-new-material').addEventListener('click', () => {
+  panel.openNewMaterial();
 });
 
 document.getElementById('act-check').addEventListener('click', (event) => {

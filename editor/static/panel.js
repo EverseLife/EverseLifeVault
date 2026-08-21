@@ -29,6 +29,14 @@ const FLAGS = [
   ['roles', 'роли', 'входы — это роли, а не точный состав (D-119). Только у блюд'],
   ['food', 'еда', 'годится в котёл и в рот'],
   ['hot', 'горячее', 'горячее блюдо'],
+  ['edible', 'съедобное', 'идёт в котёл ролью, хотя само не блюдо: мука, масло (D-119)'],
+];
+
+// Поля материала (D-215): одна строка реестра — всё, что нужно новому сырью.
+const MATERIAL_NUMBERS = [
+  ['mass', 'масса, кг', 'кг за единицу (D-146). Основание всей системы масс'],
+  ['rate', 'темп, ед./час', 'выход часа труда (D-133): относительная цена и вес жилы при разведке'],
+  ['fuel', 'теплотворность', 'энергии с единицы. Есть число — материал жгут (D-215)'],
 ];
 
 export function createPanel(root, deps) {
@@ -54,6 +62,17 @@ export function createPanel(root, deps) {
     if (node.type === 'class') {
       state = { kind: 'class', original: name, isNew: false, klass: classState(name) };
       renderClass();
+      return;
+    }
+    if (payload.material) {
+      state = {
+        kind: 'material',
+        original: name,
+        isNew: false,
+        material: structuredClone(payload.material),
+        classes: memberOf(name),
+      };
+      renderMaterial();
       return;
     }
     if (!payload.editable) {
@@ -130,13 +149,15 @@ export function createPanel(root, deps) {
   }
 
   function classState(name) {
-    const members = (deps.vocabulary().tool_classes || {})[name] || [];
-    return { name, members: [...members] };
+    const members = (deps.vocabulary().classes || {})[name] || [];
+    const note = (deps.vocabulary().class_notes || {})[name] || '';
+    return { name, note, members: [...members] };
   }
 
-  /** Which classes this thing closes, as written now and as the form has it. */
+  /** The class this thing carries (one per thing, D-215), as written and as
+   *  the form has it. Kept as a list for the chip machinery. */
   function memberOf(name) {
-    const classes = deps.vocabulary().tool_classes || {};
+    const classes = deps.vocabulary().classes || {};
     const inside = Object.entries(classes)
       .filter(([, members]) => members.includes(name))
       .map(([klass]) => klass)
@@ -168,21 +189,21 @@ export function createPanel(root, deps) {
   function classesBlock() {
     const chosen = state.classes;
     if (!chosen) return null;
-    const all = Object.keys(deps.vocabulary().tool_classes || {})
+    const vocab = deps.vocabulary();
+    const all = Object.keys(vocab.class_notes || vocab.classes || {})
       .sort((a, b) => a.localeCompare(b, 'ru'));
     const name = state.data?.name || state.original;
     return h('fieldset', {},
-      h('legend', { text: 'классы инструмента' }),
+      h('legend', { text: 'класс вещи' }),
       all.length
         ? h('div', { class: 'refs' }, all.map((klass) => h('button', {
           class: 'chip' + (chosen.in.includes(klass) ? ' on' : ''),
-          title: `${klass}: ${(deps.vocabulary().tool_classes[klass] || []).join(', ')}`,
+          title: `${(vocab.class_notes || {})[klass] || klass}`
+            + `${(vocab.classes[klass] || []).length ? ` · ${(vocab.classes[klass] || []).join(', ')}` : ''}`,
           text: klass,
           onclick: () => {
-            const found = chosen.in.indexOf(klass);
-            if (found >= 0) chosen.in.splice(found, 1);
-            else chosen.in.push(klass);
-            chosen.in.sort((a, b) => a.localeCompare(b, 'ru'));
+            //: У вещи один класс (D-215): выбор нового снимает прежний.
+            chosen.in = chosen.in.includes(klass) ? [] : [klass];
             if (state.kind === 'recipe') render(); else renderInfo(detail);
           },
         })))
@@ -233,22 +254,30 @@ export function createPanel(root, deps) {
         { onRemove: state.isNew ? null : removeClass }),
       h('div', { class: 'form' },
         h('div', { class: 'note-line',
-          text: 'класс инструмента — дырка в требовании: «нужна кирка, любая». '
-            + 'Закрывается любой вещью из состава.' }),
+          text: 'класс вещей (D-215) — «любая из кирок», «любая кровать»: поведение '
+            + 'движка и требования привязаны к классу, а не к имени вещи.' }),
         h('div', { class: 'field' },
           h('label', { text: 'название' }),
           state.isNew
             ? h('input', {
               value: klass.name, autofocus: true, list: 'all-names',
-              placeholder: 'Кирка, Топор, Утварь',
+              placeholder: 'Кирка, Кровать, Ископаемое',
               oninput: (event) => { klass.name = event.target.value; touch(); },
             })
             : h('input', {
               value: klass.name, disabled: true,
-              title: 'переименование класса здесь не делается: имя стоит в требованиях '
-                + 'операций и в станциях рецептов. Заведите новый, перенесите состав, '
-                + 'старый удалите',
+              title: 'переименование класса здесь не делается: на имя завязано '
+                + 'поведение движка и требования операций. Заведите новый, '
+                + 'перенесите состав, старый удалите',
             }),
+        ),
+        h('div', { class: 'field' },
+          h('label', { text: 'пояснение' }),
+          h('input', {
+            value: klass.note || '',
+            placeholder: 'зачем класс существует; «поведение: …» — если его знает движок',
+            oninput: (event) => { klass.note = event.target.value; touch(); },
+          }),
         ),
         h('fieldset', {},
           h('legend', { text: 'чем закрывается' }),
@@ -294,7 +323,7 @@ export function createPanel(root, deps) {
     const name = (klass.name || '').trim();
     const members = klass.members.map((item) => item.trim()).filter(Boolean);
     try {
-      const result = await api.putClass(name, members);
+      const result = await api.putClass(name, members, (klass.note || '').trim());
       if (result.warning) deps.notify(result.warning, false);
       deps.onWrite(result, name);
     } catch (error) {
@@ -328,6 +357,166 @@ export function createPanel(root, deps) {
     } catch (error) {
       fail(error);
       button.disabled = false;
+    }
+  }
+
+  // -- materials (D-215) -----------------------------------------------------
+
+  function openNewMaterial() {
+    detail = null;
+    state = {
+      kind: 'material',
+      original: null,
+      isNew: true,
+      material: { name: '', mass: 1, bulk: true },
+      classes: { in: [], was: [] },
+    };
+    renderMaterial();
+  }
+
+  function renderMaterial() {
+    const material = state.material;
+    const node = deps.getNode(state.original) || { type: 'raw' };
+    const vocab = deps.vocabulary();
+    const classNames = Object.keys(vocab.class_notes || {})
+      .sort((a, b) => a.localeCompare(b, 'ru'));
+    const forage = material.forage || {};
+
+    const setNumber = (key) => (event) => {
+      const value = event.target.value;
+      if (value === '') delete material[key];
+      else material[key] = Number(value);
+      touch();
+    };
+    const setForage = (key) => (event) => {
+      const value = event.target.value;
+      const next = { ...(material.forage || {}) };
+      if (value === '') delete next[key];
+      else next[key] = Number(value);
+      if (Object.keys(next).length) material.forage = next;
+      else delete material.forage;
+      touch();
+    };
+
+    root.replaceChildren(
+      head(state.isNew ? 'Новый материал' : state.original, node,
+        { onRemove: state.isNew ? null : removeMaterial }),
+      h('div', { class: 'form' },
+        h('div', { class: 'note-line',
+          text: 'материал — вещь без рецепта (D-215): одна строка реестра, и она '
+            + 'существует. «Ископаемое» с темпом уже находится разведкой и '
+            + 'добывается киркой — без единой правки кода.' }),
+        state.isNew
+          ? h('div', { class: 'field' },
+            h('label', { text: 'название' }),
+            h('input', {
+              value: material.name || '', autofocus: true,
+              placeholder: 'Алмаз',
+              oninput: (event) => { material.name = event.target.value; touch(); },
+            }))
+          : null,
+        h('div', { class: 'field' },
+          h('label', { text: 'класс' }),
+          select(['', ...classNames], material.class || '', (value) => {
+            if (value) material.class = value; else delete material.class;
+            renderMaterial();
+          }, (klass) => (klass
+            ? `${klass}${(vocab.class_notes || {})[klass] ? ` — ${vocab.class_notes[klass]}` : ''}`
+            : '— без класса')),
+        ),
+        ...MATERIAL_NUMBERS.map(([key, label, title]) => h('div', { class: 'field' },
+          h('label', { text: label, title }),
+          h('input', {
+            type: 'number', step: 'any', min: '0', value: num(material[key]),
+            title,
+            placeholder: key === 'mass' ? 'обязательна, можно 0' : 'пусто — нет',
+            oninput: setNumber(key),
+          }),
+        )),
+        h('fieldset', {},
+          h('legend', { text: 'собирательство (D-210)' }),
+          h('div', { class: 'note-line',
+            text: 'есть числа — вещь лежит на поверхности и находится поиском' }),
+          h('div', { class: 'field' },
+            h('label', { text: 'находок в час' }),
+            h('input', {
+              type: 'number', step: 'any', min: '0', value: num(forage.finds),
+              placeholder: 'на forage.reference_area', oninput: setForage('finds'),
+            }),
+          ),
+          h('div', { class: 'field' },
+            h('label', { text: 'горсть, ед.' }),
+            h('input', {
+              type: 'number', step: 'any', min: '1', value: num(forage.handful),
+              placeholder: 'единиц за находку', oninput: setForage('handful'),
+            }),
+          ),
+        ),
+        h('div', { class: 'flags' },
+          h('label', { title: 'весовое: количество бывает дробным (D-212)' },
+            h('input', {
+              type: 'checkbox', checked: !!material.bulk,
+              onchange: (event) => {
+                if (event.target.checked) material.bulk = true;
+                else delete material.bulk;
+                touch();
+              },
+            }),
+            'дробное'),
+          h('label', { title: 'идёт в котёл (D-119)' },
+            h('input', {
+              type: 'checkbox', checked: !!material.edible,
+              onchange: (event) => {
+                if (event.target.checked) material.edible = true;
+                else delete material.edible;
+                touch();
+              },
+            }),
+            'съедобное'),
+        ),
+        h('div', { class: 'err', id: 'panel-error' }),
+        h('div', { class: 'panel-actions' },
+          h('button', {
+            class: 'primary', onclick: saveMaterial,
+            text: state.isNew ? 'Создать' : 'Сохранить',
+          }),
+          h('button', {
+            onclick: () => (state.isNew ? clear() : open(state.original)),
+            text: 'Сбросить',
+          }),
+        ),
+        state.isNew ? null : derivedBlock(detail, node),
+        state.isNew ? null : referencesBlock(detail?.references),
+        state.isNew ? null : sourceBlock(detail),
+      ),
+    );
+  }
+
+  async function saveMaterial() {
+    const material = { ...state.material };
+    material.name = (material.name || '').trim();
+    try {
+      const result = state.isNew
+        ? await api.createMaterial(material)
+        : await api.updateMaterial(state.original, material);
+      deps.onWrite(result, material.name);
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function removeMaterial() {
+    const answer = await ask({
+      title: `Удалить материал «${state.original}»?`,
+      body: 'Строка реестра будет вырезана. Материал, на который ссылаются '
+        + 'рецепты или операции, сервер удалить откажется.',
+      ok: 'Удалить',
+    });
+    if (!answer) return;
+    try {
+      deps.onWrite(await api.removeMaterial(state.original), null);
+    } catch (error) {
+      fail(error);
     }
   }
 
@@ -486,8 +675,8 @@ export function createPanel(root, deps) {
       classesBlock(),
       node.is_class
         ? h('div', { class: 'note-line' },
-          `«${state.original}» — ещё и класс инструмента: `
-          + `${(deps.vocabulary().tool_classes || {})[state.original]?.join(', ') || ''}. `
+          `«${state.original}» — ещё и класс вещей: `
+          + `${(deps.vocabulary().classes || {})[state.original]?.join(', ') || ''}. `
           + 'На графе класс и вещь показаны одним узлом.')
         : null,
       h('div', { class: 'err', id: 'panel-error' }),
@@ -916,11 +1105,14 @@ export function createPanel(root, deps) {
     open,
     openNew,
     openNewClass,
+    openNewMaterial,
     clear,
-    //: Ctrl+S пишет то, что открыто, а открыт может быть и класс.
+    //: Ctrl+S пишет то, что открыто: рецепт, класс или материал.
     save: () => {
       if (!state) return null;
-      return state.kind === 'class' ? saveClass() : save();
+      if (state.kind === 'class') return saveClass();
+      if (state.kind === 'material') return saveMaterial();
+      return save();
     },
     get current() { return state?.original || null; },
   };

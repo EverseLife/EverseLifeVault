@@ -165,7 +165,7 @@ def test_a_name_already_taken_is_refused(ladder: model.Ladder, sample: dict):
 
 
 def test_a_name_taken_by_raw_material_is_refused(ladder: model.Ladder, sample: dict):
-    with pytest.raises(vault.VaultError, match="сырьё"):
+    with pytest.raises(vault.VaultError, match="материал"):
         model.validate(base(sample, name=ladder.raw[0]), ladder)
 
 

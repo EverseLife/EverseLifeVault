@@ -89,7 +89,7 @@ def test_insert_lands_right_after_the_last_recipe_of_its_level(recipes: Path):
     neighbours = [name for name, group in file.groups.items() if group == (level["id"], None)]
     last = max((file.entries[name] for name in neighbours), key=lambda entry: entry.end)
 
-    data = {"name": "Пробник", "kind": "material", "inputs": [file.meta()["raw"][0]],
+    data = {"name": "Пробник", "kind": "material", "inputs": [file.meta()["materials"][0]["name"]],
             "station": "Руками"}
     lines = file.insert(data, level["id"], None)
     vault.save(recipes, lines, {"name": data["name"], "data": data}, file.mtime, file.newline)
@@ -106,7 +106,7 @@ def test_insert_into_a_level_of_sections_is_refused(recipes: Path):
     if level is None:
         pytest.skip("в файле нет уровня, состоящего только из разделов")
 
-    data = {"name": "Пробник", "kind": "material", "inputs": [file.meta()["raw"][0]],
+    data = {"name": "Пробник", "kind": "material", "inputs": [file.meta()["materials"][0]["name"]],
             "station": "Руками"}
     with pytest.raises(vault.VaultError, match="разделах"):
         file.insert(data, level["id"], None)
@@ -126,7 +126,9 @@ def test_cut_removes_the_line_and_optionally_its_comment(recipes: Path):
     lines = file.cut(named)
     vault.save(recipes, lines, {"name": named, "data": None}, file.mtime, file.newline)
     kept = vault.RecipesFile(recipes)
-    assert named not in kept.entries
+    #: `entries` may still hold a class declaration of the same name (D-215):
+    #: the recipe itself is what must be gone.
+    assert named not in kept.groups
     assert "\n".join(comment) in read(recipes).replace("\r\n", "\n")
 
     file = vault.RecipesFile(recipes)
@@ -148,7 +150,7 @@ def test_a_stale_file_is_not_overwritten(recipes: Path):
 
 def test_save_refuses_when_the_document_did_not_change_as_asked(recipes: Path):
     file = vault.RecipesFile(recipes)
-    data = {"name": "Небылица", "kind": "material", "inputs": [file.meta()["raw"][0]],
+    data = {"name": "Небылица", "kind": "material", "inputs": [file.meta()["materials"][0]["name"]],
             "station": "Руками"}
     with pytest.raises(vault.VaultError, match="не появился"):
         vault.save(recipes, file.lines, {"name": data["name"], "data": data}, file.mtime)
