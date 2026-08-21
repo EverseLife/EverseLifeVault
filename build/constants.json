@@ -453,7 +453,7 @@
   "city.rings_reserved": 1,
   "city.ring_slots_base": 6,
   "city.ring_slots_growth": 6,
-  "land.price_decay_per_ring": 35,
+  "land.decay_per_node": 35,
   "land.area_ring1": {
     "min": 60,
     "max": 140
