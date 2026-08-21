@@ -35,10 +35,10 @@ BACKUPS = Path(
     os.environ.get("OCTOVERSE_EDITOR_BACKUPS") or Path(__file__).resolve().parent / "backups"
 )
 
-# Stations that exist as a rule of the world rather than as a recipe, and the
-# spoken name of a station -> the recipe that makes it. Mirrors tools/build.py:
-# the authority is still `build.py --check`, which the editor runs after a save.
-VIRTUAL_STATIONS = ("Руками", "Стройка")
+# The one word that stands for "no machine needed" (D-216), and the spoken name
+# of a station -> the recipe that makes it. Mirrors tools/build.py: the
+# authority is still `build.py --check`, which the editor runs after a save.
+VIRTUAL_STATIONS = ("Руками",)
 STATION_ALIASES = {"Печь": "Плавильная печь"}
 
 # Kinds the editor offers in the dropdown. The list is merged with the kinds

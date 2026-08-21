@@ -333,11 +333,11 @@ levels:
     recipes:
       - {name: Плуг, kind: tool, inputs: [Сталь, Дерево], station: Кузница}
       - {name: Серп, kind: tool, inputs: [Сталь, Рукоять], amounts: {Сталь: 0.5, Рукоять: 1}, station: Кузница}
-      - {name: Селекционный питомник, kind: station, class: Питомник, inputs: [Дерево, Стекло, Ткань], station: Стройка}
-      - {name: Теплица, kind: station, inputs: [Стекло, Сталь, Труба, Провод], station: Стройка}
+      - {name: Селекционный питомник, kind: station, class: Питомник, inputs: [Дерево, Стекло, Ткань], station: Верстак}
+      - {name: Теплица, kind: station, inputs: [Стекло, Сталь, Труба, Провод], station: Мастерская}
       - {name: Компост, kind: consumable, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
       - {name: Минеральное удобрение, kind: consumable, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
-      - {name: Мельница, kind: station, inputs: [Камень, Дерево, Скобы], station: Стройка}
+      - {name: Мельница, kind: station, inputs: [Камень, Дерево, Скобы], station: Верстак}
       - {name: Мука, kind: material, bulk: true, edible: true, inputs: [Зерно], station: Мельница}
       - {name: Хлеб, kind: consumable, roles: true, food: true, mass: 0.5, inputs: [Мука, Вода], station: Очаг}
       - {name: Солонина, kind: consumable, food: true, inputs: [Мясо, Соль], station: Верстак, highlight: [Соль]}
@@ -358,9 +358,12 @@ levels:
     title: Энергия
     short: энергия
     recipes:
-      - {name: Водяное колесо, kind: station, class: Водяное колесо, inputs: [Дерево, Скобы], station: Стройка}
-      - {name: Ветряк, kind: station, class: Ветряк, inputs: [Дерево, Ткань, Скобы], station: Стройка}
-      - {name: Угольная станция, kind: station, class: Топливная станция, inputs: [Кирпич, Сталь, Труба], station: Стройка}
+      - {name: Водяное колесо, kind: station, class: Водяное колесо, inputs: [Дерево, Скобы], station: Верстак}
+      # Количества руками: с переездом на верстак (D-216) состав сошёлся с
+      # «Мехами» — те же ткань, дерево и скобы. У ветряка мачта и полотнища
+      # крыльев, у кузнечных мехов ни того, ни другого
+      - {name: Ветряк, kind: station, class: Ветряк, inputs: [Дерево, Ткань, Скобы], amounts: {Дерево: 8, Ткань: 4, Скобы: 2}, station: Верстак}
+      - {name: Угольная станция, kind: station, class: Топливная станция, inputs: [Кирпич, Сталь, Труба], station: Мастерская}
       - {name: Волочильный станок, kind: station, inputs: [Сталь, Дерево], amounts: {Сталь: 2, Дерево: 2}, station: Кузница}
       - {name: Провод, kind: material, inputs: [Медный слиток], station: Волочильный станок}
       - {name: Стекло, kind: material, mix: true, inputs: [Кварцевый песок, Уголь], station: Печь}
@@ -379,15 +382,15 @@ levels:
       - {name: Известь, kind: material, bulk: true, inputs: [Известняк], station: Печь}
       - {name: Раствор, kind: material, bulk: true, mix: true, inputs: [Известь, Песок, Вода], station: Верстак}
       - {name: Каменный блок, kind: material, inputs: [Камень], station: Кузница, note: обтёска}
-      - {name: Дорожное полотно, kind: consumable, class: Полотно, mix: true, inputs: [Щебень, Крошка], station: Стройка}
-      - {name: Мастерская, kind: station, inputs: [Кирпич, Дерево, Гвозди], station: Стройка}
-      - {name: Лечебница, kind: station, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 6, Стекло: 2, Ткань: 2}, station: Стройка}
-      - {name: Терминал маркетплейса, kind: station, class: Терминал, inputs: [Дерево, Сталь], station: Стройка}
-      - {name: Администрация, kind: station, class: Администрация, inputs: [Кирпич, Раствор, Дерево, Сталь], station: Стройка}
+      - {name: Дорожное полотно, kind: consumable, class: Полотно, mix: true, inputs: [Щебень, Крошка], station: Верстак}
+      - {name: Мастерская, kind: station, inputs: [Кирпич, Дерево, Гвозди], station: Верстак}
+      - {name: Лечебница, kind: station, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 6, Стекло: 2, Ткань: 2}, station: Верстак}
+      - {name: Терминал маркетплейса, kind: station, class: Терминал, inputs: [Дерево, Сталь], station: Верстак}
+      - {name: Администрация, kind: station, class: Администрация, inputs: [Кирпич, Раствор, Дерево, Сталь], station: Верстак}
       # Сцена узла собирается из рабочих станций (D-176): библиотеку и каторгу город
       # строит сам, как кузницу. Каторга + терминал = тюрьма (D-174)
-      - {name: Библиотека, kind: station, class: Библиотека, inputs: [Кирпич, Дерево, Стекло], station: Стройка}
-      - {name: Каторга, kind: station, class: Каторга, inputs: [Кирпич, Раствор, Сталь], station: Стройка}
+      - {name: Библиотека, kind: station, class: Библиотека, inputs: [Кирпич, Дерево, Стекло], station: Верстак}
+      - {name: Каторга, kind: station, class: Каторга, inputs: [Кирпич, Раствор, Сталь], station: Верстак}
 
   - id: 7
     title: Деньги
@@ -416,7 +419,7 @@ levels:
       - id: precision
         title: Точная обработка
         recipes:
-          - {name: Высокая печь, kind: station, inputs: [Кирпич, Известь, Сталь, Меха], station: Стройка}
+          - {name: Высокая печь, kind: station, inputs: [Кирпич, Известь, Сталь, Меха], station: Мастерская}
           - {name: Прокатный стан, kind: station, inputs: [Сталь, Дерево, Скобы], amounts: {Сталь: 3, Дерево: 2, Скобы: 2}, station: Кузница}
           - {name: Медная фольга, kind: material, inputs: [Медный слиток], station: Прокатный стан}
           - {name: Вольфрамовый резец, kind: tool, inputs: [Вольфрам, Сталь], station: Высокая печь, highlight: [Вольфрам]}
@@ -442,7 +445,7 @@ levels:
           - {name: Кремниевая пластина, kind: material, inputs: [Кремний], station: Токарный станок}
           - {name: Текстолит, kind: material, mix: true, inputs: [Ткань, Смола], station: Верстак}
           - {name: Печатная плата, kind: material, inputs: [Текстолит, Медная фольга], station: Чистая мастерская}
-          - {name: Чистая мастерская, kind: station, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], station: Стройка}
+          - {name: Чистая мастерская, kind: station, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], station: Мастерская}
           - {name: Микросхема, kind: material, inputs: [Кремниевая пластина, Аффинированное золото, Провод], station: Чистая мастерская, highlight: [Аффинированное золото]}
           - {name: Датчик, kind: material, inputs: [Микросхема, Стекло, Провод], station: Чистая мастерская}
           - {name: Процессорный блок, kind: material, key: true, inputs: [Микросхема, Печатная плата, Провод, Сталь], station: Чистая мастерская}
@@ -466,7 +469,7 @@ levels:
       - {name: Стальная рама, kind: material, inputs: [Сталь], amounts: {Сталь: 3}, station: Кузница}
       - {name: Био-камера, kind: material, inputs: [Стекло, Сталь, Ткань], station: Мастерская}
       - {name: Питающий контур, kind: material, inputs: [Аккумулятор, Провод, Сталь], station: Мастерская}
-      - {name: Биопринтер, kind: station, class: Биопринтер, key: true, inputs: [Стальная рама, Био-камера, Питающий контур, Процессорный блок], station: Стройка, highlight: [Процессорный блок]}
+      - {name: Биопринтер, kind: station, class: Биопринтер, key: true, inputs: [Стальная рама, Био-камера, Питающий контур, Процессорный блок], station: Мастерская, highlight: [Процессорный блок]}
       - {name: Ремкомплект биопринтера, kind: consumable, inputs: [Сталь, Провод, Точная деталь], station: Мастерская}
 
   - id: 10
@@ -512,8 +515,8 @@ levels:
           # рецепте корабля
           - {name: Навигационный блок, kind: station, inputs: [Процессорный блок, Датчик, Стекло], station: Чистая мастерская, highlight: [Процессорный блок]}
           - {name: Система жизнеобеспечения, kind: station, class: Жизнеобеспечение, inputs: [Баллон высокого давления, Кислород, Труба, Датчик], station: Мастерская}
-          - {name: Космическая мастерская, kind: station, inputs: [Кирпич, Сталь, Дерево, Привод], station: Стройка}
-          - {name: Космическая верфь, kind: station, class: Верфь, inputs: [Раствор, Каменный блок, Сталь, Труба], station: Стройка}
+          - {name: Космическая мастерская, kind: station, inputs: [Кирпич, Сталь, Дерево, Привод], station: Мастерская}
+          - {name: Космическая верфь, kind: station, class: Верфь, inputs: [Раствор, Каменный блок, Сталь, Труба], station: Мастерская}
           # Корабль собирается не рецептом, а по узлу за раз (D-201, D-202):
           # отдал основу на космической верфи — заложил основание, оно же коннектор;
           # отдал на борту — расширил корабль ещё одним узлом. Прежний рецепт

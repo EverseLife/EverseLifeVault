@@ -330,9 +330,9 @@ class Ladder:
           * `inputs_to`  -- where it goes **as a part**: the press is a station,
             and it is also an input of the coin station.
 
-        «Руками» and «Стройка» are here too. They are not recipes -- nobody makes
-        hands -- but half the ladder starts on them, and a picture of stations
-        without them would begin in mid-air.
+        «Руками» is here too. It is not a recipe -- nobody makes hands -- but
+        half the ladder starts on it, and a picture of stations without it
+        would begin in mid-air.
         """
         depth = self.depths()
         names = {name for name, r in self.recipes.items() if r.get("kind") == "station"}
