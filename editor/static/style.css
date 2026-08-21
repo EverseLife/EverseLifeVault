@@ -336,6 +336,30 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
 .err { color: var(--danger); font-size: 12px; white-space: pre-wrap; }
 .note-line { color: var(--text-faint); font-size: 11px; }
 
+/* Доска зданий (D-218): на месте графа, потому что граф там нечего рисовать —
+   типы не делают друг друга, их сравнивают. Числа табличные и правые: столбец
+   читается сверху вниз, а не по одной ячейке. */
+.graph-wrap.boarded { overflow: auto; background: var(--bg); }
+.board { padding: 12px 14px 18px; display: flex; flex-direction: column; gap: 14px; }
+.board-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.board-bar input { width: 72px; }
+.board-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.board-table th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--text-faint);
+  font-size: 11px;
+  padding: 2px 8px 4px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.board-table td { padding: 3px 8px 3px 0; border-bottom: 1px solid var(--line-soft); }
+.board-table .rt { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.board-table .nm { color: var(--text); white-space: nowrap; }
+.board-table .mut { color: var(--text-dim); }
+.board-table tr.on td { background: #212836; }
+.board-bill { display: flex; flex-direction: column; gap: 6px; }
+
 /* ----------------------------------------------------------------- console */
 
 .console { background: var(--panel); border-top: 1px solid var(--line); }

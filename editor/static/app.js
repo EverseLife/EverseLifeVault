@@ -6,6 +6,7 @@
 // save is good -- the vault's own check says so, in its own words.
 
 import { api } from './api.js';
+import * as buildings from './buildings.js';
 import { colourOf, KIND_COLOUR } from './graphview.js';
 import { createGraph } from './graphview.js';
 import { neighbourhood } from './layout.js';
@@ -43,6 +44,10 @@ const app = {
   modes: { recipes: 'focus', stations: 'all' },
   back: 2,
   forward: 1,
+  // Вкладка зданий выбирает не вещь вольта, а тип здания: имена из разных
+  // пространств, и общий `selected` перепутал бы их между переключениями.
+  building: null,
+  footprint: 20,
 };
 
 // Количества на стрелках — свойство взгляда, а не выбор: на всей лестнице их
@@ -54,6 +59,9 @@ const centreOfGrid = () => (app.mode === 'focus' ? app.selected : null);
 
 const dom = {
   list: document.getElementById('list'),
+  board: document.getElementById('board'),
+  graphWrap: document.getElementById('graph-wrap'),
+  graph: document.getElementById('graph'),
   filters: document.getElementById('filters'),
   search: document.getElementById('search'),
   counts: document.getElementById('counts'),
@@ -79,7 +87,11 @@ const panel = createPanel(document.getElementById('panel'), {
   operations: () => app.state.operations,
   nodes: () => app.state.nodes,
   onSelect: (name) => select(name),
+  //: Типы зданий живут в другом файле вольта (D-218), но правятся той же
+  //: формой справа: панель спрашивает их у состояния, как и всё остальное.
+  buildings: () => app.state.buildings || [],
   onWrite: afterWrite,
+  onWriteBuilding: afterBuildingWrite,
   notify: (text, bad) => say(text, bad),
 });
 
@@ -108,6 +120,11 @@ async function load(keepSelection = true) {
   }
   names.replaceChildren(...state.vocabulary.names.map((name) => h('option', { value: name })));
 
+  //: Выбранный тип мог быть переименован или удалён чужой правкой: держаться
+  //: за имя, которого в файле уже нет, значит показывать форму в никуда.
+  const kinds = new Set((state.buildings || []).map((row) => row.kind));
+  if (!keepSelection || !kinds.has(app.building)) app.building = null;
+
   renderFilters();
   renderLegend();
   renderList();
@@ -134,6 +151,15 @@ function typeOf(node) {
 }
 
 function renderFilters() {
+  if (app.tab === 'buildings') {
+    const rows = app.state.buildings || [];
+    dom.filters.replaceChildren(h('span', {
+      class: 'note-line',
+      text: `${rows.length} ${plural(rows.length, 'тип', 'типа', 'типов')} зданий · `
+        + 'состав, цена этажа и порча — у каждого свои',
+    }));
+    return;
+  }
   if (app.tab === 'stations') {
     // Фильтровать нечего: станции и так один тип. Вместо фишек — счёт.
     const idle = app.state.stations.filter((item) => !item.makes.length).length;
@@ -183,6 +209,14 @@ function matches(node) {
 }
 
 function renderList() {
+  if (app.tab === 'buildings') {
+    buildings.renderList(dom.list, app.state.buildings || [], {
+      selected: app.building,
+      query: app.query,
+      onSelect: (kind) => selectBuilding(kind),
+    });
+    return;
+  }
   if (app.tab === 'stations') {
     renderStationList();
     return;
@@ -260,6 +294,15 @@ function renderStationList() {
 }
 
 function renderLegend() {
+  if (app.tab === 'buildings') {
+    dom.legend.replaceChildren(
+      h('span', { text: 'тип решает три вещи разом: из чего построено, во сколько раз '
+        + 'дорожает следующий этаж и как быстро дом ветшает' }),
+      h('span', { text: '· пятно ограничено участком, высота — нет' }),
+      h('span', { text: '· правки уходят в data/constants.yaml' }),
+    );
+    return;
+  }
   if (app.tab === 'stations') {
     dom.legend.replaceChildren(
       h('span', {}, h('i', { style: `background:${KIND_COLOUR.station}` }), 'станция'),
@@ -295,6 +338,14 @@ function renderLegend() {
 // --------------------------------------------------------------------- graph
 
 function drawGraph() {
+  if (app.tab === 'buildings') {
+    buildings.renderBoard(dom.board, app.state.buildings || [], {
+      selected: app.building,
+      footprint: app.footprint,
+      onFootprint: (value) => { app.footprint = value; drawGraph(); },
+    });
+    return;
+  }
   const picture = app.tab === 'stations' ? stationPicture() : recipePicture();
   graph.render(picture.nodes, picture.edges, {
     amounts: showsAmounts(),
@@ -393,6 +444,27 @@ function setTab(tab) {
   for (const button of document.getElementById('tabs').children) {
     button.classList.toggle('on', button.dataset.tab === tab);
   }
+  const houses = tab === 'buildings';
+  // У зданий нет ни графа, ни его режимов: типы не делают друг друга, между
+  // ними нет ни одного ребра. На месте картинки — доска сравнения.
+  dom.graph.hidden = houses;
+  dom.board.hidden = !houses;
+  dom.graphWrap.classList.toggle('boarded', houses);
+  document.getElementById('mode').hidden = houses;
+  document.getElementById('act-fit').hidden = houses;
+  for (const id of ['act-new', 'act-new-material', 'act-new-class']) {
+    document.getElementById(id).hidden = houses;
+  }
+  document.getElementById('act-new-building').hidden = !houses;
+  if (houses) {
+    dom.search.placeholder = 'поиск: тип здания или материал в составе';
+    renderFilters();
+    renderLegend();
+    renderList();
+    drawGraph();
+    if (app.building) panel.openBuilding(app.building); else panel.clear();
+    return;
+  }
   for (const control of document.querySelectorAll('.recipes-only')) {
     control.hidden = tab === 'stations';
   }
@@ -411,6 +483,25 @@ function setTab(tab) {
   renderLegend();
   renderList();
   drawGraph();
+}
+
+// Выбор типа здания идёт своим путём: у него нет узла в графе и нет строки в
+// словаре вольта — есть только имя в карте констант.
+function selectBuilding(kind) {
+  app.building = kind;
+  renderList();
+  drawGraph();
+  panel.openBuilding(kind);
+}
+
+async function afterBuildingWrite(result, openKind) {
+  app.building = openKind || null;
+  await load();
+  if (result && result.check) reportRun(result.check, 'проверка вольта');
+  else say('записано', false, 'записано');
+  renderList();
+  drawGraph();
+  if (app.building) panel.openBuilding(app.building); else panel.clear();
 }
 
 function select(name, { focus = false } = {}) {
@@ -519,6 +610,12 @@ document.getElementById('act-new-class').addEventListener('click', () => {
 
 document.getElementById('act-new-material').addEventListener('click', () => {
   panel.openNewMaterial();
+});
+
+document.getElementById('act-new-building').addEventListener('click', () => {
+  app.building = null;
+  renderList();
+  panel.openNewBuilding();
 });
 
 document.getElementById('act-check').addEventListener('click', (event) => {

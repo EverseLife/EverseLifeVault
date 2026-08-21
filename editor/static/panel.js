@@ -32,6 +32,18 @@ const FLAGS = [
   ['edible', 'съедобное', 'идёт в котёл ролью, хотя само не блюдо: мука, масло (D-119)'],
 ];
 
+// Три числа типа здания (D-218). Каждое — своя карта в data/constants.yaml, и
+// правятся они вместе: тип, у которого есть состав и нет порчи, движок уронит
+// на тике, а не в редакторе.
+const BUILDING_NUMBERS = [
+  ['growth', 'этаж, ×', 'во сколько раз следующий этаж дороже предыдущего. '
+    + 'У дерева вдвое, у металла на 13% — это и есть укрепление', 1, 'от 1'],
+  ['decay', 'порча, %/сут', 'сколько состояния дом теряет за сутки. На нуле состояния '
+    + 'он обрушается, так что отсюда и срок между ремонтами', 0, '0.5 — раз в полгода'],
+  ['upkeep', 'содержание, ×', 'множитель платы за содержание. Дешёвый тип дороже '
+    + 'в содержании — обмен капитальных затрат на операционные', 0, '1'],
+];
+
 // Поля материала (D-215): одна строка реестра — всё, что нужно новому сырью.
 const MATERIAL_NUMBERS = [
   ['mass', 'масса, кг', 'кг за единицу (D-146). Основание всей системы масс'],
@@ -515,6 +527,182 @@ export function createPanel(root, deps) {
     if (!answer) return;
     try {
       deps.onWrite(await api.removeMaterial(state.original), null);
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  // -- building types (D-218) -------------------------------------------------
+
+  function openNewBuilding() {
+    detail = null;
+    state = {
+      kind: 'building',
+      original: null,
+      isNew: true,
+      building: { kind: '', per_m2: {}, growth: 1.5, decay: 0.3, upkeep: 1 },
+      rows: [['', '']],
+    };
+    renderBuilding();
+  }
+
+  function openBuilding(name) {
+    const found = (deps.buildings() || []).find((row) => row.kind === name);
+    if (!found) {
+      root.replaceChildren(h('div', { class: 'empty err', text: `типа «${name}» нет в файле` }));
+      return;
+    }
+    detail = null;
+    state = {
+      kind: 'building',
+      original: name,
+      isNew: false,
+      building: structuredClone(found),
+      //: Состав правится строками «материал — сколько», а не картой: пустая
+      //: строка внизу и есть кнопка «добавить», и её не приходится искать.
+      rows: Object.entries(found.per_m2 || {}).map(([part, amount]) => [part, String(amount)]),
+    };
+    state.rows.push(['', '']);
+    renderBuilding();
+  }
+
+  function renderBuilding() {
+    const building = state.building;
+    const node = { type: 'station' };
+
+    const setRow = (index, side) => (event) => {
+      state.rows[index][side] = event.target.value;
+      //: Последняя строка всегда пустая: заполнили её — снизу появляется новая.
+      const last = state.rows[state.rows.length - 1];
+      if (last[0].trim() || last[1].trim()) state.rows.push(['', '']);
+      touch();
+      if (side === 0) renderBuilding();
+    };
+
+    const setNumber = (key) => (event) => {
+      const value = event.target.value;
+      building[key] = value === '' ? '' : Number(value);
+      touch();
+      //: Срок жизни выводится из порчи, и выводить его раз в перерисовку мало:
+      //: правят как раз порчу, а читают как раз срок — они обязаны идти вместе.
+      if (key === 'decay') {
+        const line = root.querySelector('#building-life');
+        if (line) line.textContent = lifeLine(building.decay);
+      }
+    };
+
+    root.replaceChildren(
+      head(state.isNew ? 'Новый тип здания' : state.original, node,
+        { onRemove: state.isNew ? null : removeBuilding }),
+      h('div', { class: 'form' },
+        h('div', { class: 'note-line',
+          text: 'тип здания (D-218) решает три вещи разом: из чего построено, во '
+            + 'сколько раз дорожает следующий этаж и как быстро дом ветшает. '
+            + 'Потолка высоты нет — за высоту платит смета.' }),
+
+        h('div', { class: 'field' },
+          h('label', { text: 'название' }),
+          h('input', {
+            value: building.kind || '', autofocus: state.isNew,
+            placeholder: 'кирпичный',
+            oninput: (event) => { building.kind = event.target.value; touch(); },
+          })),
+
+        h('fieldset', {},
+          h('legend', { text: 'состав на м² пола первого этажа' }),
+          h('div', { class: 'note-line',
+            text: 'столько уходит на квадратный метр. Каждый следующий этаж '
+              + 'дороже предыдущего — во столько раз, сколько стоит ниже' }),
+          ...state.rows.map(([part, amount], index) => h('div', { class: 'field' },
+            h('input', {
+              value: part, list: 'all-names', placeholder: 'материал',
+              oninput: setRow(index, 0),
+            }),
+            h('input', {
+              type: 'number', step: 'any', min: '0', value: amount,
+              placeholder: 'ед. на м²', oninput: setRow(index, 1),
+            }),
+          )),
+        ),
+
+        ...BUILDING_NUMBERS.map(([key, label, title, floor, hint]) => h('div', { class: 'field' },
+          h('label', { text: label, title }),
+          h('input', {
+            type: 'number', step: 'any', min: String(floor),
+            value: building[key] === '' ? '' : num(building[key]),
+            title, placeholder: hint, oninput: setNumber(key),
+          }),
+        )),
+
+        h('div', { class: 'note-line', id: 'building-life' },
+          lifeLine(building.decay)),
+
+        h('div', { class: 'err', id: 'panel-error' }),
+        h('div', { class: 'panel-actions' },
+          h('button', {
+            class: 'primary', onclick: saveBuilding,
+            text: state.isNew ? 'Создать' : 'Сохранить',
+          }),
+          h('button', {
+            onclick: () => (state.isNew ? clear() : openBuilding(state.original)),
+            text: 'Сбросить',
+          }),
+        ),
+        h('div', { class: 'note-line',
+          text: 'правка уходит в data/constants.yaml сразу во все четыре карты '
+            + 'типа: состав, этаж, порчу и содержание. Числа доедут до игры '
+            + 'сборкой вольта — кнопка «Собрать» наверху.' }),
+      ),
+    );
+  }
+
+  function lifeLine(decay) {
+    const rate = Number(decay);
+    if (!(rate > 0)) return 'порча не задана: дом стоял бы вечно';
+    //: Состояние целого дома — сотня, та же шкала, что у инструмента.
+    const days = Math.round(100 / rate);
+    return `без ремонта дом простоит ${days} ${plural(days, 'сутки', 'суток', 'суток')} и обрушится`;
+  }
+
+  function collectBuilding() {
+    const per = {};
+    for (const [part, amount] of state.rows) {
+      const name = (part || '').trim();
+      if (!name) continue;
+      per[name] = amount === '' ? '' : Number(amount);
+    }
+    return {
+      kind: (state.building.kind || '').trim(),
+      per_m2: per,
+      growth: state.building.growth,
+      decay: state.building.decay,
+      upkeep: state.building.upkeep,
+    };
+  }
+
+  async function saveBuilding() {
+    const data = collectBuilding();
+    try {
+      const result = state.isNew
+        ? await api.createBuilding(data)
+        : await api.updateBuilding(state.original, data);
+      deps.onWriteBuilding(result, data.kind);
+    } catch (error) {
+      fail(error);
+    }
+  }
+
+  async function removeBuilding() {
+    const answer = await ask({
+      title: `Удалить тип «${state.original}»?`,
+      body: 'Тип уйдёт из всех четырёх карт сразу. Дома, уже построенные из '
+        + 'него, останутся в мире со своим именем типа — движок перестанет '
+        + 'понимать, из чего они, пока их не переведут миграцией.',
+      ok: 'Удалить',
+    });
+    if (!answer) return;
+    try {
+      deps.onWriteBuilding(await api.removeBuilding(state.original), null);
     } catch (error) {
       fail(error);
     }
@@ -1106,12 +1294,15 @@ export function createPanel(root, deps) {
     openNew,
     openNewClass,
     openNewMaterial,
+    openBuilding,
+    openNewBuilding,
     clear,
-    //: Ctrl+S пишет то, что открыто: рецепт, класс или материал.
+    //: Ctrl+S пишет то, что открыто: рецепт, класс, материал или тип здания.
     save: () => {
       if (!state) return null;
       if (state.kind === 'class') return saveClass();
       if (state.kind === 'material') return saveMaterial();
+      if (state.kind === 'building') return saveBuilding();
       return save();
     },
     get current() { return state?.original || null; },

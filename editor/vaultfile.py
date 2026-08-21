@@ -698,39 +698,64 @@ def _backup(path: Path) -> Path:
     #: `undo` makes its own backup right before restoring, and a collision made
     #: it roll back to the very edit it was undoing. The suffix keeps names
     #: unique and their order chronological.
-    base = f"recipes-{stamp}-{int(time.time() * 1000) % 1000:03d}"
+    #: The file's own name leads, because the editor writes more than one of
+    #: them: `data/recipes.yaml` and `data/constants.yaml` (D-218). Undo has to
+    #: know which file the newest edit was to, and the name is where it says so.
+    base = f"{path.stem}-{stamp}-{int(time.time() * 1000) % 1000:03d}"
     target = BACKUPS / f"{base}.yaml"
     twin = 0
     while target.exists():
         twin += 1
         target = BACKUPS / f"{base}-{twin:02d}.yaml"
     shutil.copy2(path, target)
-    _trim_backups()
+    _trim_backups(path.stem)
     return target
 
 
-def _trim_backups(keep: int = 40) -> None:
-    saved = sorted(BACKUPS.glob("recipes-*.yaml"))
+def _trim_backups(stem: str, keep: int = 40) -> None:
+    """Each edited file keeps its own depth of history: they are edited apart."""
+    saved = sorted(BACKUPS.glob(f"{stem}-*.yaml"), key=_stamp_of)
     for old in saved[:-keep]:
         old.unlink(missing_ok=True)
 
 
+def _stamp_of(path: Path) -> str:
+    """The time part of a backup's name -- everything after the file's own stem."""
+    _, _, stamp = path.stem.partition("-")
+    return stamp
+
+
 def last_backup() -> Path | None:
+    """The newest backup of any file the editor writes.
+
+    Sorted by the stamp inside the name and not by the whole name: two files
+    sorted as text would put every `constants-*` before every `recipes-*`, and
+    undo would walk back an edit made hours ago instead of the last one.
+    """
     if not BACKUPS.exists():
         return None
-    saved = sorted(BACKUPS.glob("recipes-*.yaml"))
+    saved = sorted(BACKUPS.glob("*.yaml"), key=_stamp_of)
     return saved[-1] if saved else None
 
 
 def undo(path: Path) -> str:
-    """Roll the file back to the newest backup, keeping the current one as well."""
+    """Roll back the newest edit, keeping the current state as a backup too.
+
+    `path` says where the vault's data files lie, not which one to restore: the
+    newest edit may have been to `constants.yaml` while the page was showing
+    recipes, and undoing the wrong file would be worse than not undoing at all.
+    """
     backup = last_backup()
     if backup is None:
         raise VaultError("отменять нечего: правок в этой копии ещё не было")
+    stem, _, _ = backup.stem.partition("-")
+    target = path.with_name(f"{stem}{path.suffix}")
+    if not target.exists():
+        raise VaultError(f"откатывать некуда: файла {target.name} нет рядом")
     #: Read before writing: what is being restored must not depend on the
     #: backup file surviving the backup that `undo` itself makes.
     restored = backup.read_bytes()
-    _backup(path)
-    path.write_bytes(restored)
+    _backup(target)
+    target.write_bytes(restored)
     backup.unlink(missing_ok=True)
     return backup.name

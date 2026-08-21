@@ -35,6 +35,14 @@ def recipes(tmp_path: Path, source: Path) -> Path:
     return target
 
 
+@pytest.fixture
+def constants(tmp_path: Path, source: Path) -> Path:
+    """A copy of the real constants file: building types are edited there (D-218)."""
+    target = tmp_path / "constants.yaml"
+    shutil.copy2(source.parent / "constants.yaml", target)
+    return target
+
+
 @pytest.fixture(autouse=True)
 def backups_elsewhere(tmp_path: Path, monkeypatch) -> Path:
     """Backups of a test edit belong in the test's own directory."""

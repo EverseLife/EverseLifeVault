@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+import constantsfile as consts
 import ladder as model
 import vaultfile as vault
 
@@ -41,6 +42,9 @@ class Session:
     def __init__(self, vault_root: Path):
         self.vault = vault_root
         self.source = vault_root / "data" / "recipes.yaml"
+        #: Building types live in the other data file (D-218): four maps that
+        #: must agree, and the tool keeps them in step.
+        self.constants = vault_root / "data" / "constants.yaml"
         self.lock = threading.Lock()
 
     def open(self, text: str | None = None) -> tuple[vault.RecipesFile, model.Ladder]:
@@ -49,6 +53,9 @@ class Session:
         ladder = model.Ladder(file, derived)
         ladder.stale = stale
         return file, ladder
+
+    def open_constants(self, text: str | None = None) -> consts.ConstantsFile:
+        return consts.ConstantsFile(self.constants, text=text)
 
 
 # ------------------------------------------------------------------ handlers
@@ -73,6 +80,11 @@ def state(session: Session, _query: dict, _body: dict) -> dict:
             for op in ladder.operations
         ],
         "stations": ladder.stations(),
+        #: Building types (D-218). Read from the constants file, not the recipe
+        #: one -- but shown in the same window, because a type is a composition
+        #: and a composition is what this tool is about.
+        "buildings": _buildings(session),
+        "constants_source": str(session.constants),
         "vocabulary": ladder.vocabulary(),
         "counts": {
             "recipes": len(ladder.recipes),
@@ -427,6 +439,148 @@ def membership(session: Session, query: dict, body: dict) -> dict:
     return {"name": name, "classes": wanted, "check": _check(session)}
 
 
+# ------------------------------------------------- building types (D-218)
+
+
+def _buildings(session: Session) -> list[dict]:
+    """The ladder of building types, or nothing if the file cannot say.
+
+    A constants file the editor cannot read must not take the recipe window down
+    with it: the tab shows the reason and the rest of the editor works on.
+    """
+    try:
+        return session.open_constants().types()
+    except (vault.VaultError, OSError) as error:
+        return [{"error": str(error)}]
+
+
+BUILDING_NUMBERS = (
+    ("growth", "рост цены этажа", 1.0),
+    ("decay", "порча, % в сутки", 0.0),
+    ("upkeep", "множитель содержания", 0.0),
+)
+
+
+def _clean_building(data: dict, ladder: model.Ladder) -> dict:
+    """One type's row, checked against the vault before a line is written.
+
+    The check that matters is the composition: a material named with a typo
+    would pass YAML, pass the build and only fail in the engine, at the moment
+    somebody tries to build a house of it.
+    """
+    kind = str(data.get("kind") or "").strip()
+    if not kind:
+        raise vault.VaultError("у типа здания должно быть название")
+
+    parts = data.get("per_m2") or {}
+    if not isinstance(parts, dict) or not parts:
+        raise vault.VaultError(f"«{kind}»: состав пуст — из чего-то дом строить надо")
+    known = ladder.known_names()
+    composition: dict[str, float] = {}
+    for raw_name, raw_amount in parts.items():
+        name = str(raw_name).strip()
+        if not name:
+            continue
+        if name not in known:
+            raise vault.VaultError(
+                f"«{kind}»: материала «{name}» нет в вольте. "
+                "Сначала заведите его в реестре материалов."
+            )
+        amount = _positive(raw_amount, f"«{kind}» → «{name}»")
+        composition[name] = amount
+    if not composition:
+        raise vault.VaultError(f"«{kind}»: состав пуст — из чего-то дом строить надо")
+
+    row = {"kind": kind, "per_m2": composition}
+    for field, label, floor in BUILDING_NUMBERS:
+        value = data.get(field)
+        if value in (None, ""):
+            raise vault.VaultError(f"«{kind}»: не задано «{label}»")
+        number = float(value)
+        if number < floor:
+            raise vault.VaultError(
+                f"«{kind}»: «{label}» не бывает меньше {_pretty(floor)}"
+            )
+        row[field] = int(number) if float(number).is_integer() else number
+    return row
+
+
+def _positive(value: Any, what: str) -> float:
+    try:
+        number = float(value)
+    except (TypeError, ValueError) as error:
+        raise vault.VaultError(f"{what}: «{value}» — не число") from error
+    if number <= 0:
+        raise vault.VaultError(f"{what}: расход должен быть больше нуля")
+    return int(number) if number.is_integer() else number
+
+
+def _pretty(value: float) -> str:
+    return str(int(value)) if float(value).is_integer() else str(value)
+
+
+def _save_types(session: Session, rows: list[dict]) -> None:
+    file = session.open_constants()
+    expect = file.set_types(rows)
+    vault.save_doc(session.constants, file.lines, expect, file.mtime, file.newline)
+
+
+def building_create(session: Session, _query: dict, body: dict) -> dict:
+    """A new building type: one row, and all four maps get it at once (D-218)."""
+    with session.lock:
+        _, ladder = session.open()
+        row = _clean_building(body.get("data") or {}, ladder)
+        file = session.open_constants()
+        rows = file.types()
+        if any(existing["kind"] == row["kind"] for existing in rows):
+            raise vault.VaultError(f"тип «{row['kind']}» уже есть")
+        #: Appended at the end: the ladder runs from the cheapest upwards and
+        #: the engine takes the first of it as the default (`estate.kinds`), so
+        #: a new type must not silently become what unnamed houses are built of.
+        _save_types(session, [*rows, row])
+    return {"saved": row["kind"], "check": _check(session)}
+
+
+def building_update(session: Session, query: dict, body: dict) -> dict:
+    original = _need(query, "name")
+    with session.lock:
+        _, ladder = session.open()
+        row = _clean_building(body.get("data") or {}, ladder)
+        file = session.open_constants()
+        rows = file.types()
+        if not any(existing["kind"] == original for existing in rows):
+            raise vault.VaultError(f"типа «{original}» нет в файле")
+        if row["kind"] != original and any(x["kind"] == row["kind"] for x in rows):
+            raise vault.VaultError(f"тип «{row['kind']}» уже есть")
+        #: Renaming is allowed and is a real edit: the type's name is written on
+        #: every house already standing, so the engine's migration has to follow.
+        #: The tool says so rather than pretending the rename is free.
+        _save_types(
+            session,
+            [row if existing["kind"] == original else existing for existing in rows],
+        )
+    return {
+        "saved": row["kind"],
+        "renamed": None if row["kind"] == original else original,
+        "check": _check(session),
+    }
+
+
+def building_delete(session: Session, query: dict, _body: dict) -> dict:
+    name = _need(query, "name")
+    with session.lock:
+        file = session.open_constants()
+        rows = file.types()
+        if not any(existing["kind"] == name for existing in rows):
+            raise vault.VaultError(f"типа «{name}» нет в файле")
+        if len(rows) == 1:
+            raise vault.VaultError(
+                "это последний тип: строить дома было бы не из чего"
+            )
+        _save_types(session, [row for row in rows if row["kind"] != name])
+    return {"deleted": name, "check": _check(session)}
+
+
 def material_create(session: Session, _query: dict, body: dict) -> dict:
     """A new material: one registry row is all a new raw thing needs (D-215)."""
     data = _clean_material(body.get("data") or {})
@@ -525,6 +679,8 @@ def _clean_material(data: dict) -> dict:
 
 
 def undo(session: Session, _query: dict, _body: dict) -> dict:
+    #: Which file is rolled back is decided by which was written last, not by
+    #: the tab in front of the person: the editor writes two of them now (D-218).
     with session.lock:
         restored = vault.undo(session.source)
     return {"restored": restored, "check": _check(session)}
@@ -548,6 +704,9 @@ ROUTES = {
     ("POST", "/api/material"): material_create,
     ("PUT", "/api/material"): material_update,
     ("DELETE", "/api/material"): material_delete,
+    ("POST", "/api/building"): building_create,
+    ("PUT", "/api/building"): building_update,
+    ("DELETE", "/api/building"): building_delete,
     ("PUT", "/api/measure"): measure,
     ("PUT", "/api/class"): put_class,
     ("DELETE", "/api/class"): drop_class,

@@ -27,6 +27,10 @@ from typing import Any
 
 import yaml
 
+#: The renderers are the recipe file's own: one tool, one way of writing a
+#: number and one way of deciding whether a name needs quotes. A second copy
+#: here would drift, and the drift would show up as a file that parses back
+#: differently than it was meant.
 from vaultfile import VaultError, _number, _scalar
 
 #: The four maps a building type lives in, and what each one holds. The order is
@@ -121,10 +125,12 @@ class ConstantsFile:
                 break
             if here == indent + 2 and line.strip().startswith("value:"):
                 last = index + 1
-                while last < len(self.lines) and (
-                    not self.lines[last].strip() or _indent_of(self.lines[last]) > here
-                ):
-                    if not self.lines[last].strip():
+                while last < len(self.lines):
+                    below = self.lines[last]
+                    #: A blank line ends the block as surely as a shallower one:
+                    #: inside a value there are none, and one appearing would
+                    #: mean the file is laid out differently than this assumes.
+                    if not below.strip() or _indent_of(below) <= here:
                         break
                     last += 1
                 return index, last, here
@@ -208,7 +214,7 @@ def _render_map(mapping: dict, indent: int, *, nested: bool) -> list[str]:
     back = yaml.safe_load(body)
     if not isinstance(back, dict) or "value" not in back:
         raise VaultError("блок значения не читается обратно как значение")
-    if _same(back["value"], mapping) is False:
+    if not _same(back["value"], mapping):
         raise VaultError("блок значения читается не так, как записан")
     return out
 

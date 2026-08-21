@@ -40,6 +40,11 @@ export const api = {
   putClass: (name, members, note) => req('PUT', '/api/class', { name }, { members, note }),
   dropClass: (name) => req('DELETE', '/api/class', { name }),
   classesOf: (name, classes) => req('PUT', '/api/classes', { name }, { classes }),
+  // Типы зданий (D-218): живут в data/constants.yaml, а не в рецептах, но
+  // тип — это состав, и правится он там же, где составы.
+  createBuilding: (data) => req('POST', '/api/building', null, { data }),
+  updateBuilding: (name, data) => req('PUT', '/api/building', { name }, { data }),
+  removeBuilding: (name) => req('DELETE', '/api/building', { name }),
   check: () => req('POST', '/api/check'),
   build: () => req('POST', '/api/build'),
   undo: () => req('POST', '/api/undo'),
