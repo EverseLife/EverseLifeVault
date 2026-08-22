@@ -823,6 +823,13 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
         if name in consumed or name in used_as_station:
             continue
         problems.append(f"тупик: материал «{name}» никуда не идёт — либо он расходник, либо не хватает рецепта")
+    #    Продукт операции — тот же материал (D-223): олово, которое плавят и не
+    #    берут никуда, — такой же тупик, как сталь без потребителя. Раньше
+    #    проверка смотрела только на рецепты, и олово с керамикой висели годами
+    for g in sorted(op_outputs):
+        if g in consumed or g in used_as_station:
+            continue
+        problems.append(f"тупик: продукт операции «{g}» никуда не идёт — не хватает рецепта")
 
     # 5. развести известное и новое
     excused_cycles = {frozenset(i["cycle"]): i["oq"] for i in doc.get("known_issues", []) if "cycle" in i}

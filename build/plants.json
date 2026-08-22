@@ -200,8 +200,8 @@
       },
       "restores_fertility": 0,
       "generosity": 4.33,
-      "generosity_cap": 4.67,
-      "used_in_recipes": 2
+      "generosity_cap": 5.83,
+      "used_in_recipes": 1
     },
     {
       "id": "brome",
@@ -229,8 +229,8 @@
       },
       "restores_fertility": 0,
       "generosity": 5.31,
-      "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "generosity_cap": 7.0,
+      "used_in_recipes": 0
     }
   ]
 }
