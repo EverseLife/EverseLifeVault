@@ -137,9 +137,12 @@ export function createPanel(root, deps) {
       section,
       data: {
         name: '',
-        kind: 'material',
+        kind: defaults.kind || 'material',
         inputs: defaults.inputs ? [...defaults.inputs] : [''],
         station: defaults.station || 'Верстак',
+        // Флаги, с которыми вещь рождается: блюдо приходит сюда уже едой с
+        // ролями, чтобы три галочки не ставились руками каждый раз.
+        ...(defaults.flags || {}),
       },
       measure: { name: '', unit: '', mass: '', bulk: false, withMass: false },
       classes: { in: [], was: [] },

@@ -44,7 +44,10 @@ const app = {
   // Режим свой у каждой вкладки: в рецептах чаще смотрят окрестность одной
   // вещи, в станциях — сперва всё дерево.
   mode: 'focus',
-  modes: { recipes: 'focus', stations: 'all' },
+  modes: { recipes: 'focus', food: 'all', stations: 'all' },
+  // Вкладка еды делится на три части, и прятать их — её собственный выбор:
+  // фишки типов вкладки рецептов тут ни при чём.
+  foodHidden: new Set(),
   back: 2,
   forward: 1,
   // Вкладка зданий выбирает не вещь вольта, а тип здания: имена из разных
@@ -147,6 +150,40 @@ function station(name) {
   return app.state.stations.find((item) => item.name === name);
 }
 
+// ---------------------------------------------------------------------- food
+
+// Блюдо — то, что помечено `food` (D-119). Оно конечно: ни одно блюдо не
+// входит ни в какой рецепт, поэтому вкладка «Рецепты» обходится без него.
+const isDish = (node) => !!node.food;
+// Съедобное — идёт в котёл ролью, но само не блюдо: мука, масло, соль, вода.
+const isEdible = (node) => !!node.edible && !node.food;
+
+const FOOD_PART = {
+  dishes: 'блюда',
+  edibles: 'съедобное',
+  stations: 'станции еды',
+};
+
+// Кухня целиком: блюда, то, что в них кладут, и станции, на которых это
+// делают. Станция попадает сюда по делу, а не по имени: верстак — станция
+// еды, пока на нём солят мясо.
+function foodWorld() {
+  const dishes = app.state.nodes.filter(isDish);
+  const edibles = app.state.nodes.filter(isEdible);
+  const made = new Set([...dishes, ...edibles].map((node) => node.name));
+  const stations = app.state.stations
+    .filter((item) => item.makes.some((name) => made.has(name)))
+    .map((item) => nodeOf(item.name) || { name: item.name, type: 'virtual', depth: 0 });
+  return { dishes, edibles, stations };
+}
+
+function inKitchen(name) {
+  const node = nodeOf(name);
+  if (!node) return false;
+  if (isDish(node) || isEdible(node)) return true;
+  return foodWorld().stations.some((item) => item.name === name);
+}
+
 // ---------------------------------------------------------------------- list
 
 function typeOf(node) {
@@ -161,6 +198,24 @@ function renderFilters() {
       text: `${rows.length} ${plural(rows.length, 'тип', 'типа', 'типов')} зданий · `
         + 'состав, цена этажа и порча — у каждого свои',
     }));
+    return;
+  }
+  if (app.tab === 'food') {
+    const world = foodWorld();
+    const hot = world.dishes.filter((node) => node.hot).length;
+    dom.filters.replaceChildren(
+      ...Object.entries(FOOD_PART).map(([part, label]) => h('button', {
+        class: 'chip' + (app.foodHidden.has(part) ? '' : ' on'),
+        text: `${label} ${world[part].length}`,
+        onclick: () => {
+          if (app.foodHidden.has(part)) app.foodHidden.delete(part); else app.foodHidden.add(part);
+          renderFilters();
+          renderList();
+          drawGraph();
+        },
+      })),
+      h('span', { class: 'note-line', text: `горячих блюд ${hot}` }),
+    );
     return;
   }
   if (app.tab === 'stations') {
@@ -197,6 +252,8 @@ function renderFilters() {
 }
 
 function matches(node) {
+  // Блюда живут во вкладке «Еда», и только там.
+  if (isDish(node)) return false;
   if (app.hidden.has(typeOf(node))) return false;
   if (app.keyOnly && !node.is_key) return false;
   const query = app.query.trim().toLowerCase();
@@ -222,6 +279,10 @@ function renderList() {
   }
   if (app.tab === 'stations') {
     renderStationList();
+    return;
+  }
+  if (app.tab === 'food') {
+    renderFoodList();
     return;
   }
   const visible = app.state.nodes.filter(matches);
@@ -250,6 +311,53 @@ function renderList() {
       h('span', { class: 'nm', text: node.name }),
       node.is_key ? h('span', { class: 'kbd', text: '★' }) : null,
       h('span', { class: 'st', text: node.station || (node.type === 'raw' ? 'сырьё' : '') }),
+      ));
+    }
+  }
+  if (!out.length) out.push(h('div', { class: 'empty', text: 'ничего не нашлось' }));
+  dom.list.replaceChildren(...out);
+}
+
+// Кухня в три группы: сперва блюда — ради них вкладка, — потом из чего они,
+// потом где. Поиск ищет по названию, по входам и по станции, как и в рецептах.
+function renderFoodList() {
+  const query = app.query.trim().toLowerCase();
+  const world = foodWorld();
+  const fits = (node) => !query || [
+    node.name,
+    node.station || '',
+    ...(node.inputs || []),
+    ...(station(node.name)?.makes || []),
+  ].join(' ').toLowerCase().includes(query);
+  const edibleMakes = (name) => (station(name)?.makes || []).filter((made) => {
+    const other = nodeOf(made);
+    return other && (isDish(other) || isEdible(other));
+  }).length;
+
+  const out = [];
+  for (const [part, label] of Object.entries(FOOD_PART)) {
+    if (app.foodHidden.has(part)) continue;
+    const rows = world[part].filter(fits).sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+    if (!rows.length) continue;
+    out.push(h('div', { class: 'group', text: label }));
+    for (const node of rows) {
+      out.push(h('div', {
+        class: 'row' + (node.name === app.selected ? ' sel' : ''),
+        'data-name': node.name,
+        onclick: () => select(node.name),
+        ondblclick: () => select(node.name, { focus: true }),
+      },
+      h('span', { class: 'dot', style: `background:${colourOf(node)}` }),
+      h('span', { class: 'nm', text: node.name }),
+      node.hot ? h('span', { class: 'kbd', title: 'горячее блюдо', text: '♨' }) : null,
+      node.roles ? h('span', { class: 'kbd', title: 'входы — роли, а не состав (D-119)', text: 'роли' }) : null,
+      h('span', {
+        class: 'st',
+        title: part === 'stations' ? 'сколько съедобного делают на станции' : '',
+        text: part === 'stations'
+          ? String(edibleMakes(node.name))
+          : node.station || (node.type === 'raw' ? 'сырьё' : ''),
+      }),
       ));
     }
   }
@@ -306,6 +414,20 @@ function renderLegend() {
     );
     return;
   }
+  if (app.tab === 'food') {
+    dom.legend.replaceChildren(
+      h('span', {}, h('i', { style: `background:${KIND_COLOUR.consumable}` }), 'блюдо'),
+      h('span', {}, h('i', { style: `background:${KIND_COLOUR.material}` }), 'съедобный продукт'),
+      h('span', {}, h('i', { style: `background:${KIND_COLOUR.raw}` }), 'съедобное сырьё'),
+      h('span', {}, h('i', { style: `background:${KIND_COLOUR.station}` }), 'станция'),
+      h('span', { text: '· сплошная стрелка — что кладут' }),
+      h('span', { text: '· пунктир — на чём готовят' }),
+      h('span', { text: '· ♨ — горячее: сытость отдаёт временем (D-119)' }),
+      h('span', { text: '· роли — вход закрывается любым подходящим продуктом' }),
+      h('span', { text: '· двойной щелчок — сделать центром' }),
+    );
+    return;
+  }
   if (app.tab === 'stations') {
     dom.legend.replaceChildren(
       h('span', {}, h('i', { style: `background:${KIND_COLOUR.station}` }), 'станция'),
@@ -349,7 +471,8 @@ function drawGraph() {
     });
     return;
   }
-  const picture = app.tab === 'stations' ? stationPicture() : recipePicture();
+  const picture = app.tab === 'stations' ? stationPicture()
+    : app.tab === 'food' ? foodPicture() : recipePicture();
   graph.render(picture.nodes, picture.edges, {
     amounts: showsAmounts(),
     centre: centreOfGrid(),
@@ -407,6 +530,37 @@ function stationPicture() {
   return { nodes: [...names].map(node), edges };
 }
 
+// Кухня на графе: состав и станция вместе. В лестнице рецептов эти два
+// отношения разведены по вкладкам, а здесь их мало, и вопрос «из чего и на
+// чём» — один вопрос.
+function foodPicture() {
+  const world = foodWorld();
+  const shown = Object.keys(FOOD_PART)
+    .filter((part) => !app.foodHidden.has(part))
+    .flatMap((part) => world[part]);
+  const names = new Set(shown.map((node) => node.name));
+  const edges = app.state.edges.filter((edge) => (edge.rel === 'input' || edge.rel === 'station')
+    && names.has(edge.from) && names.has(edge.to));
+
+  let nodes;
+  if (app.mode === 'all') {
+    nodes = shown;
+    const { dishes, edibles, stations } = world;
+    dom.hint.textContent = `${dishes.length} ${plural(dishes.length, 'блюдо', 'блюда', 'блюд')}`
+      + ` · ${edibles.length} ${plural(edibles.length, 'съедобное', 'съедобных', 'съедобных')}`
+      + ` · ${stations.length} ${plural(stations.length, 'станция', 'станции', 'станций')}`;
+  } else if (!app.selected || !names.has(app.selected)) {
+    nodes = [];
+    dom.hint.textContent = 'выберите блюдо, продукт или станцию';
+  } else {
+    const near = neighbourhood(app.selected, edges, app.back, app.forward);
+    nodes = shown.filter((node) => near.has(node.name));
+    dom.hint.textContent = `${things(nodes.length)} вокруг «${app.selected}»`;
+  }
+  const kept = new Set(nodes.map((node) => node.name));
+  return { nodes, edges: edges.filter((edge) => kept.has(edge.from) && kept.has(edge.to)) };
+}
+
 function recipePicture() {
   const all = app.state.nodes;
   // Только «из чего делается»: на какой станции — это вкладка «Станции», и
@@ -414,7 +568,7 @@ function recipePicture() {
   const edges = app.state.edges.filter((edge) => edge.rel === 'input');
   let nodes;
   if (app.mode === 'all') {
-    const shown = new Set(all.filter((node) => !app.hidden.has(typeOf(node))).map((n) => n.name));
+    const shown = new Set(all.filter((node) => !isDish(node) && !app.hidden.has(typeOf(node))).map((n) => n.name));
     nodes = all.filter((node) => shown.has(node.name));
     dom.hint.textContent = things(nodes.length);
   } else if (!app.selected) {
@@ -422,7 +576,8 @@ function recipePicture() {
     dom.hint.textContent = 'выберите вещь';
   } else {
     const near = neighbourhood(app.selected, edges, app.back, app.forward);
-    nodes = all.filter((node) => near.has(node.name));
+    // Окрестность муки тянет за собой хлеб, но хлеб — это вкладка «Еда».
+    nodes = all.filter((node) => near.has(node.name) && !isDish(node));
     dom.hint.textContent = `${things(nodes.length)} вокруг «${app.selected}»`;
   }
   const names = new Set(nodes.map((node) => node.name));
@@ -455,9 +610,13 @@ function setTab(tab) {
   dom.graphWrap.classList.toggle('boarded', houses);
   document.getElementById('mode').hidden = houses;
   document.getElementById('act-fit').hidden = houses;
-  for (const id of ['act-new', 'act-new-material', 'act-new-class']) {
-    document.getElementById(id).hidden = houses;
-  }
+  const kitchen = tab === 'food';
+  // Новая еда заводится блюдом или материалом со съедобностью; рецепт вообще
+  // и класс — дело лестницы, на кухне им нечего делать.
+  document.getElementById('act-new').hidden = houses || kitchen;
+  document.getElementById('act-new-class').hidden = houses || kitchen;
+  document.getElementById('act-new-material').hidden = houses;
+  document.getElementById('act-new-dish').hidden = !kitchen;
   document.getElementById('act-new-building').hidden = !houses;
   if (houses) {
     dom.search.placeholder = 'поиск: тип здания или материал в составе';
@@ -473,14 +632,18 @@ function setTab(tab) {
   }
   const modes = document.getElementById('mode');
   modes.querySelector('[data-mode="all"]').textContent = tab === 'stations'
-    ? 'Все станции' : 'Вся лестница';
+    ? 'Все станции' : kitchen ? 'Вся кухня' : 'Вся лестница';
   modes.querySelector('[data-mode="focus"]').title = tab === 'stations'
-    ? 'что делают на выбранной станции и куда она входит' : '';
+    ? 'что делают на выбранной станции и куда она входит'
+    : kitchen ? 'из чего блюдо и на чём его готовят' : '';
   dom.search.placeholder = tab === 'stations'
     ? 'поиск: станция или что на ней делают'
-    : 'поиск: название, вход, станция';
+    : kitchen ? 'поиск: блюдо, продукт или станция'
+      : 'поиск: название, вход, станция';
   // Фокусу нечего показывать, если выбранное — не станция.
   if (tab === 'stations' && !station(app.selected)) app.modes.stations = 'all';
+  // И если выбранное — не еда: окрестность кирки на кухне пуста.
+  if (kitchen && !inKitchen(app.selected)) app.modes.food = 'all';
   setMode(app.modes[tab], false);
   renderFilters();
   renderLegend();
@@ -613,6 +776,21 @@ document.getElementById('act-new-class').addEventListener('click', () => {
 
 document.getElementById('act-new-material').addEventListener('click', () => {
   panel.openNewMaterial();
+});
+
+// Блюдо рождается там же, где живут остальные: уровень, раздел и станция
+// берутся у выбранного блюда, а без выбора — у любого из файла. Очаг в коде
+// не назван: что считается очагом, решает вольт.
+document.getElementById('act-new-dish').addEventListener('click', () => {
+  const chosen = app.nodes.get(app.selected);
+  const sample = (chosen && isDish(chosen)) ? chosen : app.state.nodes.find(isDish);
+  panel.openNew({
+    kind: 'consumable',
+    flags: { food: true, roles: true },
+    level: sample?.level,
+    section: sample?.section,
+    station: sample?.station,
+  });
 });
 
 document.getElementById('act-new-building').addEventListener('click', () => {
