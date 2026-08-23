@@ -696,6 +696,18 @@ def build(session: Session, _query: dict, _body: dict) -> dict:
     return _run([sys.executable, "tools/build.py"], session.vault)
 
 
+def masses(session: Session, _query: dict, _body: dict) -> dict:
+    """Recompute every item's mass out of its inputs and report (D-228).
+
+    Writes nothing, and that is the point: mass is derived, and derived numbers
+    are shown, never written back into the source (D-133). Written back, an
+    auto mass would become an authored one on the next read and stop counting
+    itself -- so the answer to "why is this one not moving" is the report,
+    which names every item whose mass is pinned by hand.
+    """
+    return _run([sys.executable, "tools/build.py", "--masses"], session.vault)
+
+
 ROUTES = {
     ("GET", "/api/state"): state,
     ("GET", "/api/recipe"): recipe,
@@ -713,6 +725,7 @@ ROUTES = {
     ("PUT", "/api/class"): put_class,
     ("DELETE", "/api/class"): drop_class,
     ("PUT", "/api/classes"): membership,
+    ("POST", "/api/masses"): masses,
     ("POST", "/api/check"): check,
     ("POST", "/api/build"): build,
     ("POST", "/api/undo"): undo,

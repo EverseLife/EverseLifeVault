@@ -5,6 +5,7 @@
 
     python tools/build.py           собрать всё, показать предупреждения
     python tools/build.py --check   только проверить, ничего не писать; код возврата 1 при проблемах
+    python tools/build.py --masses  вес каждой вещи из входов и кто его переопределил (D-228)
 
 Что делает:
   1. Читает data/*.yaml — единственные источники чисел, рецептов и законов
@@ -39,6 +40,11 @@ VIRTUAL_STATIONS = {"Руками"}
 STATION_ALIASES = {"Печь": "Плавильная печь"}
 
 PREFIX_UNITS = {"×", "±", "до +", "до "}
+
+# Знаков после запятой у массы. Килограмм с тремя знаками — это грамм:
+# мельче монеты в вольте ничего нет, и округление до грамма не съедает
+# ни одну вещь целиком.
+ROUND_MASS = 3
 
 # Тип рецепта -> как он называется в тексте (D-090)
 KIND_LABEL = {
@@ -216,6 +222,18 @@ def normalize_recipes(doc: dict) -> list[str]:
         [m["name"] for m in materials if m.get("edible")]
         + [r["name"] for _, _, r in all_recipes(doc) if r.get("edible")]
     )
+    #: Жидкости (D-230): существуют только в таре. Один список для движка и
+    #: клиента, как `bulk` — а не догадка по классу «Жидкость»
+    meta["liquid"] = (
+        [m["name"] for m in materials if m.get("liquid")]
+        + [r["name"] for _, _, r in all_recipes(doc) if r.get("liquid")]
+    )
+    for _, _, r in all_recipes(doc):
+        holds = r.get("holds")
+        if holds is not None and holds != "жидкость":
+            problems.append(f"«{r['name']}»: `holds` бывает только `жидкость`, а не «{holds}»")
+        if holds is not None and not r.get("store"):
+            problems.append(f"«{r['name']}»: `holds` без `store` — тара без объёма")
     #: Сырьё — то, что берётся из мира, а не переделывается: материал,
     #: который не является выходом расходующей операции. Рубка и добыча
     #: (consumes пуст) берут материю из мира — их выходы остаются сырьём.
@@ -574,35 +592,28 @@ def with_seed_bulk(bulk: list[str], plants: list[dict]) -> list[str]:
 def compute_mass(
     doc: dict, constants: dict, op_amounts: dict, amounts: dict | None = None
 ) -> tuple[dict[str, float], list[str]]:
-    """Масса единицы каждого предмета, кг (D-146).
+    """Масса единицы каждого предмета, кг (D-146, D-228).
 
-    **Масса задаётся, а не выводится** — в отличие от количеств (D-133) и
-    урожайности (D-136), и на то есть причина, стоившая одной попытки.
+    **Вес изделия выводится из входов**: сколько вещества вошло в единицу,
+    столько она и весит. Материя при переделе не появляется — это и есть
+    правило, из которого растёт вся система масс: она упирается в реестр
+    материалов, где вес сырья задан руками, и дальше считается сама.
 
-    Вывести массу изделия из масс его входов не получается: количества входов
-    заданы **трудом**, а не физическим составом. Час работы съедает час чужого
-    труда, поэтому в кирку «входит» столько железа, сколько стоит её
-    изготовление, — а не столько, сколько в ней есть. Сложение таких входов
-    давало кирку в 18 кг, хлеб в 11 кг и золотую монету в 4.9 кг при заданном
-    вольтом весе монеты в грамм.
+    Три источника, в порядке убывания приоритета:
 
-    Поэтому здесь три источника, в порядке убывания точности:
+    1. `mass:` у рецепта — вес, заданный вручную. Ставится там, где физический
+       вес известен и с трудовым составом не совпадает: монета в грамм,
+       буханка хлеба. Больше вошедшего — **ошибка сборки** (D-215): до этого
+       Экзоскелет был объявлен в 35 кг, собирался в 13, и никто об этом не
+       знал. Меньше — законно: часть вещества уходит в отход;
+    2. вошедшее вещество — сумма масс входов с их количествами (D-228);
+    3. `inventory.mass_by_kind` — умолчание по типу предмета. Последняя
+       соломинка: остаётся тем, у кого входов с известным весом нет вовсе.
 
-    1. `mass:` у рецепта — там, где вес важен и известен;
-    2. `meta.mass` — сырьё и то, что берётся из мира;
-    3. `inventory.mass_by_kind` — умолчание по типу предмета. Грубое, но
-       осмысленное: инструмент весит как инструмент, пока кто-то не уточнит.
-
-    **Сверху всё это подрезано вошедшим веществом.** Материя при переделе не
-    появляется: вещь не может весить больше, чем сумма масс её входов. Снизу
-    ограничения нет — часть вещества уходит в отход, и монета в грамм из
-    навески металла законна. Подрезка идёт по лестнице: подрезанная масса
-    входа уменьшает потолок того, что из него делают.
-
-    Ручная `mass:`, превышающая вошедшее, — **ошибка сборки** (D-215), а не
-    молчаливая подрезка: до этого Экзоскелет был объявлен в 35 кг, собирался
-    в 13, и никто об этом не знал. Умолчание по типу подрезается тихо — оно и
-    есть грубая заглушка, точным ему быть не обещали.
+    Цена правила известна и записана в D-228: количества входов заданы
+    **трудом**, а не физическим составом (D-133), поэтому в кирку «входит»
+    столько железа, сколько стоит её изготовление. Вес, выведенный из таких
+    количеств, местами врёт — там и ставится `mass:` руками.
     """
     meta = doc["meta"]
     synonyms = {**STATION_ALIASES, **meta.get("synonyms", {})}
@@ -610,68 +621,129 @@ def compute_mass(
     def canon(name: str) -> str:
         return synonyms.get(name, name)
 
+    #: Реестр материалов: сырьё и продукты операций, вес которых задан руками.
+    #: Выводить его не из чего — материя приходит из мира.
     mass: dict[str, float] = {canon(k): float(v) for k, v in meta.get("mass", {}).items()}
     by_kind = flatten_constants(constants).get("inventory.mass_by_kind") or {}
     problems: list[str] = []
 
-    for _, _, r in all_recipes(doc):
-        имя = canon(r["name"])
-        если_задано = r.get("mass")
-        if если_задано is not None:
-            mass[имя] = float(если_задано)
-            continue
-        if имя in mass:
-            continue
-        по_типу = by_kind.get(r.get("kind", "material"))
-        if по_типу is None:
-            problems.append(
-                f"«{r['name']}»: массы нет — задай `mass:` у рецепта либо "
-                f"умолчание для типа «{r.get('kind')}» в `inventory.mass_by_kind`"
-            )
-            continue
-        mass[имя] = float(по_типу)
+    recipes = {canon(r["name"]): r for _, _, r in all_recipes(doc)}
+    #: Заданное руками: у рецепта — полем, у материала, носящего то же имя, —
+    #: строкой реестра. Подрезается вошедшим и то и другое, но ошибкой считается
+    #: только заявка рецепта: строка реестра — основание системы масс, спорить
+    #: с ней не о чем, и молчаливой подрезки ей достаточно.
+    authored = {name: float(r["mass"]) for name, r in recipes.items() if r.get("mass") is not None}
+    for name in recipes:
+        if name not in authored and name in mass:
+            authored[name] = mass[name]
 
     #: Выходы операций — то, что берётся из мира или дробится из него. Их масса
     #: обязана быть задана руками: выводить её не из чего.
-    for g in op_amounts:
-        if canon(g) not in mass:
+    for give in op_amounts:
+        if canon(give) not in mass:
             problems.append(
-                f"«{g}»: продукт операции без массы — задай его в `meta.mass` "
+                f"«{give}»: продукт операции без массы — задай его в `meta.mass` "
                 "(D-146)"
             )
 
-    recipes = {canon(r["name"]): r for _, _, r in all_recipes(doc)}
-    authored = {canon(r["name"]) for _, _, r in all_recipes(doc) if r.get("mass") is not None}
-    capped: dict[str, float] = {}
+    settled: dict[str, float] = {}
 
-    def limited(name: str, seen: frozenset = frozenset()) -> float:
-        """Масса вещи, подрезанная тем, что в неё вошло."""
+    def settle(name: str, seen: frozenset = frozenset()) -> float:
+        """Вес вещи: вошедшее вещество, а где задано руками — заданное."""
         name = canon(name)
-        if name in capped:
-            return capped[name]
-        own = mass.get(name, 0.0)
-        r = recipes.get(name)
-        if r is None or name in seen:
-            return own
+        if name in settled:
+            return settled[name]
+        recipe = recipes.get(name)
+        if recipe is None:
+            return mass.get(name, 0.0)
+        #: Круг по лестнице проверка ловит отдельно и раньше; здесь он не
+        #: должен уводить в бесконечность, и вес берётся заданный либо нулевой.
+        if name in seen:
+            return authored.get(name, 0.0)
         into = sum(
-            float(q) * limited(i, seen | {name})
-            for i, q in (amounts or {}).get(r["name"], {}).items()
+            float(quantity) * settle(item, seen | {name})
+            for item, quantity in (amounts or {}).get(recipe["name"], {}).items()
         )
-        # Пустой состав не подрезает: вещь без известных входов взвесить не по
-        # чему, и нулём её делать нельзя
-        if into > 0 and own > into and name in authored:
-            problems.append(
-                f"«{r['name']}»: масса {fmt_qty(own)} кг больше вошедшей материи "
-                f"{fmt_qty(round(into, 3))} кг — материя при переделе не появляется: "
-                "уменьши `mass:` либо утяжели состав (D-215)"
-            )
-        capped[name] = min(own, into) if into > 0 else own
-        return capped[name]
+        own = authored.get(name)
+        if own is not None:
+            # Пустой состав не подрезает: вещь без известных входов взвесить не
+            # по чему, и нулём её делать нельзя
+            if into > 0 and own > round(into, 6) and recipe.get("mass") is not None:
+                problems.append(
+                    f"«{recipe['name']}»: масса {fmt_qty(own)} кг больше вошедшей материи "
+                    f"{fmt_qty(round(into, 3))} кг — материя при переделе не появляется: "
+                    "уменьши `mass:` либо утяжели состав (D-215)"
+                )
+            value = min(own, into) if into > 0 else own
+        elif into > 0:
+            value = into
+        else:
+            by_type = by_kind.get(recipe.get("kind", "material"))
+            if by_type is None:
+                problems.append(
+                    f"«{recipe['name']}»: массы нет — входы ничего не весят, "
+                    f"задай `mass:` у рецепта либо умолчание для типа "
+                    f"«{recipe.get('kind')}» в `inventory.mass_by_kind`"
+                )
+                #: Ноль запоминается наравне с весом: иначе каждый потребитель
+                #: пересчитает его заново, и жалоба напечатается по разу на них.
+                settled[name] = 0.0
+                return 0.0
+            value = float(by_type)
+        settled[name] = round(value, ROUND_MASS)
+        return settled[name]
 
-    for name in list(recipes):
-        limited(name)
-    mass.update(capped)
+    for name in recipes:
+        settle(name)
+    mass.update(settled)
     return mass, problems
+
+
+def mass_report(doc: dict, amounts: dict, mass: dict[str, float]) -> list[str]:
+    """Что стало весом каждого предмета и что вес себе отстояло (D-228).
+
+    Отчёт кнопки «Массы» в редакторе. Пишет, ничего не меняя: вес выводится
+    сборкой, и записывать выведенное в источник нельзя — оно тут же стало бы
+    заданным вручную и перестало считаться.
+    """
+    meta = doc["meta"]
+    synonyms = {**STATION_ALIASES, **meta.get("synonyms", {})}
+
+    def canon(name: str) -> str:
+        return synonyms.get(name, name)
+
+    derived: list[tuple[str, float]] = []
+    pinned: list[tuple[str, float, float]] = []
+    for _, _, recipe in all_recipes(doc):
+        name = recipe["name"]
+        into = sum(
+            float(quantity) * mass.get(canon(item), 0.0)
+            for item, quantity in (amounts.get(name) or {}).items()
+        )
+        if recipe.get("mass") is None:
+            derived.append((name, mass.get(canon(name), 0.0)))
+        else:
+            pinned.append((name, float(recipe["mass"]), round(into, ROUND_MASS)))
+
+    lines = [
+        f"Массы: выведено из входов — {len(derived)}, задано вручную — {len(pinned)}.",
+        "",
+        f"Выведено из входов ({len(derived)}):",
+    ]
+    lines += [f"  · {name} — {fmt_qty(value)} кг" for name, value in sorted(derived)]
+    if pinned:
+        lines += [
+            "",
+            f"ПРЕДУПРЕЖДЕНИЯ ({len(pinned)}): вес предмета не был обновлён "
+            "автоматически, т.к. был переопределён. Уберите значение, и оно "
+            "будет заполняться автоматически:",
+        ]
+        lines += [
+            f"  · {name} — задано {fmt_qty(own)} кг"
+            + (f", из входов вышло бы {fmt_qty(into)} кг" if into > 0 else ", входы ничего не весят")
+            for name, own, into in sorted(pinned)
+        ]
+    return lines
 
 
 def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
@@ -1273,11 +1345,16 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
         rel = path.relative_to(ROOT).as_posix()
         # Журнал решений — архив: замороженные и пересмотренные записи законно
         # ссылаются на константы, которых в реестре уже нет (например D-108).
-        # Журнал решений — архив: замороженные записи законно ссылаются на
-        # константы, которых в реестре уже нет. Отчёт симуляции — наоборот:
-        # он существует ради того, чтобы называть недостающие величины.
+        # Отчёт симуляции — наоборот: он существует ради того, чтобы называть
+        # недостающие величины. Протокол сессии — третий случай: точка в нём
+        # разделяет не пространство и величину, а вид события журнала
+        # (`chat.said`, `mining.swing`; их реестр — `EventKind` движка) либо
+        # ключ сокета. Реестр констант таких имён не знает и знать не должен,
+        # а пространства у них общие с ним — «bank», «craft», «market», — и
+        # проверка объявляла пропавшей константой каждое названное событие.
         if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in (
-                "90-production/02-decision-log.md", "90-production/04-simulation.md"):
+                "90-production/02-decision-log.md", "90-production/04-simulation.md",
+                "90-production/08-session-protocol.md"):
             continue
         for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
             if key.rsplit(".", 1)[-1] in FILE_SUFFIXES:
@@ -1418,6 +1495,7 @@ def relative_link(rel: str) -> str:
 
 def main() -> int:
     check_only = "--check" in sys.argv
+    masses_only = "--masses" in sys.argv
 
     # Реестр материалов читается первым: из него наполняются таблицы констант
     recipes_doc, registry_problems = load_recipes_doc()
@@ -1425,6 +1503,19 @@ def main() -> int:
     recipes_md, recipes_doc, amounts, op_amounts, labor, steps, mass, qty_problems = (
         build_recipes(constants_doc, recipes_doc)
     )
+
+    # Отчёт о массах: что вывелось из входов и что вес себе отстояло (D-228).
+    # Ничего не пишет — вес и так выводится каждой сборкой, а показать надо
+    # именно переопределённое: оно молча остаётся при старом числе.
+    if masses_only:
+        for line in mass_report(recipes_doc, amounts, mass):
+            print(line)
+        if qty_problems:
+            print()
+            print(f"Проблемы ({len(qty_problems)}):", file=sys.stderr)
+            for problem in qty_problems:
+                print(f"  · {problem}", file=sys.stderr)
+        return 1 if qty_problems else 0
     harvest_rates = flatten_constants(constants_doc).get("harvest.rates", {})
     plants_md, plants, plant_problems = build_plants(constants_doc, recipes_doc)
     laws_md, laws_doc = build_laws()
@@ -1534,13 +1625,15 @@ def main() -> int:
             "units": dict(sorted((recipes_doc["meta"].get("units") or {}).items())),
             # что годится в котёл: движку нельзя гадать съедобность по имени
             "edible": recipes_doc["meta"].get("edible", []),
+            # жидкости (D-230): только в таре с `holds: жидкость`
+            "liquid": sorted(recipes_doc["meta"].get("liquid", [])),
             # слоты снаряжения: в каждый надевается одна вещь (D-146)
             "gear_slots": recipes_doc["meta"].get("gear_slots", []),
             # масса единицы, кг. Задана данными: см. compute_mass. Семена
             # культур добавляются отдельно: они описаны в plants.yaml, а не
             # рецептом, и без этого проходили бы мимо предела носимого (D-146)
             "mass": {
-                k: round(v, 3)
+                k: round(v, ROUND_MASS)
                 for k, v in sorted(with_seed_mass(mass, plants, constants_doc).items())
             },
             "labor_hours": {k: round(v, 3) for k, v in sorted(labor.items())},
@@ -1568,6 +1661,9 @@ def main() -> int:
                     # сколько килограммов вмещает как хранилище (D-181).
                     # Пусто — вещь не хранилище: движок не гадает по названию
                     "store": r.get("store"),
+                    # что принимает как хранилище (D-230): `жидкость` — тара,
+                    # и только жидкости; пусто — всё, кроме жидкостей
+                    "holds": r.get("holds"),
                     "inputs": r["inputs"],
                     "amounts": amounts.get(r["name"], {}),
                     "manual_amounts": bool(r.get("amounts")),

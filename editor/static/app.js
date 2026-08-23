@@ -799,6 +799,9 @@ document.getElementById('act-new-building').addEventListener('click', () => {
   panel.openNewBuilding();
 });
 
+document.getElementById('act-masses').addEventListener('click', (event) => {
+  run('расчёт масс', api.masses, event.target);
+});
 document.getElementById('act-check').addEventListener('click', (event) => {
   run('проверка вольта', api.check, event.target);
 });

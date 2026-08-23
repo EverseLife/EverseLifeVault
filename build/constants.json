@@ -68,7 +68,7 @@
   "build.demolish_days_machine": 2,
   "build.abandoned_site_days": 14,
   "farm.seed_rate": 4,
-  "farm.seed_mass": 0.05,
+  "farm.seed_mass": 0.01,
   "farm.yield_per_m2": 0.6,
   "farm.cycle_days": 6,
   "plant.trait_budget": 3.5,

@@ -48,6 +48,9 @@ export const api = {
   createBuilding: (data) => req('POST', '/api/building', null, { data }),
   updateBuilding: (name, data) => req('PUT', '/api/building', { name }, { data }),
   removeBuilding: (name) => req('DELETE', '/api/building', { name }),
+  // Массы (D-228): вес выводится из входов, и отчёт показывает, что вывелось
+  // и что осталось при заданном вручную. Ничего не пишет.
+  masses: () => req('POST', '/api/masses'),
   check: () => req('POST', '/api/check'),
   build: () => req('POST', '/api/build'),
   undo: () => req('POST', '/api/undo'),

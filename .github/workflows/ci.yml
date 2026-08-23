@@ -42,5 +42,10 @@ jobs:
       - name: It builds
         run: python tools/build.py
 
+      # The rule inside the build, on documents small enough to read: the check
+      # above says whether the data is sound, not whether the rule is.
+      - name: The build's own tests
+        run: python -m pytest tools/tests -q
+
       - name: The editor's tests
         run: python -m pytest editor/tests -q
