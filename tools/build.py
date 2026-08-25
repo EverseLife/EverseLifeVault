@@ -175,6 +175,9 @@ def normalize_recipes(doc: dict) -> list[str]:
         fuel = m.get("fuel")
         if fuel is not None and (not isinstance(fuel, (int, float)) or fuel <= 0):
             problems.append(f"материал «{name}»: `fuel` обязан быть числом больше нуля")
+        relic = m.get("relic")
+        if relic is not None and not isinstance(relic, bool):
+            problems.append(f"материал «{name}»: `relic` — это true или ничего")
         forage = m.get("forage")
         if forage is not None:
             finds, handful = forage.get("finds"), forage.get("handful")
@@ -1582,6 +1585,9 @@ def main() -> int:
                     "edible": bool(m.get("edible")),
                     "rate": m.get("rate"),
                     "forage": m.get("forage"),
+                    # Реликвия (D-232): вещь Предтеч, которую нашли, а не
+                    # сделали. Не снимается, не разбирается, не поднимается
+                    "relic": bool(m.get("relic")),
                     "fuel": m.get("fuel"),
                 }
                 for m in recipes_doc["meta"].get("materials", [])

@@ -196,6 +196,7 @@
     "Никель": 10,
     "Золотоносная порода": 4,
     "Серебряная порода": 12,
+    "Пироксит": 50,
     "Лён": 30,
     "Дерево": 40,
     "Смола": 12,
@@ -224,6 +225,22 @@
     "Олово": 7,
     "Свинец": 7,
     "Энергия": 200
+  },
+  "harvest.planet_weights": {
+    "aurora": {
+      "Уголь": 3,
+      "Железная руда": 0.3
+    },
+    "pyroxis": {
+      "Пироксит": 8,
+      "Вольфрам": 6,
+      "Никель": 4,
+      "Серебряная порода": 3,
+      "Золотоносная порода": 3,
+      "Железная руда": 0.3,
+      "Уголь": 0.2,
+      "Камень": 0.5
+    }
   },
   "craft.input_labor_ratio": 1.0,
   "craft.amount_cap": 10,
@@ -289,15 +306,15 @@
     "pyroxis-terra": 72,
     "aurora-pyroxis": 84
   },
-  "ship.route_class": {
-    "aurora-terra": 2,
-    "pyroxis-terra": 3,
-    "aurora-pyroxis": 3
-  },
   "ship.min_thrust_ratio": 0.15,
   "ship.reference_ratio": 0.5,
   "ship.route_min_share": 50,
   "ship.berth_seconds": 1,
+  "ship.engine_efficiency": {
+    "Двигатель I класса": 1,
+    "Двигатель II класса": 0.7,
+    "Двигатель III класса": 0.5
+  },
   "ship.fuel_per_ton_day": 6,
   "ship.life_support_crew": 4,
   "quality.scale": {
@@ -508,6 +525,62 @@
     "min": 8000,
     "max": 60000
   },
+  "ruins.city_rooms": 24,
+  "ruins.room_types": {
+    "столица": {
+      "архив": 4,
+      "квартира": 2,
+      "склад": 2,
+      "тоннель": 3,
+      "цех": 1
+    },
+    "цех": {
+      "цех": 4,
+      "склад": 3,
+      "тоннель": 3,
+      "архив": 1,
+      "квартира": 1
+    },
+    "улей": {
+      "квартира": 5,
+      "склад": 2,
+      "тоннель": 3,
+      "архив": 1,
+      "цех": 1
+    }
+  },
+  "ruins.room_finds": {
+    "архив": {
+      "Стекло": 3,
+      "Медный слиток": 2,
+      "Ткань": 1
+    },
+    "цех": {
+      "Сталь": 3,
+      "Труба": 2,
+      "Стальная рама": 1
+    },
+    "квартира": {
+      "Ткань": 3,
+      "Глиняный горшок": 2,
+      "Стекло": 1
+    },
+    "склад": {
+      "Уголь": 3,
+      "Сталь": 2,
+      "Стекло": 1
+    },
+    "тоннель": {
+      "Камень": 4,
+      "Уголь": 2
+    }
+  },
+  "ruins.room_haul": {
+    "min": 2,
+    "max": 8
+  },
+  "ruins.depth_bonus": 0.25,
+  "ruins.new_city_age": 2,
   "forage.min_area": 30,
   "forage.reference_area": 100,
   "forage.finds": {
@@ -600,6 +673,23 @@
   "record.covert_rig_level": 8,
   "record.max_duration": 30,
   "record.carrier_mass": 2,
+  "reactor.output": 240,
+  "reactor.lifetime": 365,
+  "oxygen.crew_draw": 0.1,
+  "oxygen.body_draw": 0.5,
+  "oxygen.cylinder_store": 6,
+  "oxygen.autonomy_target": 90,
+  "frost.reserve_max": 6,
+  "frost.warm_rate": 3,
+  "frost.suit_k": {
+    "Утеплённый костюм": 3
+  },
+  "frost.warmer_hours": 4,
+  "frost.frozen_drain_k": 2,
+  "frost.frozen_stamina": 15,
+  "frost.plant_draw": 60,
+  "frost.heater_draw": 20,
+  "frost.brazier_fuel_draw": 2,
   "pyroxis.eruption_period": {
     "min": 5,
     "max": 14
@@ -609,12 +699,10 @@
     "min": 1,
     "max": 4
   },
+  "pyroxis.edge_redraw_share": 0.4,
   "pyroxis.vein_relocate_share": 0.5,
-  "pyroxis.forecast_lead": 2,
-  "pyroxis.forecast_accuracy": 0.7,
   "aurora.depth_scaling": {
     "formula": "recipe_complexity ~ depth"
   },
-  "aurora.artifact_rarity": "редко",
-  "aurora.oxygen_draw": 10
+  "aurora.artifact_rarity": "редко"
 }
