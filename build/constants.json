@@ -309,6 +309,7 @@
   "ship.min_thrust_ratio": 0.15,
   "ship.reference_ratio": 0.5,
   "ship.route_min_share": 50,
+  "ship.step_seconds": 1,
   "ship.berth_seconds": 1,
   "ship.engine_efficiency": {
     "Двигатель I класса": 1,
