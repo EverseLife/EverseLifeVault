@@ -481,3 +481,12 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
   font-size: 11px; color: var(--text-dim); background: var(--panel-2);
   border: 1px solid var(--line-soft); border-radius: 3px; padding: 6px 8px; margin-bottom: 10px;
 }
+
+/* Свойство места: имя выбирается, значение принимает ту форму, какую свойство
+   и держит, а под строкой — что оно, собственно, значит. Половина из них себя
+   не объясняет: «даль» — не метры, «выход» — не дверь из здания. */
+.world-form .prop { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.world-form .prop > select:first-child { min-width: 0; }
+.world-form .prop input[type="number"], .world-form .prop select:last-of-type { min-width: 0; }
+.world-form .prop > .hint { grid-column: 1 / -1; margin: 0 0 2px; }
+.world-form .prop .tick { justify-self: start; }

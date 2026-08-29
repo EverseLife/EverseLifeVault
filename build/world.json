@@ -27,7 +27,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 0,
         "лес": false,
         "предтечи": true
       },
@@ -49,9 +48,7 @@
         "y": -5
       },
       "city": false,
-      "properties": {
-        "кольцо": 1
-      },
+      "properties": {},
       "machines": [
         {
           "name": null,
@@ -76,9 +73,7 @@
         "y": 99
       },
       "city": false,
-      "properties": {
-        "кольцо": 1
-      },
+      "properties": {},
       "machines": [
         {
           "name": null,
@@ -108,9 +103,7 @@
         "y": -139
       },
       "city": false,
-      "properties": {
-        "кольцо": 1
-      },
+      "properties": {},
       "machines": [
         {
           "name": "Администрация",
@@ -135,9 +128,7 @@
         "y": 259
       },
       "city": false,
-      "properties": {
-        "кольцо": 2
-      },
+      "properties": {},
       "machines": [
         {
           "name": null,
@@ -207,9 +198,7 @@
         "y": 199
       },
       "city": false,
-      "properties": {
-        "кольцо": 3
-      },
+      "properties": {},
       "machines": [],
       "relics": [],
       "veins": [
@@ -235,7 +224,6 @@
       },
       "city": false,
       "properties": {
-        "кольцо": 3,
         "выход": true
       },
       "machines": [],
@@ -256,9 +244,7 @@
         "y": -124
       },
       "city": false,
-      "properties": {
-        "кольцо": 3
-      },
+      "properties": {},
       "machines": [
         {
           "name": null,
@@ -283,9 +269,7 @@
         "y": 1
       },
       "city": false,
-      "properties": {
-        "кольцо": 3
-      },
+      "properties": {},
       "machines": [
         {
           "name": null,
@@ -327,7 +311,6 @@
       },
       "city": false,
       "properties": {
-        "кольцо": 2,
         "участок": true
       },
       "machines": [],
@@ -349,7 +332,6 @@
       },
       "city": false,
       "properties": {
-        "кольцо": 2,
         "участок": true
       },
       "machines": [],
@@ -371,7 +353,6 @@
       },
       "city": false,
       "properties": {
-        "кольцо": 2,
         "участок": true
       },
       "machines": [],
@@ -473,7 +454,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 0,
         "глубина": 1,
         "предтечи": true
       },
@@ -496,7 +476,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 1,
         "глубина": 0,
         "предтечи": true
       },
@@ -537,7 +516,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 0,
         "глубина": 1,
         "предтечи": true
       },
@@ -560,7 +538,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 1,
         "глубина": 0,
         "предтечи": true
       },
@@ -601,7 +578,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 0,
         "глубина": 1,
         "предтечи": true
       },
@@ -624,7 +600,6 @@
       "place": null,
       "city": false,
       "properties": {
-        "кольцо": 1,
         "глубина": 0,
         "предтечи": true
       },

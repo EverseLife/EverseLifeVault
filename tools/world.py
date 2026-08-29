@@ -53,6 +53,98 @@ WORLD_STANDING_KINDS = {"station", "furniture"}
 WORLD_REQUIRED = ("terra.capital.core", "terra.capital.market")
 
 
+#: Свойства места, какие движок читает, и что каждое значит (D-243).
+#:
+#: **Список закрытый, и это главное в нём.** Свойство узла — обычный ключ в
+#: JSON, и опечатка в нём не ломает ни YAML, ни сборку: она просто значит, что
+#: движок этого свойства не найдёт. «плодородее» вместо «плодородия» — поле,
+#: на котором ничего не растёт, и узнаётся это игроком, а не проверкой. Отсюда
+#: и таблица: новое свойство движка дописывается сюда одной строкой, как новый
+#: тип здания в D-218, и с этой же строки редактор берёт подсказку.
+#:
+#: `values` — что свойство принимает: `flag` (да/нет), `number`, `percent`
+#: (0..100) либо перечень слов. `where` — где свойство имеет смысл: пусто —
+#: везде.
+WORLD_PROPERTIES = {
+    "лес": {
+        "values": "flag",
+        "hint": "на узле растёт лес: здесь рубят древесину, и с неё начинается "
+                "вся лестница (D-196)",
+    },
+    "камни": {
+        "values": "flag",
+        "hint": "каменистая земля: камень собирается руками, без инструмента (D-196)",
+    },
+    "луг": {
+        "values": "flag",
+        "hint": "луг: здесь растёт дикий лён, и волокно начинается с него (D-196)",
+    },
+    "вода": {
+        "values": ["река", "нет"],
+        "hint": "река на узле: без неё не полить поле и не поставить водяное колесо",
+    },
+    "плодородие": {
+        "values": "percent",
+        "hint": "плодородие почвы, 0..100: во столько раз щедрее урожай на этом поле",
+    },
+    "участок": {
+        "values": "flag",
+        "hint": "свободный участок: город раздаёт такие жителям, и только на своей "
+                "земле мастер ставит станок (D-089, D-150)",
+    },
+    "выход": {
+        "values": "flag",
+        "hint": "ворота города: единственный узел застройки, к которому можно "
+                "привязать дорогу за стены (D-206). В городе он ровно один",
+        "where": "city",
+    },
+    "даль": {
+        "values": "number",
+        "hint": "сколько колец за стенами: каждое следующее дороже предыдущего "
+                "в travel.frontier_growth раз (D-180). Это и есть вся география",
+        "where": "planet",
+    },
+    "предтечи": {
+        "values": "flag",
+        "hint": "наследие Предтеч: по этой метке движок узнаёт их машины и их "
+                "города (D-028, D-232)",
+    },
+    "глубина": {
+        "values": "number",
+        "hint": "насколько вглубь от причала лежит помещение Предтеч: разведка "
+                "идёт отсюда дальше (D-061, D-232)",
+    },
+    "мерзлота": {
+        "values": "flag",
+        "hint": "вечный холод: без обогрева тело здесь не живёт (D-231). "
+                "Свойство планеты, а не узла",
+    },
+    "пекло": {
+        "values": "flag",
+        "hint": "жар: без защиты тело здесь не живёт (D-231). Свойство планеты",
+    },
+    "без воздуха": {
+        "values": "flag",
+        "hint": "дышать нечем: нужен запас кислорода (D-234). Свойство планеты",
+    },
+    "посадка везде": {
+        "values": "flag",
+        "hint": "корабль садится на любой узел поверхности, а не только на верфь "
+                "(D-233). Свойство планеты, на которой не строят",
+    },
+    "наковальня": {
+        "values": "flag",
+        "hint": "единственное место планеты, которое извержение обходит стороной "
+                "(D-197). На Пироксисе такое одно",
+    },
+    "город": {
+        "values": "text",
+        "hint": "чем город Предтеч был при них — одним словом: столица, цех, улей. "
+                "Решает, что найдут разведчики в его комнатах (D-232)",
+    },
+}
+
+
 def load_world_doc() -> dict:
     return yaml.safe_load((DATA / "world.yaml").read_text(encoding="utf-8"))
 
@@ -77,6 +169,43 @@ def _world_names(recipes_doc: dict, all_recipes):
     classes: dict[str, list[str]] = meta.get("classes_map", {})
     relics = {m["name"] for m in meta.get("materials", []) if m.get("relic")}
     return recipes, raw, op_outputs, classes, relics
+
+
+def _check_properties(key: str, properties: dict, layer: str) -> list[str]:
+    """Свойства узла — по каталогу, и с проверенным значением.
+
+    Опечатка в имени свойства проходит и YAML, и сборку, и отказывает только в
+    движке — молча, тем, что искомого свойства там просто нет. Значение того же
+    рода: «плодородие: очень» разберётся в строку, а `farm` ждёт число.
+    """
+    problems: list[str] = []
+    for name, value in properties.items():
+        known = WORLD_PROPERTIES.get(name)
+        if known is None:
+            near = [one for one in WORLD_PROPERTIES if one.startswith(str(name)[:3])]
+            hint = f" — может быть, «{near[0]}»?" if near else ""
+            problems.append(f"мир: у «{key}» свойство «{name}» движок не читает{hint}")
+            continue
+        wants = known["values"]
+        if wants == "flag" and not isinstance(value, bool):
+            problems.append(f"мир: у «{key}» свойство «{name}» — это да/нет, а не «{value}»")
+        elif wants in ("number", "percent") and (
+            isinstance(value, bool) or not isinstance(value, (int, float))
+        ):
+            problems.append(f"мир: у «{key}» свойство «{name}» — это число, а не «{value}»")
+        elif wants == "percent" and isinstance(value, (int, float)) and not 0 <= value <= 100:
+            problems.append(f"мир: у «{key}» свойство «{name}» вне 0..100")
+        elif isinstance(wants, list) and value not in wants:
+            problems.append(
+                f"мир: у «{key}» свойство «{name}» — одно из {', '.join(wants)}, а не «{value}»"
+            )
+        where = known.get("where")
+        if where and where != layer:
+            problems.append(
+                f"мир: свойство «{name}» имеет смысл только на слое «{where}», "
+                f"а «{key}» на «{layer}»"
+            )
+    return problems
 
 
 def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:
@@ -126,6 +255,7 @@ def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:
         if not isinstance(properties, dict):
             problems.append(f"мир: у «{key}» свойства — не словарь")
             properties = {}
+        problems += _check_properties(key, properties, layer)
 
         for machine in node.get("machines") or []:
             name, cls = machine.get("name"), machine.get("class")

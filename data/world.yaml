@@ -29,7 +29,9 @@
 #   place       {x, y} — прибитое место на карте своей группы; без него место
 #               раздаёт движок рядом с якорем
 #   city        true — здесь основывается институциональный город (D-154)
-#   properties  свойства места: кольцо, лес, вода, даль, выход, глубина...
+#   properties  свойства места: лес, вода, плодородие, даль, выход, глубина...
+#               Кольца у узла нет: сколько узлов до биопринтера, движок меряет
+#               сам, обходя рёбра (D-089, D-220) — по ним город и ходят.
 #   machines    станции и мебель: {name | class, quality}. Класс — «любая вещь
 #               класса» (D-215), собирается по рецепту (D-216)
 #   relics      классы реликвий Предтеч: найдено, не сделано, не снимается
@@ -66,7 +68,7 @@ nodes:
     name: "Ядро: Принтер Предтеч"
     parent: terra.capital
     area_m2: 120
-    properties: {кольцо: 0, лес: false, предтечи: true}
+    properties: {лес: false, предтечи: true}
 
   - key: terra.capital.library
     name: Библиотека
@@ -74,7 +76,6 @@ nodes:
     area_m2: 200
     anchor: terra.capital.core
     place: {x: 251, y: -5}
-    properties: {кольцо: 1}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -84,7 +85,6 @@ nodes:
     area_m2: 200
     anchor: terra.capital.core
     place: {x: 93, y: 99}
-    properties: {кольцо: 1}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -98,7 +98,6 @@ nodes:
     area_m2: 180
     anchor: terra.capital.core
     place: {x: 125, y: -139}
-    properties: {кольцо: 1}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -108,7 +107,6 @@ nodes:
     area_m2: 260
     anchor: terra.capital.market
     place: {x: 93, y: 259}
-    properties: {кольцо: 2}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -133,8 +131,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -197, y: 199}
-    properties: {кольцо: 3}
+    place: {x: -431, y: 234}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -146,7 +143,7 @@ nodes:
     area_m2: 80
     anchor: terra.capital.core
     place: {x: -230, y: 65}
-    properties: {кольцо: 3, выход: true}
+    properties: {выход: true}
 
   - key: terra.capital.port
     name: Космодром
@@ -154,7 +151,6 @@ nodes:
     area_m2: 240
     anchor: terra.capital.gate
     place: {x: -92, y: -124}
-    properties: {кольцо: 3}
     machines:
       - {class: Верфь, quality: 60}
 
@@ -166,7 +162,6 @@ nodes:
     area_m2: 120
     anchor: terra.capital.gate
     place: {x: -538, y: 1}
-    properties: {кольцо: 3}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -178,28 +173,28 @@ nodes:
   # только на своей земле мастер ставит станок (D-150). Площади — из вилки
   # `land.area_ring1` (D-125), выбраны при переносе раскладки в данные.
   - key: terra.capital.lot1
-    name: Свободный участок 1
+    name: Свободный участок
     parent: terra.capital
     area_m2: 96
     anchor: terra.capital.forge
     place: {x: 242, y: 104}
-    properties: {кольцо: 2, участок: true}
+    properties: {участок: true}
 
   - key: terra.capital.lot2
-    name: Свободный участок 2
+    name: Свободный участок
     parent: terra.capital
     area_m2: 121
     anchor: terra.capital.forge
     place: {x: 29, y: 408}
-    properties: {кольцо: 2, участок: true}
+    properties: {участок: true}
 
   - key: terra.capital.lot3
-    name: Свободный участок 3
+    name: Свободный участок
     parent: terra.capital
     area_m2: 74
     anchor: terra.capital.forge
     place: {x: 253, y: 297}
-    properties: {кольцо: 2, участок: true}
+    properties: {участок: true}
 
   # Первое кольцо за стенами: даль 1 (D-180) — двадцать секунд ходьбы, не
   # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
@@ -258,7 +253,7 @@ nodes:
     parent: aurora.merid
     area_m2: 600
     # Глубина считается от космодрома, и комнаты идут отсюда вглубь (D-061, D-232).
-    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
 
   - key: aurora.merid.port
@@ -266,7 +261,7 @@ nodes:
     parent: aurora.merid
     area_m2: 240
     anchor: aurora.merid.hall
-    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 
   - key: aurora.caldar
@@ -280,7 +275,7 @@ nodes:
     name: Литейный двор
     parent: aurora.caldar
     area_m2: 600
-    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
 
   - key: aurora.caldar.port
@@ -288,7 +283,7 @@ nodes:
     parent: aurora.caldar
     area_m2: 240
     anchor: aurora.caldar.hall
-    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 
   - key: aurora.veyr
@@ -302,7 +297,7 @@ nodes:
     name: Нулевой ярус
     parent: aurora.veyr
     area_m2: 600
-    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
 
   - key: aurora.veyr.port
@@ -310,7 +305,7 @@ nodes:
     parent: aurora.veyr
     area_m2: 240
     anchor: aurora.veyr.hall
-    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 
 edges:
@@ -321,9 +316,7 @@ edges:
   - {a: terra.capital.library, b: terra.capital.market, surface: paved}
   - {a: terra.capital.library, b: terra.capital.hall, surface: paved}
   - {a: terra.capital.market, b: terra.capital.forge, surface: paved}
-  - {a: terra.capital.forge, b: terra.capital.pit, surface: paved}
   - {a: terra.capital.core, b: terra.capital.gate, surface: paved}
-  - {a: terra.capital.pit, b: terra.capital.gate, surface: paved}
   - {a: terra.capital.forge, b: terra.capital.lot1, surface: paved}
   - {a: terra.capital.forge, b: terra.capital.lot2, surface: paved}
   - {a: terra.capital.forge, b: terra.capital.lot3, surface: paved}
@@ -336,9 +329,9 @@ edges:
   - {a: aurora.merid.hall, b: aurora.merid.port, seconds: 30, surface: paved}
   - {a: aurora.caldar.hall, b: aurora.caldar.port, seconds: 30, surface: paved}
   - {a: aurora.veyr.hall, b: aurora.veyr.port, seconds: 30, surface: paved}
-  - {a: terra.capital.pit, b: terra.capital.market, surface: paved}
   - {a: terra.capital.core, b: terra.capital.port, surface: paved}
   - {a: terra.capital.gate, b: terra.capital.jail, surface: paved}
+  - {a: terra.capital.pit, b: terra.capital.gate, surface: paved}
 pockets:
   Тэрн:
     - {name: Железная кирка, quality: 55, origin: "стартовый мир: снаряжение шахтёра"}

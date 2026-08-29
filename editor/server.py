@@ -31,6 +31,10 @@ import ladder as model
 import vaultfile as vault
 import worldfile as worldsource
 
+#: Каталог свойств места живёт рядом со сборкой вольта: он же ими проверяет.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
+import world as worldtool  # noqa: E402 -- путь надо задать раньше
+
 STATIC = Path(__file__).resolve().parent / "static"
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
@@ -706,6 +710,12 @@ def world(session: Session, _query: dict, _body: dict) -> dict:
         "edges": file.doc.get("edges") or [],
         "pockets": file.doc.get("pockets") or {},
         "palette": _world_palette(ladder),
+        #: Свойства места — закрытым списком с объяснением каждого: их правит
+        #: тот же человек, что и станки, а слово «даль» само себя не объясняет.
+        #: Список тот же, по которому отказывает проверка (`tools/world.py`), а
+        #: не второй такой же: два списка разошлись бы на первом же новом
+        #: свойстве, и форма предлагала бы то, что сборка не примет.
+        "properties": worldtool.WORLD_PROPERTIES,
     }
 
 

@@ -55,7 +55,7 @@ export function nodeForm(host, world, key, tools) {
   fields.x = h('input', { type: 'number', step: '1', value: place ? num(place.x) : '' });
   fields.y = h('input', { type: 'number', step: '1', value: place ? num(place.y) : '' });
 
-  const properties = propertyRows(draft.properties || {});
+  const properties = propertyRows(draft.properties || {}, world.properties);
   const machines = machineRows(draft.machines || [], world.palette);
   const relics = relicRows(draft.relics || [], world.palette);
   const veins = veinRows(draft.veins || [], world.palette);
@@ -116,7 +116,7 @@ export function nodeForm(host, world, key, tools) {
       })),
 
     section('свойства места', properties.node,
-      'земля узла: кольцо, лес, вода, плодородие, «даль» за стенами (D-180), «выход» — ворота (D-206)'),
+      'земля узла и что она даёт. Список закрытый: движок читает эти и только эти'),
     section('станки', machines.node,
       'станции и мебель (D-106). Класс — «любая вещь класса» (D-215); собирается по рецепту (D-216)'),
     section('реликвии Предтеч', relics.node,
@@ -163,6 +163,10 @@ function pick(values, chosen, empty) {
  *
  * Every group in this form is one of these -- properties, machines, veins,
  * stocks -- and they differ only in what one row is.
+ *
+ * The render callback is handed the live list beside its own item: a property
+ * row has to know which names the other rows already took, and reaching for
+ * the returned object to find that out is a use before it exists.
  */
 function rows(items, render, blank, label) {
   const box = h('div', { class: 'rows' });
@@ -170,7 +174,7 @@ function rows(items, render, blank, label) {
   const draw = () => {
     box.replaceChildren(
       ...state.map((item, index) => h('div', { class: 'rowline' },
-        render(item, index, draw),
+        render(item, index, draw, state),
         h('button', {
           class: 'ghost x', title: 'убрать', text: '×',
           onclick: () => { state.splice(index, 1); draw(); },
@@ -185,34 +189,90 @@ function rows(items, render, blank, label) {
   return { node: box, value: () => state };
 }
 
-function propertyRows(properties) {
-  const state = Object.entries(properties).map(([name, value]) => ({ name, value }));
-  const list = rows(state, (item) => h('div', { class: 'pair' },
-    h('input', {
-      type: 'text', value: item.name, placeholder: 'свойство',
-      oninput: (event) => { item.name = event.target.value; },
-    }),
-    h('input', {
-      type: 'text', value: String(item.value), placeholder: 'значение',
-      oninput: (event) => { item.value = event.target.value; },
-    })),
-  { name: '', value: '' }, '+ свойство');
+/**
+ * The ground's properties: **picked from a list, not typed** (D-243).
+ *
+ * A property is an ordinary key in a JSON map, and a typo in it breaks
+ * nothing loudly -- it just means the engine will not find the property it
+ * looks for. «плодородее» instead of «плодородия» is a field nothing grows on,
+ * and the one who finds out is a player. So the name is a select over the
+ * catalogue the vault's own check refuses by (`tools/world.WORLD_PROPERTIES`),
+ * and the value is whatever shape that property takes -- a checkbox for a
+ * flag, a number for a number, a select for a word out of a set.
+ *
+ * Every property carries its own line of explanation, because half of them do
+ * not explain themselves: «даль» is not a distance in metres, and «выход» is
+ * not a door out of a building.
+ */
+function propertyRows(properties, catalogue) {
+  const known = catalogue || {};
+  const start = Object.entries(properties).map(([name, value]) => ({ name, value }));
+
+  const list = rows(start, (item, _index, redraw, all) => {
+    const spec = known[item.name];
+    const others = new Set(all.map((one) => one.name).filter((one) => one && one !== item.name));
+    //: A property already on the node is not offered twice: a map has one
+    //: value per key, and the second row would silently eat the first.
+    const free = Object.keys(known).filter((one) => !others.has(one));
+    return h('div', { class: 'prop' },
+      h('select', {
+        onchange: (event) => {
+          item.name = event.target.value;
+          item.value = blankFor(known[item.name]);
+          redraw();
+        },
+      },
+      h('option', { value: '', text: '— свойство —', selected: !item.name }),
+      ...free.map((one) => h('option', { value: one, selected: one === item.name, text: one }))),
+      valueField(item, spec, redraw),
+      spec ? h('span', { class: 'hint', text: spec.hint }) : null);
+  }, { name: '', value: '' }, '+ свойство');
+
   return {
     node: list.node,
-    //: A property's value keeps its type: «кольцо: 2» is a number, «выход: true»
-    //: a flag, «вода: река» a word -- the engine reads all three by name.
     value: () => Object.fromEntries(list.value()
-      .filter((item) => item.name.trim())
-      .map((item) => [item.name.trim(), typed(item.value)])),
+      .filter((item) => item.name)
+      .map((item) => [item.name, item.value])),
   };
 }
 
-function typed(value) {
-  const text = String(value).trim();
-  if (text === 'true') return true;
-  if (text === 'false') return false;
-  if (text !== '' && Number.isFinite(Number(text))) return Number(text);
-  return text;
+/** What a property holds before anybody has said anything about it. */
+function blankFor(spec) {
+  if (!spec) return '';
+  if (spec.values === 'flag') return true;
+  if (spec.values === 'number' || spec.values === 'percent') return 0;
+  return Array.isArray(spec.values) ? spec.values[0] : '';
+}
+
+/** The value control, shaped by what the property actually takes. */
+function valueField(item, spec, redraw) {
+  if (!spec) return h('span', { class: 'hint', text: 'выберите свойство слева' });
+  if (spec.values === 'flag') {
+    return h('label', { class: 'tick' }, h('input', {
+      type: 'checkbox', checked: item.value === true,
+      onchange: (event) => { item.value = event.target.checked; redraw(); },
+    }), item.value === true ? 'да' : 'нет');
+  }
+  if (spec.values === 'number' || spec.values === 'percent') {
+    return h('input', {
+      type: 'number',
+      min: spec.values === 'percent' ? '0' : undefined,
+      max: spec.values === 'percent' ? '100' : undefined,
+      value: num(item.value),
+      oninput: (event) => { item.value = Number(event.target.value); },
+    });
+  }
+  if (Array.isArray(spec.values)) {
+    return h('select', {
+      onchange: (event) => { item.value = event.target.value; },
+    }, ...spec.values.map((one) => h('option', {
+      value: one, selected: one === item.value, text: one,
+    })));
+  }
+  return h('input', {
+    type: 'text', value: String(item.value ?? ''),
+    oninput: (event) => { item.value = event.target.value; },
+  });
 }
 
 function machineRows(machines, palette) {
