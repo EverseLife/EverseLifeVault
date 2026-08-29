@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: LicenseRef-EverseLife-Content
      Copyright (C) 2026 Nurlan Urazkulov -->
 
-# Everse.Life — гейм-дизайн документация
+# everse.life — гейм-дизайн документация
 
 Браузерная MMO про общество: без NPC, вся экономика и вся власть — в руках игроков. Интерфейс интерактивный, чат — только для людей.
 
