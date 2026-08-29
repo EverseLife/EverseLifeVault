@@ -25,6 +25,7 @@ Copyright (C) 2026 Nurlan Urazkulov
     <button data-tab="food" title="блюда (D-119), съедобное и станции, на которых готовят">Еда</button>
     <button data-tab="stations">Станции</button>
     <button data-tab="buildings" title="типы зданий (D-218): состав на м², цена этажа, порча">Здания</button>
+    <button data-tab="world" title="раскладка стартового мира (D-243): узлы, дороги в секундах, станки, жилы">Мир</button>
   </div>
   <div class="counts" id="counts"></div>
   <div class="actions">
@@ -33,6 +34,7 @@ Copyright (C) 2026 Nurlan Urazkulov
     <button id="act-new-material" title="материал (D-215): вещь без рецепта — сырьё мира. Одна строка реестра, и «Алмаз» уже находится разведкой">+ материал</button>
     <button id="act-new-class" title="класс вещей (D-215): «любая из кирок», «любая кровать»">+ класс</button>
     <button id="act-new-building" title="тип здания (D-218): свой состав на м² пола, свой рост цены этажа и своя скорость порчи" hidden>+ тип здания</button>
+    <button id="act-new-node" title="узел мира (D-243): место, куда приходят и где стоят станки" hidden>+ узел</button>
     <button id="act-masses" title="пересчитать массы из входов (D-228) и показать, у кого вес переопределён вручную">Массы</button>
     <button id="act-check">Проверить</button>
     <button id="act-build">Собрать</button>
@@ -73,6 +75,9 @@ Copyright (C) 2026 Nurlan Urazkulov
            делают, они сравниваются. Поэтому у вкладки зданий на этом же месте
            таблица, а граф прячется. -->
       <div class="board" id="board" hidden></div>
+      <!-- Мир — не лестница: это карта. Свой холст, потому что рисуется место,
+           а не «из чего делается»: узлы там, где они стоят, и дороги в секундах. -->
+      <div class="worldstage" id="worldstage" hidden></div>
     </div>
     <div class="legend" id="legend"></div>
   </section>

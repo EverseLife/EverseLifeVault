@@ -1,0 +1,360 @@
+# SPDX-License-Identifier: LicenseRef-EverseLife-Content
+# Copyright (C) 2026 Nurlan Urazkulov
+
+# ЕДИНСТВЕННЫЙ ИСТОЧНИК раскладки стартового мира (D-243).
+#
+# Узлы, рёбра, жилы, станки и запасы столицы — данные, а не код: их читает
+# `src/seed.py` движка через слепок `build/world.json` и раскладывает мир по
+# своим правилам (сборка станков по рецептам — D-216, места на карте — D-237,
+# ворота — D-206). Файл правится вкладкой «Мир» редактора либо руками;
+# проверяется `tools/build.py --check`.
+#
+# Что здесь НЕ описывается, потому что это правила, а не раскладка:
+#   - планеты и орбиты (`seed._system`, 10-world/06);
+#   - чёрные поля Пироксиса (`seed_surfaces.py`): вид жилы выводится из
+#     планетных весов вольта, и вписать его сюда значило бы завести второй
+#     источник правды о том, что на планете лежит в избытке (D-233);
+#   - отсчёт реактора Предтеч на Авроре: он привязан к мигу, когда сид кладёт
+#     поверхность, а не к числу в файле (D-232);
+#   - город как институт: устав, казна, законы, основатели (D-154);
+#   - оригинал Принтера Предтеч в ядре (D-028: реликвия кладётся кодом).
+#
+# Словарь узла:
+#   key         устойчивый ключ узла: `terra.capital.core`
+#   name        имя, которое видит игрок
+#   layer       слой карты: planet | city | location (по умолчанию city)
+#   parent      ключ группы; `terra` создаётся кодом и объявлен в external
+#   area_m2     площадь участка
+#   anchor      рядом с кем узел встаёт на карте (D-237)
+#   place       {x, y} — прибитое место на карте своей группы; без него место
+#               раздаёт движок рядом с якорем
+#   city        true — здесь основывается институциональный город (D-154)
+#   properties  свойства места: кольцо, лес, вода, даль, выход, глубина...
+#   machines    станции и мебель: {name | class, quality}. Класс — «любая вещь
+#               класса» (D-215), собирается по рецепту (D-216)
+#   relics      классы реликвий Предтеч: найдено, не сделано, не снимается
+#               (D-232). Ставится тот член класса, что помечен реликвией
+#   veins       жилы: {resource, richness, remaining}. Кладутся один раз,
+#               при создании узла — дальше мир живёт сам (P2)
+#   items       что лежит в контейнере узла: {name, amount, quality, origin}.
+#               Кладётся при создании узла; ensure: true — докладывается
+#               догоном, если вещи не осталось
+#
+# Ребро: {a, b, seconds, surface}. Без seconds — шаг города (travel.city_step,
+# бросок движка); seconds: reach — длина по удалённости узла (D-180);
+# число — ровно столько секунд. surface: trail | road | paved (по умолчанию road).
+#
+# Карманы стартовых персонажей — в `pockets`, по имени личности; сами личности
+# (почта, пароль, роли) остаются у движка (D-187).
+
+external:
+  - terra
+  - aurora
+
+nodes:
+  - key: terra.capital
+    name: Столица Терры
+    layer: planet
+    parent: terra
+    area_m2: 1
+    city: true
+
+  # Ядро: каждый умерший приходит к биопринтеру, с него город и начинается.
+  # Свойство «предтечи» — не украшение: по нему движок узнаёт вечную машину,
+  # которая печатает бесплатно и медленно (D-028).
+  - key: terra.capital.core
+    name: "Ядро: Принтер Предтеч"
+    parent: terra.capital
+    area_m2: 120
+    properties: {кольцо: 0, лес: false, предтечи: true}
+
+  - key: terra.capital.library
+    name: Библиотека
+    parent: terra.capital
+    area_m2: 200
+    anchor: terra.capital.core
+    place: {x: 251, y: -5}
+    properties: {кольцо: 1}
+    machines:
+      - {class: Библиотека, quality: 70}
+
+  - key: terra.capital.market
+    name: Рынок
+    parent: terra.capital
+    area_m2: 200
+    anchor: terra.capital.core
+    place: {x: 93, y: 99}
+    properties: {кольцо: 1}
+    machines:
+      - {class: Терминал, quality: 70}
+      # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
+      - {name: Монетная станция, quality: 60}
+
+  # Администрация — узел, где стоит одноимённая станция: что есть здание,
+  # решает станок в нём (D-106). Власть тоже где-то живёт.
+  - key: terra.capital.hall
+    name: Администрация
+    parent: terra.capital
+    area_m2: 180
+    anchor: terra.capital.core
+    place: {x: 125, y: -139}
+    properties: {кольцо: 1}
+    machines:
+      - {name: Администрация, quality: 65}
+
+  - key: terra.capital.forge
+    name: Мастерская
+    parent: terra.capital
+    area_m2: 260
+    anchor: terra.capital.market
+    place: {x: 93, y: 259}
+    properties: {кольцо: 2}
+    machines:
+      # Городской принтер: минуты вместо часов, но за энергию и железо.
+      # Город продаёт не жизнь, а скорость (D-028, D-033).
+      - {class: Биопринтер, quality: 60}
+      - {name: Плавильная печь, quality: 55}
+      - {name: Верстак, quality: 60}
+      - {name: Кузница, quality: 65}
+      # Кровать при мастерской: своих домов до Э3 нет, мастер живёт при деле.
+      - {name: Кровать, quality: 50}
+      # Сундук (D-181): первое место, где вещи можно положить, а не носить.
+      - {name: Сундук, quality: 55}
+      # Электростанция гражданская (D-082): кормит весь город из одного пула.
+      - {name: Угольная станция, quality: 60}
+    items:
+      - {name: Уголь, amount: 200, quality: 55, origin: "стартовый мир: первый подвоз угля на станцию"}
+      # Запас железа в принтере: иначе печатать не из чего (D-013). Дальше его
+      # пополняют игроки — потому приток населения и есть политический вопрос.
+      - {name: Слиток железа, amount: 50, quality: 55, ensure: true, origin: "стартовый мир: запас процессоров в биопринтере"}
+
+  - key: terra.capital.pit
+    name: Забой у стены
+    parent: terra.capital
+    area_m2: 300
+    anchor: terra.capital.forge
+    place: {x: -197, y: 199}
+    properties: {кольцо: 3}
+    veins:
+      - {resource: Железная руда, richness: 62, remaining: 50000}
+
+  # Двери города (D-206): ворота — где начинается всякая дорога за стены,
+  # космодром — куда стыкуются корабельные группы.
+  - key: terra.capital.gate
+    name: Выход из города
+    parent: terra.capital
+    area_m2: 80
+    anchor: terra.capital.core
+    place: {x: -230, y: 65}
+    properties: {кольцо: 3, выход: true}
+
+  - key: terra.capital.port
+    name: Космодром
+    parent: terra.capital
+    area_m2: 240
+    anchor: terra.capital.gate
+    place: {x: -92, y: -124}
+    properties: {кольцо: 3}
+    machines:
+      - {class: Верфь, quality: 60}
+
+  # Каторжный забой столицы (D-174, D-176): жила, принтер и терминал за одной
+  # стеной. Тюрьмой узел делает станция «Каторга», а не свойство.
+  - key: terra.capital.jail
+    name: Каторжный забой
+    parent: terra.capital
+    area_m2: 120
+    anchor: terra.capital.gate
+    place: {x: -538, y: 1}
+    properties: {кольцо: 3}
+    machines:
+      - {class: Биопринтер, quality: 50}
+      - {class: Терминал, quality: 50}
+      - {class: Каторга, quality: 55}
+    veins:
+      - {resource: Железная руда, richness: 35, remaining: 20000}
+
+  # Свободные участки второго кольца: город раздаёт их жителям (D-089), и
+  # только на своей земле мастер ставит станок (D-150). Площади — из вилки
+  # `land.area_ring1` (D-125), выбраны при переносе раскладки в данные.
+  - key: terra.capital.lot1
+    name: Свободный участок 1
+    parent: terra.capital
+    area_m2: 96
+    anchor: terra.capital.forge
+    place: {x: 242, y: 104}
+    properties: {кольцо: 2, участок: true}
+
+  - key: terra.capital.lot2
+    name: Свободный участок 2
+    parent: terra.capital
+    area_m2: 121
+    anchor: terra.capital.forge
+    place: {x: 29, y: 408}
+    properties: {кольцо: 2, участок: true}
+
+  - key: terra.capital.lot3
+    name: Свободный участок 3
+    parent: terra.capital
+    area_m2: 74
+    anchor: terra.capital.forge
+    place: {x: 253, y: 297}
+    properties: {кольцо: 2, участок: true}
+
+  # Первое кольцо за стенами: даль 1 (D-180) — двадцать секунд ходьбы, не
+  # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
+  - key: terra.coal
+    name: Угольная шахта
+    layer: planet
+    parent: terra
+    area_m2: 400
+    anchor: terra.capital.gate
+    # Лес и каменистая земля у шахты: первый топор делается здесь, голыми
+    # руками и без чьей-либо помощи (D-196).
+    properties: {лес: true, камни: true, вода: нет, даль: 1}
+    veins:
+      - {resource: Уголь, richness: 48, remaining: 30000}
+      - {resource: Медная руда, richness: 41, remaining: 18000}
+
+  # Пашня за городом: земля в кольцах слишком дорога для полбы (D-089).
+  - key: terra.floodplain
+    name: Пойма у реки
+    layer: planet
+    parent: terra
+    area_m2: 400
+    anchor: terra.capital.gate
+    # Луг у воды: здесь растёт дикий лён, и волокно начинается с него (D-196).
+    properties: {вода: река, плодородие: 55, луг: true, даль: 1}
+    machines:
+      # Кухня новичка: готовке не нужны ни земля, ни капитал (D-119).
+      - {name: Очаг, quality: 70}
+      # Питомник у поймы: скрещиванию нужно место, как всякой работе (D-057).
+      - {name: Селекционный питомник, quality: 60}
+
+  # ------------------------------------------------------------- Аврора
+  #
+  # Три города Предтеч, и ни один не похож на другой (D-232). Раньше здесь было
+  # шестьсот шестьдесят шесть одинаковых причалов — страховка от гонки за один
+  # берег, и ответ неверный: планета из шестисот копий одного пирса не планета.
+  #
+  # У каждого города зал и причал, и больше ничего: остальное открывает разведка
+  # — у города есть запас комнат, и он вырабатывается, как жила. Всё здешнее
+  # Предтеченское — реликвия: найдено, не собрано, и снять это нельзя.
+  #
+  # Отсчёт реактора («реактор» в свойствах зала) сюда не пишется: он привязан к
+  # мигу, когда сид кладёт поверхность, — Предтечи гостей не ждали, и мир,
+  # проживший год до появления Авроры, иначе получил бы планету уже мёртвой.
+  # Это правило, и оно осталось в движке.
+
+  - key: aurora.merid
+    name: Мерид
+    layer: planet
+    parent: aurora
+    area_m2: 1
+    properties: {предтечи: true, город: столица}
+
+  - key: aurora.merid.hall
+    name: Купольный зал
+    parent: aurora.merid
+    area_m2: 600
+    # Глубина считается от космодрома, и комнаты идут отсюда вглубь (D-061, D-232).
+    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    relics: [ТЭЦ, Реактор Предтеч]
+
+  - key: aurora.merid.port
+    name: Космодром Мерида
+    parent: aurora.merid
+    area_m2: 240
+    anchor: aurora.merid.hall
+    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    relics: [Верфь]
+
+  - key: aurora.caldar
+    name: Кальдар
+    layer: planet
+    parent: aurora
+    area_m2: 1
+    properties: {предтечи: true, город: цех}
+
+  - key: aurora.caldar.hall
+    name: Литейный двор
+    parent: aurora.caldar
+    area_m2: 600
+    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    relics: [ТЭЦ, Реактор Предтеч]
+
+  - key: aurora.caldar.port
+    name: Космодром Кальдара
+    parent: aurora.caldar
+    area_m2: 240
+    anchor: aurora.caldar.hall
+    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    relics: [Верфь]
+
+  - key: aurora.veyr
+    name: Вейр
+    layer: planet
+    parent: aurora
+    area_m2: 1
+    properties: {предтечи: true, город: улей}
+
+  - key: aurora.veyr.hall
+    name: Нулевой ярус
+    parent: aurora.veyr
+    area_m2: 600
+    properties: {кольцо: 0, глубина: 1, предтечи: true}
+    relics: [ТЭЦ, Реактор Предтеч]
+
+  - key: aurora.veyr.port
+    name: Космодром Вейра
+    parent: aurora.veyr
+    area_m2: 240
+    anchor: aurora.veyr.hall
+    properties: {кольцо: 1, глубина: 0, предтечи: true}
+    relics: [Верфь]
+
+edges:
+  # Внутри города — короткие рёбра мощёными улицами.
+  - {a: terra.capital.core, b: terra.capital.library, surface: paved}
+  - {a: terra.capital.core, b: terra.capital.market, surface: paved}
+  - {a: terra.capital.core, b: terra.capital.hall, surface: paved}
+  - {a: terra.capital.library, b: terra.capital.market, surface: paved}
+  - {a: terra.capital.library, b: terra.capital.hall, surface: paved}
+  - {a: terra.capital.market, b: terra.capital.forge, surface: paved}
+  - {a: terra.capital.forge, b: terra.capital.pit, surface: paved}
+  - {a: terra.capital.core, b: terra.capital.gate, surface: paved}
+  - {a: terra.capital.pit, b: terra.capital.gate, surface: paved}
+  - {a: terra.capital.forge, b: terra.capital.lot1, surface: paved}
+  - {a: terra.capital.forge, b: terra.capital.lot2, surface: paved}
+  - {a: terra.capital.forge, b: terra.capital.lot3, surface: paved}
+  # За стены ведёт дорога, не бездорожье: уголь и хлеб возят по ней, и город
+  # сам построил себе эти дороги. Длина — по дали узла (D-180).
+  - {a: terra.capital.gate, b: terra.coal, seconds: reach, surface: road}
+  - {a: terra.capital.gate, b: terra.floodplain, seconds: reach, surface: road}
+  # От зала до причала — переход через одну площадь: порт обязан стоять внутри
+  # тепла станции, и в этом вся причина, почему у города горит маяк (D-231).
+  - {a: aurora.merid.hall, b: aurora.merid.port, seconds: 30, surface: paved}
+  - {a: aurora.caldar.hall, b: aurora.caldar.port, seconds: 30, surface: paved}
+  - {a: aurora.veyr.hall, b: aurora.veyr.port, seconds: 30, surface: paved}
+  - {a: terra.capital.pit, b: terra.capital.market, surface: paved}
+  - {a: terra.capital.core, b: terra.capital.port, surface: paved}
+  - {a: terra.capital.gate, b: terra.capital.jail, surface: paved}
+pockets:
+  Тэрн:
+    - {name: Железная кирка, quality: 55, origin: "стартовый мир: снаряжение шахтёра"}
+    - {name: Шахтная крепь, amount: 10, quality: 50, origin: "стартовый мир: снаряжение шахтёра"}
+    - {name: Уголь, amount: 30, quality: 58, origin: "стартовый мир: запас угля"}
+    # Кухня новичка: утварь и продукты в карман (D-119).
+    - {name: Глиняный горшок, quality: 65, origin: "стартовый мир: утварь"}
+    - {name: Бобы, amount: 10, quality: 60, origin: "стартовый мир: продукты"}
+    - {name: Овощи, amount: 10, quality: 55, origin: "стартовый мир: продукты"}
+    - {name: Масло, amount: 3, quality: 50, origin: "стартовый мир: продукты"}
+    - {name: Соль, amount: 3, quality: 50, origin: "стартовый мир: продукты"}
+    # Аффинаж Тэрну: золотоносных видов в стартовых жилах нет, а смотреть на
+    # чеканку и пробу хочется сегодня — то же допущение, что с углём.
+    - {name: Аффинированное золото, amount: 20, quality: 60, origin: "стартовый мир: металл на пробу"}
+    - {name: Аффинированное серебро, amount: 60, quality: 60, origin: "стартовый мир: металл на пробу"}
+    # Аккумулятор: энергия не лежит в мешке, её в нём носят (D-071).
+    - {name: Аккумулятор, quality: 55, origin: "стартовый мир: аккумулятор"}
+  Хём:
+    - {name: Железная руда, amount: 30, quality: 64, origin: "стартовый мир: запас торговца"}

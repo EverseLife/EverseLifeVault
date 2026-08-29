@@ -1,0 +1,851 @@
+{
+  "nodes": [
+    {
+      "key": "terra.capital",
+      "name": "Столица Терры",
+      "layer": "planet",
+      "planet": "terra",
+      "parent": "terra",
+      "anchor": null,
+      "area_m2": 1,
+      "place": null,
+      "city": true,
+      "properties": {},
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.core",
+      "name": "Ядро: Принтер Предтеч",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": null,
+      "area_m2": 120,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 0,
+        "лес": false,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.library",
+      "name": "Библиотека",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.core",
+      "area_m2": 200,
+      "place": {
+        "x": 251,
+        "y": -5
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 1
+      },
+      "machines": [
+        {
+          "name": null,
+          "class": "Библиотека",
+          "quality": 70
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.market",
+      "name": "Рынок",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.core",
+      "area_m2": 200,
+      "place": {
+        "x": 93,
+        "y": 99
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 1
+      },
+      "machines": [
+        {
+          "name": null,
+          "class": "Терминал",
+          "quality": 70
+        },
+        {
+          "name": "Монетная станция",
+          "class": null,
+          "quality": 60
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.hall",
+      "name": "Администрация",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.core",
+      "area_m2": 180,
+      "place": {
+        "x": 125,
+        "y": -139
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 1
+      },
+      "machines": [
+        {
+          "name": "Администрация",
+          "class": null,
+          "quality": 65
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.forge",
+      "name": "Мастерская",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.market",
+      "area_m2": 260,
+      "place": {
+        "x": 93,
+        "y": 259
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 2
+      },
+      "machines": [
+        {
+          "name": null,
+          "class": "Биопринтер",
+          "quality": 60
+        },
+        {
+          "name": "Плавильная печь",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Верстак",
+          "class": null,
+          "quality": 60
+        },
+        {
+          "name": "Кузница",
+          "class": null,
+          "quality": 65
+        },
+        {
+          "name": "Кровать",
+          "class": null,
+          "quality": 50
+        },
+        {
+          "name": "Сундук",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Угольная станция",
+          "class": null,
+          "quality": 60
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": [
+        {
+          "name": "Уголь",
+          "amount": 200,
+          "quality": 55,
+          "ensure": false,
+          "origin": "стартовый мир: первый подвоз угля на станцию"
+        },
+        {
+          "name": "Слиток железа",
+          "amount": 50,
+          "quality": 55,
+          "ensure": true,
+          "origin": "стартовый мир: запас процессоров в биопринтере"
+        }
+      ]
+    },
+    {
+      "key": "terra.capital.pit",
+      "name": "Забой у стены",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.forge",
+      "area_m2": 300,
+      "place": {
+        "x": -197,
+        "y": 199
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 3
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [
+        {
+          "resource": "Железная руда",
+          "richness": 62,
+          "remaining": 50000
+        }
+      ],
+      "items": []
+    },
+    {
+      "key": "terra.capital.gate",
+      "name": "Выход из города",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.core",
+      "area_m2": 80,
+      "place": {
+        "x": -230,
+        "y": 65
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 3,
+        "выход": true
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.port",
+      "name": "Космодром",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.gate",
+      "area_m2": 240,
+      "place": {
+        "x": -92,
+        "y": -124
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 3
+      },
+      "machines": [
+        {
+          "name": null,
+          "class": "Верфь",
+          "quality": 60
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.jail",
+      "name": "Каторжный забой",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.gate",
+      "area_m2": 120,
+      "place": {
+        "x": -538,
+        "y": 1
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 3
+      },
+      "machines": [
+        {
+          "name": null,
+          "class": "Биопринтер",
+          "quality": 50
+        },
+        {
+          "name": null,
+          "class": "Терминал",
+          "quality": 50
+        },
+        {
+          "name": null,
+          "class": "Каторга",
+          "quality": 55
+        }
+      ],
+      "relics": [],
+      "veins": [
+        {
+          "resource": "Железная руда",
+          "richness": 35,
+          "remaining": 20000
+        }
+      ],
+      "items": []
+    },
+    {
+      "key": "terra.capital.lot1",
+      "name": "Свободный участок 1",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.forge",
+      "area_m2": 96,
+      "place": {
+        "x": 242,
+        "y": 104
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 2,
+        "участок": true
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.lot2",
+      "name": "Свободный участок 2",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.forge",
+      "area_m2": 121,
+      "place": {
+        "x": 29,
+        "y": 408
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 2,
+        "участок": true
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.capital.lot3",
+      "name": "Свободный участок 3",
+      "layer": "city",
+      "planet": "terra",
+      "parent": "terra.capital",
+      "anchor": "terra.capital.forge",
+      "area_m2": 74,
+      "place": {
+        "x": 253,
+        "y": 297
+      },
+      "city": false,
+      "properties": {
+        "кольцо": 2,
+        "участок": true
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "terra.coal",
+      "name": "Угольная шахта",
+      "layer": "planet",
+      "planet": "terra",
+      "parent": "terra",
+      "anchor": "terra.capital.gate",
+      "area_m2": 400,
+      "place": null,
+      "city": false,
+      "properties": {
+        "лес": true,
+        "камни": true,
+        "вода": "нет",
+        "даль": 1
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [
+        {
+          "resource": "Уголь",
+          "richness": 48,
+          "remaining": 30000
+        },
+        {
+          "resource": "Медная руда",
+          "richness": 41,
+          "remaining": 18000
+        }
+      ],
+      "items": []
+    },
+    {
+      "key": "terra.floodplain",
+      "name": "Пойма у реки",
+      "layer": "planet",
+      "planet": "terra",
+      "parent": "terra",
+      "anchor": "terra.capital.gate",
+      "area_m2": 400,
+      "place": null,
+      "city": false,
+      "properties": {
+        "вода": "река",
+        "плодородие": 55,
+        "луг": true,
+        "даль": 1
+      },
+      "machines": [
+        {
+          "name": "Очаг",
+          "class": null,
+          "quality": 70
+        },
+        {
+          "name": "Селекционный питомник",
+          "class": null,
+          "quality": 60
+        }
+      ],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.merid",
+      "name": "Мерид",
+      "layer": "planet",
+      "planet": "aurora",
+      "parent": "aurora",
+      "anchor": null,
+      "area_m2": 1,
+      "place": null,
+      "city": false,
+      "properties": {
+        "предтечи": true,
+        "город": "столица"
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.merid.hall",
+      "name": "Купольный зал",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.merid",
+      "anchor": null,
+      "area_m2": 600,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 0,
+        "глубина": 1,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "ТЭЦ",
+        "Реактор Предтеч"
+      ],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.merid.port",
+      "name": "Космодром Мерида",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.merid",
+      "anchor": "aurora.merid.hall",
+      "area_m2": 240,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 1,
+        "глубина": 0,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "Верфь"
+      ],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.caldar",
+      "name": "Кальдар",
+      "layer": "planet",
+      "planet": "aurora",
+      "parent": "aurora",
+      "anchor": null,
+      "area_m2": 1,
+      "place": null,
+      "city": false,
+      "properties": {
+        "предтечи": true,
+        "город": "цех"
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.caldar.hall",
+      "name": "Литейный двор",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.caldar",
+      "anchor": null,
+      "area_m2": 600,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 0,
+        "глубина": 1,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "ТЭЦ",
+        "Реактор Предтеч"
+      ],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.caldar.port",
+      "name": "Космодром Кальдара",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.caldar",
+      "anchor": "aurora.caldar.hall",
+      "area_m2": 240,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 1,
+        "глубина": 0,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "Верфь"
+      ],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.veyr",
+      "name": "Вейр",
+      "layer": "planet",
+      "planet": "aurora",
+      "parent": "aurora",
+      "anchor": null,
+      "area_m2": 1,
+      "place": null,
+      "city": false,
+      "properties": {
+        "предтечи": true,
+        "город": "улей"
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.veyr.hall",
+      "name": "Нулевой ярус",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.veyr",
+      "anchor": null,
+      "area_m2": 600,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 0,
+        "глубина": 1,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "ТЭЦ",
+        "Реактор Предтеч"
+      ],
+      "veins": [],
+      "items": []
+    },
+    {
+      "key": "aurora.veyr.port",
+      "name": "Космодром Вейра",
+      "layer": "city",
+      "planet": "aurora",
+      "parent": "aurora.veyr",
+      "anchor": "aurora.veyr.hall",
+      "area_m2": 240,
+      "place": null,
+      "city": false,
+      "properties": {
+        "кольцо": 1,
+        "глубина": 0,
+        "предтечи": true
+      },
+      "machines": [],
+      "relics": [
+        "Верфь"
+      ],
+      "veins": [],
+      "items": []
+    }
+  ],
+  "edges": [
+    {
+      "a": "terra.capital.core",
+      "b": "terra.capital.library",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.core",
+      "b": "terra.capital.market",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.core",
+      "b": "terra.capital.hall",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.library",
+      "b": "terra.capital.market",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.library",
+      "b": "terra.capital.hall",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.market",
+      "b": "terra.capital.forge",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.forge",
+      "b": "terra.capital.pit",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.core",
+      "b": "terra.capital.gate",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.pit",
+      "b": "terra.capital.gate",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.forge",
+      "b": "terra.capital.lot1",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.forge",
+      "b": "terra.capital.lot2",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.forge",
+      "b": "terra.capital.lot3",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.gate",
+      "b": "terra.coal",
+      "seconds": "reach",
+      "surface": "road"
+    },
+    {
+      "a": "terra.capital.gate",
+      "b": "terra.floodplain",
+      "seconds": "reach",
+      "surface": "road"
+    },
+    {
+      "a": "aurora.merid.hall",
+      "b": "aurora.merid.port",
+      "seconds": 30,
+      "surface": "paved"
+    },
+    {
+      "a": "aurora.caldar.hall",
+      "b": "aurora.caldar.port",
+      "seconds": 30,
+      "surface": "paved"
+    },
+    {
+      "a": "aurora.veyr.hall",
+      "b": "aurora.veyr.port",
+      "seconds": 30,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.pit",
+      "b": "terra.capital.market",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.core",
+      "b": "terra.capital.port",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.gate",
+      "b": "terra.capital.jail",
+      "seconds": null,
+      "surface": "paved"
+    }
+  ],
+  "pockets": {
+    "Тэрн": [
+      {
+        "name": "Железная кирка",
+        "amount": 1,
+        "quality": 55,
+        "ensure": false,
+        "origin": "стартовый мир: снаряжение шахтёра"
+      },
+      {
+        "name": "Шахтная крепь",
+        "amount": 10,
+        "quality": 50,
+        "ensure": false,
+        "origin": "стартовый мир: снаряжение шахтёра"
+      },
+      {
+        "name": "Уголь",
+        "amount": 30,
+        "quality": 58,
+        "ensure": false,
+        "origin": "стартовый мир: запас угля"
+      },
+      {
+        "name": "Глиняный горшок",
+        "amount": 1,
+        "quality": 65,
+        "ensure": false,
+        "origin": "стартовый мир: утварь"
+      },
+      {
+        "name": "Бобы",
+        "amount": 10,
+        "quality": 60,
+        "ensure": false,
+        "origin": "стартовый мир: продукты"
+      },
+      {
+        "name": "Овощи",
+        "amount": 10,
+        "quality": 55,
+        "ensure": false,
+        "origin": "стартовый мир: продукты"
+      },
+      {
+        "name": "Масло",
+        "amount": 3,
+        "quality": 50,
+        "ensure": false,
+        "origin": "стартовый мир: продукты"
+      },
+      {
+        "name": "Соль",
+        "amount": 3,
+        "quality": 50,
+        "ensure": false,
+        "origin": "стартовый мир: продукты"
+      },
+      {
+        "name": "Аффинированное золото",
+        "amount": 20,
+        "quality": 60,
+        "ensure": false,
+        "origin": "стартовый мир: металл на пробу"
+      },
+      {
+        "name": "Аффинированное серебро",
+        "amount": 60,
+        "quality": 60,
+        "ensure": false,
+        "origin": "стартовый мир: металл на пробу"
+      },
+      {
+        "name": "Аккумулятор",
+        "amount": 1,
+        "quality": 55,
+        "ensure": false,
+        "origin": "стартовый мир: аккумулятор"
+      }
+    ],
+    "Хём": [
+      {
+        "name": "Железная руда",
+        "amount": 30,
+        "quality": 64,
+        "ensure": false,
+        "origin": "стартовый мир: запас торговца"
+      }
+    ]
+  }
+}

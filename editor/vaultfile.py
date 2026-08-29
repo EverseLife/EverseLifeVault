@@ -65,6 +65,7 @@ KEY_ORDER = (
     "kind",
     "class",
     "bulk",
+    "liquid",
     "edible",
     "key",
     "roles",
@@ -72,6 +73,7 @@ KEY_ORDER = (
     "hot",
     "slot",
     "store",
+    "holds",
     "mass",
     "hours",
     "mix",
@@ -98,7 +100,7 @@ MATERIAL_KEY_ORDER = (
 
 # Fields the editor is allowed to write. `manual_amounts` and everything derived
 # is deliberately absent: it is computed by the build, not authored.
-BOOL_FIELDS = ("key", "mix", "roles", "food", "hot", "bulk", "edible")
+BOOL_FIELDS = ("key", "mix", "roles", "food", "hot", "bulk", "liquid", "edible")
 NUMBER_FIELDS = ("mass", "store", "hours")
 LIST_FIELDS = ("inputs", "highlight")
 MAP_FIELDS = ("amounts", "weights")

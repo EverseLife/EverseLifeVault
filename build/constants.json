@@ -282,6 +282,12 @@
   "transport.upkeep_per_leg": 2,
   "transport.crew_ship": 2,
   "transport.stamina_k": 0,
+  "planet.gravity": {
+    "terra": 1.0,
+    "pyroxis": 1.3,
+    "aurora": 0.8,
+    "aquatica": 1.1
+  },
   "ship.node_mass": 2000,
   "ship.node_area": 40,
   "ship.foundation_hours": 8,
@@ -295,7 +301,8 @@
     "Двигатель II класса": 2,
     "Двигатель III класса": 3
   },
-  "ship.hop_hours": 6,
+  "ship.ascent_hours": 4,
+  "ship.descent_hours": 3,
   "ship.route_window_hours": {
     "aurora-terra": 10,
     "pyroxis-terra": 16,

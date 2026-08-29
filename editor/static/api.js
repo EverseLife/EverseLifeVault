@@ -48,6 +48,14 @@ export const api = {
   createBuilding: (data) => req('POST', '/api/building', null, { data }),
   updateBuilding: (name, data) => req('PUT', '/api/building', { name }, { data }),
   removeBuilding: (name) => req('DELETE', '/api/building', { name }),
+  // Раскладка стартового мира (D-243): узлы, дороги и карманы живут в
+  // data/world.yaml, и правятся картой, а не формой рецепта.
+  world: () => req('GET', '/api/world'),
+  putNode: (data, after, fresh) => req('PUT', '/api/world/node', { after, fresh: fresh ? '1' : null }, data),
+  dropNode: (key) => req('DELETE', '/api/world/node', { key }),
+  putEdge: (data) => req('PUT', '/api/world/edge', null, data),
+  dropEdge: (a, b) => req('DELETE', '/api/world/edge', { a, b }),
+  putPocket: (owner, items) => req('PUT', '/api/world/pocket', { owner }, { items }),
   // Массы (D-228): вес выводится из входов, и отчёт показывает, что вывелось
   // и что осталось при заданном вручную. Ничего не пишет.
   masses: () => req('POST', '/api/masses'),

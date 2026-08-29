@@ -27,6 +27,11 @@ try:
 except ModuleNotFoundError:
     sys.exit("Нужен pyyaml:  python -m pip install pyyaml")
 
+# Раскладка стартового мира (D-243): своя проверка и свой слепок. Отдельным
+# модулем — это карта, а не лестница, и общего у них один реестр вещей.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import world as worldfile  # noqa: E402 -- путь надо задать раньше
+
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 TEMPLATES = ROOT / "templates"
@@ -1344,8 +1349,7 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
     known = set(flatten_constants(constants_doc))
     namespaces = {key.split(".", 1)[0] for key in known}
     problems: list[str] = []
-    for path in sorted(ROOT.rglob("*.md")):
-        rel = path.relative_to(ROOT).as_posix()
+    for path, rel in documents():
         # Журнал решений — архив: замороженные и пересмотренные записи законно
         # ссылаются на константы, которых в реестре уже нет (например D-108).
         # Отчёт симуляции — наоборот: он существует ради того, чтобы называть
@@ -1436,12 +1440,28 @@ STATUS_RULE = {
 }
 
 
+#: Каталоги, которых в вольте как бы нет: рабочее дерево git внутри вольта —
+#: это второй его экземпляр, и обход документов находил в нём всё по второму
+#: разу. Индекс статусов удваивался, а проверка ссылок печатала шесть десятков
+#: повторов поверх настоящих пяти проблем — то есть переставала что-либо
+#: значить. Обход по всему корню сам по себе верен: вольт и есть корень.
+NOT_THE_VAULT = (".claude/", ".git/", ".venv/", "node_modules/")
+
+
+def documents():
+    """Документы вольта: все `*.md`, кроме лежащих в чужой копии."""
+    for path in sorted(ROOT.rglob("*.md")):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel.startswith(NOT_THE_VAULT):
+            continue
+        yield path, rel
+
+
 def build_status_index() -> str:
     found: dict[str, list[tuple[str, str]]] = {s: [] for s in STATUS_ORDER}
     unknown: list[tuple[str, str]] = []
 
-    for path in sorted(ROOT.rglob("*.md")):
-        rel = path.relative_to(ROOT).as_posix()
+    for path, rel in documents():
         # Служебные документы корня статуса не имеют и в индексе не нужны: они
         # не про игру, а про то, как с репозиторием обращаться.
         if rel.startswith((".obsidian/", ".pytest_cache/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md", "CLA.md", "CONTENT-LICENSE.md"):
@@ -1533,6 +1553,8 @@ def main() -> int:
     problems += check_laws(laws_doc)
     problems += check_constant_refs(constants_doc)
     problems += check_building_types(constants_doc, recipes_doc)
+    world_doc = worldfile.load_world_doc()
+    problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
 
     if known_problems:
         print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
@@ -1691,6 +1713,8 @@ def main() -> int:
     write(BUILD / "laws.json", json.dumps(
         {k: laws_doc[k] for k in ("charter", "code_laws", "sanctions")},
         ensure_ascii=False, indent=2) + "\n")
+    write(BUILD / "world.json",
+          json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")

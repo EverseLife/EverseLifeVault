@@ -46,6 +46,14 @@ def constants(tmp_path: Path, source: Path) -> Path:
     return target
 
 
+@pytest.fixture
+def world(tmp_path: Path, source: Path) -> Path:
+    """A copy of the real world file: the starting world's layout (D-243)."""
+    target = tmp_path / "world.yaml"
+    shutil.copy2(source.parent / "world.yaml", target)
+    return target
+
+
 @pytest.fixture(autouse=True)
 def backups_elsewhere(tmp_path: Path, monkeypatch) -> Path:
     """Backups of a test edit belong in the test's own directory."""

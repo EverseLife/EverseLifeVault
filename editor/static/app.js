@@ -14,7 +14,9 @@ import { colourOf, KIND_COLOUR } from './graphview.js';
 import { createGraph } from './graphview.js';
 import { neighbourhood } from './layout.js';
 import { createPanel } from './panel.js';
-import { h, plural, things } from './ui.js';
+import { ask, h, plural, things } from './ui.js';
+import * as worldmap from './world.js';
+import * as worldform from './worldform.js';
 
 const TYPE_LABEL = {
   raw: 'сырьё',
@@ -54,6 +56,11 @@ const app = {
   // пространств, и общий `selected` перепутал бы их между переключениями.
   building: null,
   footprint: 20,
+  //: Вкладка мира выбирает узел, дорогу или карман — имена из своего
+  //: пространства ключей, и с `selected` лестницы их путать нельзя.
+  world: null,
+  worldPick: null,
+  worldGroup: null,
 };
 
 // Количества на стрелках — свойство взгляда, а не выбор: на всей лестнице их
@@ -78,6 +85,7 @@ const dom = {
   consoleBox: document.getElementById('console'),
   consoleOut: document.getElementById('console-out'),
   consoleTitle: document.getElementById('console-title'),
+  worldStage: document.getElementById('worldstage'),
 };
 
 const graph = createGraph(document.getElementById('graph'), {
@@ -191,6 +199,10 @@ function typeOf(node) {
 }
 
 function renderFilters() {
+  if (app.tab === 'world') {
+    renderWorldFilters();
+    return;
+  }
   if (app.tab === 'buildings') {
     const rows = app.state.buildings || [];
     dom.filters.replaceChildren(h('span', {
@@ -269,6 +281,15 @@ function matches(node) {
 }
 
 function renderList() {
+  if (app.tab === 'world') {
+    if (!app.world) return;
+    worldmap.renderList(dom.list, app.world, {
+      selected: app.worldPick,
+      query: app.query,
+      onSelect: (key) => selectWorld(key),
+    });
+    return;
+  }
   if (app.tab === 'buildings') {
     buildings.renderList(dom.list, app.state.buildings || [], {
       selected: app.building,
@@ -405,6 +426,20 @@ function renderStationList() {
 }
 
 function renderLegend() {
+  if (app.tab === 'world') {
+    dom.legend.replaceChildren(
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.city}` }), 'застройка'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.planet}` }), 'на поверхности'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.exit}` }), 'ворота города'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.vein}; border-radius:50%` }), 'жила'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.relic}; border-radius:50%` }), 'реликвия Предтеч'),
+      h('span', { text: '· число в кружке — сколько станков стоит' }),
+      h('span', { text: '· пунктирный контур — место считает движок; сплошной — прибито в файле' }),
+      h('span', { text: '· перетащить узел — прибить место (D-237)' }),
+      h('span', { text: '· Shift + потянуть от узла к узлу — проложить дорогу' }),
+    );
+    return;
+  }
   if (app.tab === 'buildings') {
     dom.legend.replaceChildren(
       h('span', { text: 'тип решает три вещи разом: из чего построено, во сколько раз '
@@ -463,6 +498,10 @@ function renderLegend() {
 // --------------------------------------------------------------------- graph
 
 function drawGraph() {
+  if (app.tab === 'world') {
+    drawWorld();
+    return;
+  }
   if (app.tab === 'buildings') {
     buildings.renderBoard(dom.board, app.state.buildings || [], {
       selected: app.building,
@@ -603,21 +642,31 @@ function setTab(tab) {
     button.classList.toggle('on', button.dataset.tab === tab);
   }
   const houses = tab === 'buildings';
-  // У зданий нет ни графа, ни его режимов: типы не делают друг друга, между
-  // ними нет ни одного ребра. На месте картинки — доска сравнения.
-  dom.graph.hidden = houses;
+  const ground = tab === 'world';
+  // Ни у зданий, ни у мира нет графа лестницы, и по разным причинам: типы
+  // зданий не делают друг друга, а мир — это карта, а не «из чего сделано».
+  // Каждому — свой холст на том же месте.
+  dom.graph.hidden = houses || ground;
   dom.board.hidden = !houses;
+  dom.worldStage.hidden = !ground;
   dom.graphWrap.classList.toggle('boarded', houses);
-  document.getElementById('mode').hidden = houses;
-  document.getElementById('act-fit').hidden = houses;
+  dom.graphWrap.classList.toggle('mapped', ground);
+  document.getElementById('mode').hidden = houses || ground;
+  document.getElementById('act-fit').hidden = houses || ground;
   const kitchen = tab === 'food';
   // Новая еда заводится блюдом или материалом со съедобностью; рецепт вообще
   // и класс — дело лестницы, на кухне им нечего делать.
-  document.getElementById('act-new').hidden = houses || kitchen;
-  document.getElementById('act-new-class').hidden = houses || kitchen;
-  document.getElementById('act-new-material').hidden = houses;
+  document.getElementById('act-new').hidden = houses || kitchen || ground;
+  document.getElementById('act-new-class').hidden = houses || kitchen || ground;
+  document.getElementById('act-new-material').hidden = houses || ground;
   document.getElementById('act-new-dish').hidden = !kitchen;
   document.getElementById('act-new-building').hidden = !houses;
+  document.getElementById('act-new-node').hidden = !ground;
+  if (ground) {
+    dom.search.placeholder = 'поиск: узел, станок, жила или вещь в нём';
+    loadWorld().catch((error) => say(error.message, true, 'не удалось прочитать мир'));
+    return;
+  }
   if (houses) {
     dom.search.placeholder = 'поиск: тип здания или материал в составе';
     renderFilters();
@@ -687,6 +736,140 @@ function select(name, { focus = false } = {}) {
   else {
     graph.setSelected(name);
     graph.centreOn(name);
+  }
+}
+
+// --------------------------------------------------------------- the world
+//
+// Раскладка стартового мира (D-243) живёт в третьем файле вольта и читается
+// своим запросом: она не лестница, у неё нет ни ступеней, ни составов, и
+// класть её в общее состояние значило бы возить карту вместе с рецептами при
+// каждой правке.
+
+async function loadWorld(keepPick = true) {
+  app.world = await api.world();
+  const groups = worldmap.groups(app.world.nodes).map((one) => one.group);
+  if (!groups.includes(app.worldGroup)) app.worldGroup = groups[0] || null;
+  if (!keepPick || !knownInWorld(app.worldPick)) app.worldPick = null;
+  renderFilters();
+  renderLegend();
+  renderList();
+  drawGraph();
+  openWorldForm();
+}
+
+function knownInWorld(pick) {
+  if (!pick) return false;
+  if (pick.startsWith('pocket:')) return pick.slice(7) in (app.world.pockets || {});
+  return app.world.nodes.some((node) => node.key === pick);
+}
+
+// Карта — своя у каждой группы: застройка одного города, поверхность одной
+// планеты, помещения одного дома. Их не смешивают: у двух планет нет общей
+// земли, и рисовать их вместе значило бы врать про расстояния.
+function renderWorldFilters() {
+  if (!app.world) return;
+  dom.filters.replaceChildren(
+    ...worldmap.groups(app.world.nodes).map(({ group, members }) => h('button', {
+      class: 'chip' + (group === app.worldGroup ? ' on' : ''),
+      text: `${worldmap.groupTitle(group, app.world.nodes)} · ${members.length}`,
+      onclick: () => { app.worldGroup = group; renderFilters(); drawGraph(); },
+    })),
+  );
+}
+
+function drawWorld() {
+  if (!app.world || !app.worldGroup) return;
+  worldmap.renderMap(dom.worldStage, app.world, {
+    group: app.worldGroup,
+    selected: app.worldPick,
+    onSelect: (what) => { if (what.node) selectWorld(what.node); },
+    onPlace: (key, spot) => pinPlace(key, spot),
+    onConnect: (a, b) => connectNodes(a, b),
+  });
+}
+
+function selectWorld(pick) {
+  app.worldPick = pick;
+  //: Выбор с карты может быть из другой группы — из списка выбирают откуда
+  //: угодно, и карта должна показать ту, в которой узел стоит.
+  const node = app.world.nodes.find((one) => one.key === pick);
+  if (node) app.worldGroup = worldmap.groupOf(node, app.world.nodes);
+  renderFilters();
+  renderList();
+  drawGraph();
+  openWorldForm();
+}
+
+function openWorldForm() {
+  const host = document.getElementById('panel');
+  if (!app.worldPick) {
+    host.replaceChildren(h('div', { class: 'empty', text: 'Выберите узел на карте или слева.' }));
+    return;
+  }
+  if (app.worldPick.startsWith('pocket:')) {
+    worldform.pocketForm(host, app.world, app.worldPick.slice(7), worldTools);
+    return;
+  }
+  worldform.nodeForm(host, app.world, app.worldPick, worldTools);
+}
+
+// Перетащенный узел получает прибитое место: с этой минуты его считает не
+// движок, а файл, и карта редактора и карта игры сходятся по построению.
+async function pinPlace(key, [x, y]) {
+  const node = app.world.nodes.find((one) => one.key === key);
+  if (!node) return;
+  await writeWorld('место узла', () => api.putNode({ ...node, place: { x, y } }), key);
+}
+
+async function connectNodes(a, b) {
+  const already = app.world.edges.some(
+    (edge) => (edge.a === a && edge.b === b) || (edge.a === b && edge.b === a),
+  );
+  if (already) {
+    say(`дорога ${a} — ${b} уже проложена`, true, 'дорога уже есть');
+    return;
+  }
+  //: Мощёная и шаг города по умолчанию: внутри застройки так и есть, а
+  //: длина за стены правится в форме, где рядом видно «даль» узла.
+  await writeWorld('дорога', () => api.putEdge({ a, b, seconds: null, surface: 'paved' }), a);
+}
+
+const worldTools = {
+  saveNode: async (data, options = {}) => {
+    await writeWorld('узел мира', () => api.putNode(data, options.after, options.fresh), data.key);
+  },
+  deleteNode: async (key) => {
+    const answer = await ask({
+      title: `Удалить «${key}»?`,
+      body: 'Узел уйдёт из файла вместе со всеми дорогами, которые к нему вели. '
+        + 'На уже созданный мир это не влияет: сид не сносит того, что стоит (D-007).',
+      ok: 'Удалить',
+    });
+    if (!answer) return;
+    await writeWorld('узел мира', () => api.dropNode(key), null);
+  },
+  saveEdge: async (data) => {
+    await writeWorld('дорога', () => api.putEdge(data), app.worldPick);
+  },
+  deleteEdge: async (a, b) => {
+    await writeWorld('дорога', () => api.dropEdge(a, b), app.worldPick);
+  },
+  savePocket: async (owner, items) => {
+    await writeWorld('карман', () => api.putPocket(owner, items),
+      items.length ? `pocket:${owner}` : null);
+  },
+};
+
+async function writeWorld(what, call, openPick) {
+  try {
+    const result = await call();
+    app.worldPick = openPick;
+    await loadWorld();
+    if (result.check) reportRun(result.check, 'проверка вольта');
+    else say('записано', false, 'записано');
+  } catch (error) {
+    say(error.message, true, `${what}: не вышло`);
   }
 }
 
@@ -791,6 +974,17 @@ document.getElementById('act-new-dish').addEventListener('click', () => {
     section: sample?.section,
     station: sample?.station,
   });
+});
+
+// Новый узел заводится там же, где стоит выбранный: группа и якорь берутся у
+// него. Мир — граф, и узел без соседа в нём просто негде поставить.
+document.getElementById('act-new-node').addEventListener('click', () => {
+  const node = app.world?.nodes.find((one) => one.key === app.worldPick);
+  app.worldPick = null;
+  renderList();
+  worldform.newNodeForm(document.getElementById('panel'), app.world, worldTools, node
+    ? { layer: node.layer || 'city', parent: node.parent, anchor: node.key }
+    : {});
 });
 
 document.getElementById('act-new-building').addEventListener('click', () => {
