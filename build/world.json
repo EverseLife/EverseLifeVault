@@ -194,8 +194,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -197,
-        "y": 199
+        "x": -431,
+        "y": 234
       },
       "city": false,
       "properties": {},
@@ -299,7 +299,7 @@
     },
     {
       "key": "terra.capital.lot1",
-      "name": "Свободный участок 1",
+      "name": "Свободный участок",
       "layer": "city",
       "planet": "terra",
       "parent": "terra.capital",
@@ -311,7 +311,9 @@
       },
       "city": false,
       "properties": {
-        "участок": true
+        "участок": true,
+        "плодородие": 40,
+        "вода": "нет"
       },
       "machines": [],
       "relics": [],
@@ -320,7 +322,7 @@
     },
     {
       "key": "terra.capital.lot2",
-      "name": "Свободный участок 2",
+      "name": "Свободный участок",
       "layer": "city",
       "planet": "terra",
       "parent": "terra.capital",
@@ -332,7 +334,9 @@
       },
       "city": false,
       "properties": {
-        "участок": true
+        "участок": true,
+        "плодородие": 30,
+        "вода": "нет"
       },
       "machines": [],
       "relics": [],
@@ -341,7 +345,7 @@
     },
     {
       "key": "terra.capital.lot3",
-      "name": "Свободный участок 3",
+      "name": "Свободный участок",
       "layer": "city",
       "planet": "terra",
       "parent": "terra.capital",
@@ -353,7 +357,9 @@
       },
       "city": false,
       "properties": {
-        "участок": true
+        "участок": true,
+        "плодородие": 55,
+        "вода": "нет"
       },
       "machines": [],
       "relics": [],
@@ -649,19 +655,7 @@
       "surface": "paved"
     },
     {
-      "a": "terra.capital.forge",
-      "b": "terra.capital.pit",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
       "a": "terra.capital.core",
-      "b": "terra.capital.gate",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
-      "a": "terra.capital.pit",
       "b": "terra.capital.gate",
       "seconds": null,
       "surface": "paved"
@@ -715,12 +709,6 @@
       "surface": "paved"
     },
     {
-      "a": "terra.capital.pit",
-      "b": "terra.capital.market",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
       "a": "terra.capital.core",
       "b": "terra.capital.port",
       "seconds": null,
@@ -729,6 +717,12 @@
     {
       "a": "terra.capital.gate",
       "b": "terra.capital.jail",
+      "seconds": null,
+      "surface": "paved"
+    },
+    {
+      "a": "terra.capital.pit",
+      "b": "terra.capital.gate",
       "seconds": null,
       "surface": "paved"
     }

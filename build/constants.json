@@ -158,6 +158,7 @@
   "build.labor_per_m2": 0.4,
   "build.labor_stamina_rate": 12,
   "build.demolish_labor_k": 0.5,
+  "build.stair_seconds": 20,
   "build.demolish_salvage": 0.3,
   "road.trail_multiplier": 2.5,
   "road.road_multiplier": 1,
