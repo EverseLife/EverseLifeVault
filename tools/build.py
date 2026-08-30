@@ -930,6 +930,28 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
     return fresh, known_problems
 
 
+def excuse_known(problems: list[str], recipes_doc: dict) -> tuple[list[str], list[str]]:
+    """Развести найденное и записанное — вторая, общая форма known_issues.
+
+    Циклы извиняются структурно в check_recipes; всему остальному — тупикам,
+    двойникам составов — структурной формы нет, и запись `{problem, oq}`
+    извиняет проблему по её началу, слово в слово как печатает сборка.
+    Каждая запись обязана ссылаться на OQ: без вопроса это не «известное
+    расхождение», а замалчивание.
+    """
+    excused = [
+        (issue["problem"], issue["oq"])
+        for issue in recipes_doc.get("known_issues") or []
+        if "problem" in issue
+    ]
+    fresh: list[str] = []
+    known: list[str] = []
+    for problem in problems:
+        oq = next((oq for prefix, oq in excused if problem.startswith(prefix)), None)
+        (known if oq else fresh).append(f"{problem}  [{oq}]" if oq else problem)
+    return fresh, known
+
+
 def check_compositions(doc: dict, amounts: dict, batch_cap: float) -> list[str]:
     """Состав на одной рабочей станции называет ровно один рецепт (D-209).
 
@@ -1703,6 +1725,8 @@ def main() -> int:
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
     vocabulary = load_vocabulary()
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc)
+    problems, excused_problems = excuse_known(problems, recipes_doc)
+    known_problems += excused_problems
 
     if known_problems:
         print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
