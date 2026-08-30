@@ -137,6 +137,7 @@ export function createPanel(root, deps) {
       section,
       data: {
         name: '',
+        id: '',
         kind: defaults.kind || 'material',
         inputs: defaults.inputs ? [...defaults.inputs] : [''],
         station: defaults.station || 'Верстак',
@@ -160,7 +161,7 @@ export function createPanel(root, deps) {
       kind: 'class',
       original: null,
       isNew: true,
-      klass: { name: '', members: defaults.members?.length ? [...defaults.members] : [''] },
+      klass: { name: '', id: '', members: defaults.members?.length ? [...defaults.members] : [''] },
     };
     renderClass();
   }
@@ -168,7 +169,8 @@ export function createPanel(root, deps) {
   function classState(name) {
     const members = (deps.vocabulary().classes || {})[name] || [];
     const note = (deps.vocabulary().class_notes || {})[name] || '';
-    return { name, note, members: [...members] };
+    const id = (deps.vocabulary().class_ids || {})[name] || '';
+    return { name, id, note, members: [...members] };
   }
 
   /** The class this thing carries (one per thing, D-215), as written and as
@@ -289,6 +291,19 @@ export function createPanel(root, deps) {
             }),
         ),
         h('div', { class: 'field' },
+          h('label', { text: 'id' }),
+          state.isNew
+            ? h('input', {
+              value: klass.id || '', placeholder: 'pickaxe',
+              title: 'устойчивый ключ класса (D-251): английский snake_case',
+              oninput: (event) => { klass.id = event.target.value; touch(); },
+            })
+            : h('input', {
+              value: klass.id || '', disabled: true,
+              title: 'ключ класса — идентичность для движка; здесь не меняется',
+            }),
+        ),
+        h('div', { class: 'field' },
           h('label', { text: 'пояснение' }),
           h('input', {
             value: klass.note || '',
@@ -340,7 +355,9 @@ export function createPanel(root, deps) {
     const name = (klass.name || '').trim();
     const members = klass.members.map((item) => item.trim()).filter(Boolean);
     try {
-      const result = await api.putClass(name, members, (klass.note || '').trim());
+      const result = await api.putClass(
+        name, members, (klass.note || '').trim(), (klass.id || '').trim(),
+      );
       if (result.warning) deps.notify(result.warning, false);
       deps.onWrite(result, name);
     } catch (error) {
@@ -385,7 +402,7 @@ export function createPanel(root, deps) {
       kind: 'material',
       original: null,
       isNew: true,
-      material: { name: '', mass: 1, bulk: true },
+      material: { name: '', id: '', mass: 1, bulk: true },
       classes: { in: [], was: [] },
     };
     renderMaterial();
@@ -432,6 +449,20 @@ export function createPanel(root, deps) {
               oninput: (event) => { material.name = event.target.value; touch(); },
             }))
           : null,
+        h('div', { class: 'field' },
+          h('label', { text: 'id' }),
+          h('input', {
+            value: material.id || '', placeholder: 'diamond',
+            title: 'устойчивый ключ (D-251): английский snake_case, идентичность '
+              + 'вещи в коде и базе. До волны II ключ можно поправить — движок '
+              + 'его ещё не читает; после — замрёт, как у классов',
+            oninput: (event) => {
+              if (event.target.value) material.id = event.target.value;
+              else delete material.id;
+              touch();
+            },
+          }),
+        ),
         h('div', { class: 'field' },
           h('label', { text: 'класс' }),
           select(['', ...classNames], material.class || '', (value) => {
@@ -777,6 +808,17 @@ export function createPanel(root, deps) {
       h('div', { class: 'field' },
         h('label', { text: 'название' }),
         h('input', { value: data.name || '', oninput: set('name'), autofocus: state.isNew }),
+      ),
+      h('div', { class: 'field' },
+        h('label', { text: 'id' }),
+        h('input', {
+          value: data.id || '', placeholder: 'iron_ore',
+          title: 'устойчивый ключ (D-251): английский snake_case, идентичность '
+            + 'вещи в коде и базе. Русское название — язык вольта и игрока. '
+            + 'До волны II ключ можно поправить — движок его ещё не читает; '
+            + 'после — замрёт, как у классов',
+          oninput: set('id'),
+        }),
       ),
       h('div', { class: 'field' },
         h('label', { text: 'тип' }),

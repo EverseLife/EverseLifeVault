@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 try:
@@ -1427,6 +1428,151 @@ def check_building_types(constants_doc: dict, recipes_doc: dict) -> list[str]:
     return problems
 
 
+# ---------------------------------------------------- устойчивые ключи (D-251)
+
+#: Английский snake_case: то, что живёт в коде, в базе и в проводе после
+#: волны II. Русское имя остаётся языком вольта и игрока.
+ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def load_vocabulary() -> dict:
+    """Малые словари (data/vocabulary.yaml): слоты, тиры, типы зданий,
+    свойства узлов, планеты, виртуальные станции. Слова-идентификаторы,
+    у которых нет собственной записи в recipes.yaml."""
+    path = DATA / "vocabulary.yaml"
+    if not path.exists():
+        sys.exit(
+            f"нет {path.relative_to(ROOT).as_posix()}: малые словари D-251 "
+            "живут отдельным файлом, без него ключи не сходятся"
+        )
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def check_ids(
+    recipes_doc: dict, vocabulary: dict, constants_doc: dict, world_doc: dict
+) -> list[str]:
+    """Каждому имени — ключ (D-251), и ровно один.
+
+    Пространств три: товары (материалы + рецепты — как сегодня одно имя не
+    может быть и тем и другим), классы, операции. Словари vocabulary.yaml —
+    каждый своё пространство. Совпадение ключа МЕЖДУ пространствами законно:
+    класс «Топор» и рецепт «Топор» делят и русское слово, и `axe`.
+    """
+    problems: list[str] = []
+
+    def need(entry: dict, domain: str, seen: dict[str, str]) -> None:
+        name = entry.get("name", "?")
+        entry_id = entry.get("id")
+        if not entry_id:
+            problems.append(f"{domain}: у «{name}» нет id (D-251)")
+            return
+        if not ID_RE.match(str(entry_id)):
+            problems.append(f"{domain}: id «{entry_id}» у «{name}» — не snake_case ASCII")
+            return
+        if entry_id in seen and seen[entry_id] != name:
+            problems.append(f"{domain}: id «{entry_id}» занят и «{seen[entry_id]}», и «{name}»")
+        seen[entry_id] = name
+
+    #: Дизъюнктность имён — пришпилена, а не предположена: build_renames
+    #: собирает goods по имени, и одно имя на материал и рецепт молча
+    #: перезаписало бы таблицу миграции волны II.
+    material_names = [m["name"] for m in recipes_doc["meta"].get("materials", [])]
+    recipe_names = [r["name"] for _, _, r in all_recipes(recipes_doc)]
+    for name in sorted(set(material_names) & set(recipe_names)):
+        problems.append(
+            f"«{name}» — и материал, и рецепт: пространство товаров одно, "
+            "и имя в нём живёт один раз"
+        )
+    for domain, names in (("материалы", material_names), ("рецепты", recipe_names)):
+        counted = Counter(names)
+        for name in sorted(n for n, k in counted.items() if k > 1):
+            problems.append(f"{domain}: имя «{name}» встречается больше одного раза")
+
+    goods_seen: dict[str, str] = {}
+    for material in recipes_doc["meta"].get("materials", []):
+        need(material, "материал", goods_seen)
+    for _, _, recipe in all_recipes(recipes_doc):
+        need(recipe, "рецепт", goods_seen)
+    class_seen: dict[str, str] = {}
+    for cls in recipes_doc["meta"].get("classes", []):
+        need(cls, "класс", class_seen)
+    op_seen: dict[str, str] = {}
+    for op in recipes_doc["operations"]:
+        need(op, "операция", op_seen)
+
+    vocab_maps: dict[str, dict[str, str]] = {}
+    for domain, rows in vocabulary.items():
+        seen: dict[str, str] = {}
+        for row in rows or []:
+            need(row, f"vocabulary.{domain}", seen)
+        vocab_maps[domain] = {
+            row["name"]: row["id"] for row in rows or [] if row.get("id")
+        }
+
+    # Покрытие: слово, употреблённое данными, обязано быть объявлено.
+    def covered(words, domain: str, where: str) -> None:
+        table = vocab_maps.get(domain, {})
+        for word in words:
+            if word not in table:
+                problems.append(
+                    f"vocabulary.yaml: «{word}» ({where}) не объявлено в {domain}"
+                )
+
+    flat = flatten_constants(constants_doc)
+    covered(recipes_doc["meta"].get("gear_slots", []), "slots", "gear_slots")
+    covered(
+        [tier["name"] for tier in flat.get("quality.tiers", [])],
+        "tiers", "quality.tiers",
+    )
+    covered(sorted(flat.get("build.types", {})), "building_kinds", "build.types")
+    covered(sorted(flat.get("wear.environment_k", {})), "planets", "wear.environment_k")
+    properties: set[str] = set()
+    for node in world_doc.get("nodes", []):
+        properties |= set((node.get("properties") or {}).keys())
+    for op in recipes_doc["operations"]:
+        if op.get("place"):
+            properties.add(op["place"])
+    covered(sorted(properties), "node_properties", "properties узлов и place операций")
+    covered(sorted(VIRTUAL_STATIONS), "virtual_stations", "виртуальные станции")
+    return problems
+
+
+def build_renames(recipes_doc: dict, vocabulary: dict) -> dict:
+    """build/renames.json — таблица соответствий «русское имя -> id».
+
+    Единственный источник для миграции базы (волна II), скрипта переименования
+    тестов и переходных синонимов движка. `names_ru` — обратные карты: по ним
+    клиент и APS показывают русское имя, пока локалей ещё нет (волна III).
+    """
+    #: .get и фильтр: пропуск id — проблема из check_ids, здесь не роняем.
+    goods: dict[str, str] = {}
+    for material in recipes_doc["meta"].get("materials", []):
+        if material.get("id"):
+            goods[material["name"]] = material["id"]
+    for _, _, recipe in all_recipes(recipes_doc):
+        if recipe.get("id"):
+            goods[recipe["name"]] = recipe["id"]
+    out: dict[str, dict] = {
+        "goods": goods,
+        "classes": {
+            c["name"]: c["id"]
+            for c in recipes_doc["meta"].get("classes", [])
+            if c.get("id")
+        },
+        "operations": {
+            op["name"]: op["id"]
+            for op in recipes_doc["operations"]
+            if op.get("id")
+        },
+    }
+    for domain, rows in vocabulary.items():
+        out[domain] = {row["name"]: row["id"] for row in rows or []}
+    out["names_ru"] = {
+        domain: {v: k for k, v in table.items()} for domain, table in out.items()
+    }
+    return out
+
+
 # ------------------------------------------------------------ индекс статусов
 
 STATUS_ORDER = ["реализовано", "в реализации", "согласовано", "идея", "живой", "генерируется"]
@@ -1555,6 +1701,8 @@ def main() -> int:
     problems += check_building_types(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
+    vocabulary = load_vocabulary()
+    problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc)
 
     if known_problems:
         print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
@@ -1595,12 +1743,23 @@ def main() -> int:
             # к классу, а не к имени. tool_classes — производное представление
             # (классы, целиком состоящие из инструментов) для клиента
             "classes": recipes_doc["meta"].get("classes_map", {}),
+            # Устойчивые ключи классов (D-251): класс -> id. Члены в "classes"
+            # остаются именами — движок волны I читает их как читал
+            "class_ids": {
+                c["name"]: c["id"]
+                for c in recipes_doc["meta"].get("classes", [])
+                if c.get("id")
+            },
             "tool_classes": recipes_doc["meta"].get("tool_classes", {}),
             # Реестр материалов (D-215): всё, что не делается рецептом, одной
             # записью — класс, масса, весовое, съедобность, темп, находка, топливо
             "materials": [
                 {
                     "name": m["name"],
+                    # устойчивый ключ (D-251): будущая идентичность вещи.
+                    # .get: пропуск id — проблема из check_ids, а не трейсбек
+                    # посреди записи build/ (полусобранное состояние хуже)
+                    "id": m.get("id"),
                     "class": m.get("class"),
                     "mass": m.get("mass", 0.0),
                     "bulk": bool(m.get("bulk")),
@@ -1617,6 +1776,7 @@ def main() -> int:
             "operations": [
                 {
                     "name": op["name"],
+                    "id": op.get("id"),
                     "requires": op["requires"],
                     "gives": op["gives"],
                     # класс, которым перечень выходов был задан (пусто — задан
@@ -1672,6 +1832,7 @@ def main() -> int:
             "recipes": [
                 {
                     "name": r["name"],
+                    "id": r.get("id"),
                     "level": lvl["id"],
                     "section": sec["id"] if sec else None,
                     "kind": r.get("kind", "material"),
@@ -1715,6 +1876,8 @@ def main() -> int:
         ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "world.json",
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
+    write(BUILD / "renames.json",
+          json.dumps(build_renames(recipes_doc, vocabulary), ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")

@@ -62,6 +62,7 @@ KNOWN_KINDS = (
 # one, so the diff of an edit is one line and not the whole block.
 KEY_ORDER = (
     "name",
+    "id",
     "kind",
     "class",
     "bulk",
@@ -88,6 +89,7 @@ KEY_ORDER = (
 # One material of the registry (D-215): everything not made by a recipe.
 MATERIAL_KEY_ORDER = (
     "name",
+    "id",
     "class",
     "mass",
     "bulk",

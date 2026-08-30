@@ -17,6 +17,7 @@ the interface says so instead of quietly showing yesterday's numbers.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -27,6 +28,41 @@ RAW = "raw"
 OPERATION = "operation"
 RECIPE = "recipe"
 CLASS = "class"
+
+#: Stable key (D-251): English snake_case, the thing's identity in code and DB
+#: after wave II. The Russian name stays the language of the vault and player.
+ID_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+
+def _check_id(entry_id: Any, name: str, taken: dict[str, str]) -> None:
+    """Refuse an id the build would refuse anyway (D-251), before it is written."""
+    if not entry_id or not str(entry_id).strip():
+        raise VaultError(
+            f"у «{name}» должен быть id — английский snake_case ключ (D-251), "
+            "например iron_ore"
+        )
+    entry_id = str(entry_id).strip()
+    if not ID_RE.match(entry_id):
+        raise VaultError(
+            f"id «{entry_id}» — не snake_case ASCII: строчные латинские буквы, "
+            "цифры и подчёркивания, первым — буква"
+        )
+    owner = taken.get(entry_id)
+    if owner and owner != name:
+        raise VaultError(f"id «{entry_id}» уже занят: «{owner}»")
+
+
+def goods_ids(ladder: Ladder, exclude: str | None = None) -> dict[str, str]:
+    """id -> имя по общему пространству товаров (материалы + рецепты).
+
+    `exclude` — имя правящейся вещи: её собственный id не занят ею же,
+    иначе переименование вещи с сохранением id получало бы ложный отказ.
+    """
+    taken: dict[str, str] = {}
+    for name, entry in {**ladder.materials, **ladder.recipes}.items():
+        if name != exclude and entry.get("id"):
+            taken[str(entry["id"])] = name
+    return taken
 
 
 def load_derived(vault: Path) -> tuple[dict, bool]:
@@ -60,6 +96,12 @@ class Ladder:
         }
         self.class_notes: dict[str, str | None] = {
             entry["name"]: entry.get("note")
+            for entry in (meta.get("classes") or [])
+            if entry.get("name")
+        }
+        #: Stable keys (D-251): the future identity of a thing in code and DB.
+        self.class_ids: dict[str, str | None] = {
+            entry["name"]: entry.get("id")
             for entry in (meta.get("classes") or [])
             if entry.get("name")
         }
@@ -478,6 +520,7 @@ class Ladder:
             # tool_classes — прежний узкий вид для старого кода интерфейса
             "classes": self.classes,
             "class_notes": self.class_notes,
+            "class_ids": self.class_ids,
             "tool_classes": self.tool_classes,
             "materials": [self.materials[name] for name in sorted(self.materials)],
             "synonyms": self.synonyms,
@@ -583,6 +626,10 @@ def validate(data: dict, ladder: Ladder, original: str | None = None) -> None:
             "Изобретение узнаёт рецепт по составу, и различить их будет нечем."
         )
 
+    #: Last on purpose: the substantive refusals above name the real problem
+    #: first, and a form missing everything starts with the ladder, not the key.
+    _check_id(data.get("id"), name, goods_ids(ladder, exclude=original or name))
+
 
 def validate_material(data: dict, ladder: Ladder, original: str | None = None) -> None:
     """Refuse a material row the build would refuse anyway (D-215)."""
@@ -624,9 +671,16 @@ def validate_material(data: dict, ladder: Ladder, original: str | None = None) -
             "жилу, а добыча не выведет время"
         )
 
+    #: Last on purpose -- the same ordering as validate().
+    _check_id(data.get("id"), name, goods_ids(ladder, exclude=original or name))
+
 
 def validate_class(
-    name: str, members: list[str], ladder: Ladder, original: str | None = None
+    name: str,
+    members: list[str],
+    ladder: Ladder,
+    original: str | None = None,
+    entry_id: str | None = None,
 ) -> None:
     """Refuse a thing class the ladder could not walk (D-215).
 
@@ -666,6 +720,16 @@ def validate_class(
                 f"«{member}» уже в классе «{previous}»: у вещи один класс (D-215). "
                 "Сначала уберите её оттуда."
             )
+
+    #: Last on purpose -- the same ordering as validate(). Only a new class
+    #: asks for a key: for an existing one the field is not editable here.
+    if original is None:
+        taken = {
+            str(class_id): owner
+            for owner, class_id in ladder.class_ids.items()
+            if class_id
+        }
+        _check_id(entry_id, name, taken)
 
 
 def class_warning(name: str, ladder: Ladder) -> str | None:

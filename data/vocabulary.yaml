@@ -1,0 +1,90 @@
+# SPDX-License-Identifier: LicenseRef-EverseLife-Content
+# Copyright (C) 2026 Nurlan Urazkulov
+
+# ЕДИНСТВЕННЫЙ ИСТОЧНИК устойчивых ключей для малых словарей (D-251).
+#
+# Рецепты, материалы, операции и классы несут `id` на собственных строках в
+# recipes.yaml. Здесь — слова-идентификаторы, у которых нет своей записи:
+# слоты снаряжения, тиры качества, типы зданий, свойства узлов, планеты.
+# Русское слово остаётся языком вольта и игрока; `id` — то, что живёт в коде,
+# в базе и в проводе после волны II.
+#
+# Сборка проверяет покрытие: слово, употреблённое данными (gear_slots,
+# quality.tiers, build.types, properties узлов, place операций) и не
+# объявленное здесь, роняет сборку. Обратное — объявленное, но нигде не
+# встреченное — допустимо: часть слов пишет только движок, и до волны II
+# им больше негде быть объявленными.
+
+# Слоты снаряжения (D-146): recipes.yaml meta.gear_slots
+slots:
+  - {name: спина, id: back}
+  - {name: тело, id: body}
+  - {name: каркас, id: frame}
+
+# Виртуальные станции (D-216): слово на месте станции, а не вещь
+virtual_stations:
+  - {name: Руками, id: by_hand}
+
+# Тиры качества (quality.tiers в constants.yaml)
+tiers:
+  - {name: скверное, id: awful}
+  - {name: плохое, id: poor}
+  - {name: обычное, id: common}
+  - {name: хорошее, id: good}
+  - {name: отличное, id: fine}
+
+# Типы зданий (build.types в constants.yaml; building.kind в базе движка)
+building_kinds:
+  - {name: деревянный, id: wooden}
+  - {name: каменный, id: stone}
+  - {name: бетонный, id: concrete}
+  - {name: железобетонный, id: reinforced_concrete}
+  - {name: цельнометаллический, id: metal}
+
+# Планеты: движок уже зовёт их по-английски (Planet StrEnum), русские имена
+# остались ключами wear.environment_k — этот словарь их сшивает
+planets:
+  - {name: Терра, id: terra}
+  - {name: Акватика, id: aquatica}
+  - {name: Аврора, id: aurora}
+  - {name: Пироксис, id: pyroxis}
+
+# Свойства узлов: ключи `properties` в world.yaml и `place` операций.
+# Вторая половина списка пишется только движком (пометка engine) — объявлена
+# здесь, чтобы у миграции волны II был один источник соответствий.
+node_properties:
+  - {name: лес, id: woods}
+  - {name: вода, id: water}
+  - {name: камни, id: stones}
+  - {name: луг, id: meadow}
+  - {name: участок, id: plot}
+  - {name: город, id: city}
+  - {name: плодородие, id: fertility}
+  - {name: даль, id: distance}
+  - {name: выход, id: exit}
+  - {name: глубина, id: depth}
+  - {name: предтечи, id: precursors}
+  - {name: кольцо, id: ring}
+  - {name: этаж, id: storey, note: engine}
+  - {name: мерзлота, id: frost, note: engine}
+  - {name: пекло, id: heat, note: engine}
+  - {name: без воздуха, id: airless, note: engine}
+  - {name: реактор, id: reactor, note: engine}
+  - {name: орбита, id: orbit, note: engine}
+  - {name: радиус, id: radius, note: engine}
+  - {name: период, id: period, note: engine}
+  - {name: фаза, id: phase, note: engine}
+  - {name: борт, id: aboard, note: engine}
+  - {name: тюрьма, id: prison, note: engine}
+  - {name: раскрыто, id: revealed, note: engine}
+  - {name: помещение, id: indoors, note: engine}
+  - {name: разведано, id: surveyed, note: engine}
+  - {name: дикий, id: wild, note: engine}
+  - {name: карта, id: map, note: engine}
+  - {name: значок, id: emblem, note: engine}
+  - {name: описание, id: description, note: engine}
+  - {name: наковальня, id: anvil, note: engine}
+  - {name: жидкость, id: liquid, note: engine}
+  - {name: река, id: river, note: engine}
+  - {name: температура, id: temperature, note: engine}
+  - {name: осадки, id: precipitation, note: engine}

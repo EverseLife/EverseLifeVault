@@ -102,7 +102,7 @@ def test_a_class_is_born_as_declaration_plus_members(
     before = recipes.read_bytes().decode("utf-8")
     first, second = some_tools(session)
 
-    server.put_class(session, {"name": ["Приспособа"]}, {"members": [first, second]})
+    server.put_class(session, {"name": ["Приспособа"]}, {"id": "gadget", "members": [first, second]})
 
     assert sorted(classes_of(recipes)["Приспособа"]) == sorted([first, second])
     #: One declaration line plus a `class:` field on each member's line.
@@ -112,7 +112,7 @@ def test_a_class_is_born_as_declaration_plus_members(
 def test_a_new_class_says_nobody_asks_for_it(session: server.Session):
     """The whole story of «Утвари»: a class hangs there until something requires it."""
     first, _ = some_tools(session)
-    answer = server.put_class(session, {"name": ["Приспособа"]}, {"members": [first]})
+    answer = server.put_class(session, {"name": ["Приспособа"]}, {"id": "gadget", "members": [first]})
 
     assert answer["created"] is True
     assert "никто не требует" in answer["warning"]
@@ -121,7 +121,7 @@ def test_a_new_class_says_nobody_asks_for_it(session: server.Session):
 def test_a_class_named_after_a_thing_is_written_but_flagged(session: server.Session):
     """The file already does this with «Топором», so it is allowed -- and said aloud."""
     first, second = some_tools(session)
-    answer = server.put_class(session, {"name": [first]}, {"members": [first, second]})
+    answer = server.put_class(session, {"name": [first]}, {"id": "named_after", "members": [first, second]})
 
     assert answer["warning"] and "название вещи" in answer["warning"]
 
@@ -129,7 +129,7 @@ def test_a_class_named_after_a_thing_is_written_but_flagged(session: server.Sess
 def test_an_empty_class_is_a_declaration(session: server.Session, recipes: Path):
     """A class may be declared ahead of its things (D-215): the declaration is
     what protects the `class:` fields from typos, so it comes first."""
-    answer = server.put_class(session, {"name": ["Пустышка"]}, {"members": []})
+    answer = server.put_class(session, {"name": ["Пустышка"]}, {"id": "dummy", "members": []})
     assert answer["created"] is True
     assert classes_of(recipes)["Пустышка"] == []
 
@@ -219,8 +219,8 @@ def test_a_thing_leaves_a_class(session: server.Session, recipes: Path):
 def test_two_classes_at_once_are_refused(session: server.Session):
     """A thing has one class (D-215): half a pickaxe half a bed does not exist."""
     first, _ = some_tools(session)
-    server.put_class(session, {"name": ["Приспособа"]}, {"members": []})
-    server.put_class(session, {"name": ["Другая"]}, {"members": []})
+    server.put_class(session, {"name": ["Приспособа"]}, {"id": "gadget", "members": []})
+    server.put_class(session, {"name": ["Другая"]}, {"id": "other", "members": []})
     with pytest.raises(vault.VaultError, match="один класс"):
         server.membership(
             session, {"name": [first]}, {"classes": ["Приспособа", "Другая"]}
@@ -251,7 +251,7 @@ def test_the_comments_around_the_block_are_left_alone(
     before = recipes.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")
     first, _ = some_tools(session)
 
-    server.put_class(session, {"name": ["Приспособа"]}, {"members": [first]})
+    server.put_class(session, {"name": ["Приспособа"]}, {"id": "gadget", "members": [first]})
 
     after = recipes.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")
     assert [line for line in after if line.lstrip().startswith("#")] == [
@@ -262,7 +262,7 @@ def test_the_comments_around_the_block_are_left_alone(
 def test_the_ladder_reads_the_new_class_back(session: server.Session):
     """Written is not enough: the walk must see the class as a way to close a hole."""
     first, second = some_tools(session)
-    server.put_class(session, {"name": ["Приспособа"]}, {"members": [first, second]})
+    server.put_class(session, {"name": ["Приспособа"]}, {"id": "gadget", "members": [first, second]})
 
     _, ladder = session.open()
     assert ladder.classes["Приспособа"] == sorted([first, second])
@@ -274,7 +274,7 @@ def test_the_ladder_reads_the_new_class_back(session: server.Session):
 def test_a_class_named_after_a_thing_still_shows_as_a_class(session: server.Session):
     """This is what hid «Топор»: the node keeps the thing's type, so the flag carries it."""
     first, second = some_tools(session)
-    server.put_class(session, {"name": [first]}, {"members": [first, second]})
+    server.put_class(session, {"name": [first]}, {"id": "named_after", "members": [first, second]})
 
     _, ladder = session.open()
     node = next(item for item in ladder.nodes() if item["name"] == first)

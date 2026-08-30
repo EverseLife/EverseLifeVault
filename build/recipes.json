@@ -188,6 +188,55 @@
       "Утеплённый костюм"
     ]
   },
+  "class_ids": {
+    "Кирка": "pickaxe",
+    "Топор": "axe",
+    "Утварь": "cookware",
+    "Ископаемое": "minable",
+    "Растительное": "flora",
+    "Животное": "fauna",
+    "Минерал": "mineral",
+    "Металл": "metal",
+    "Жидкость": "liquid",
+    "Отходы": "waste",
+    "Кровать": "bed",
+    "Аккумулятор": "battery",
+    "Скафандр": "spacesuit",
+    "Гидропоника": "hydroponics",
+    "Биопринтер": "bioprinter",
+    "Библиотека": "library",
+    "Каторга": "prison",
+    "Администрация": "administration",
+    "Терминал": "terminal",
+    "Верфь": "shipyard",
+    "Ветряк": "windmill",
+    "Водяное колесо": "water_wheel",
+    "Топливная станция": "fuel_plant",
+    "Буровая": "rig",
+    "Питомник": "nursery",
+    "Жизнеобеспечение": "life_support",
+    "Рубка": "bridge",
+    "Наземная рубка": "ground_bridge",
+    "Топливный бак": "fuel_tank",
+    "Ёмкость": "vessel",
+    "Автомат": "automaton",
+    "ТЭЦ": "heat_plant",
+    "Обогреватель": "heater",
+    "Жаровня": "brazier",
+    "Утеплённый костюм": "insulated_suit",
+    "Грелка": "warmer",
+    "Реактор Предтеч": "precursor_reactor",
+    "Кухня": "kitchen",
+    "Монетный двор": "mint",
+    "Крепь": "mine_support",
+    "Корабельное топливо": "ship_fuel",
+    "Основа корабля": "ship_foundation",
+    "Полотно": "roadbed",
+    "Носитель": "carrier",
+    "Болванка": "blank",
+    "Тачка": "wheelbarrow",
+    "Повозка": "cart"
+  },
   "tool_classes": {
     "Ёмкость": [
       "Канистра",
@@ -210,6 +259,7 @@
   "materials": [
     {
       "name": "ТЭЦ Предтеч",
+      "id": "precursor_heat_plant",
       "class": "ТЭЦ",
       "mass": 4000,
       "bulk": false,
@@ -221,6 +271,7 @@
     },
     {
       "name": "Изотопный реактор Предтеч",
+      "id": "precursor_isotope_reactor",
       "class": "Реактор Предтеч",
       "mass": 12000,
       "bulk": false,
@@ -232,6 +283,7 @@
     },
     {
       "name": "Верфь Предтеч",
+      "id": "precursor_shipyard",
       "class": "Верфь",
       "mass": 20000,
       "bulk": false,
@@ -243,6 +295,7 @@
     },
     {
       "name": "Биопринтер Предтеч",
+      "id": "precursor_bioprinter",
       "class": "Биопринтер",
       "mass": 8000,
       "bulk": false,
@@ -254,6 +307,7 @@
     },
     {
       "name": "Железная руда",
+      "id": "iron_ore",
       "class": "Ископаемое",
       "mass": 0.2,
       "bulk": true,
@@ -265,6 +319,7 @@
     },
     {
       "name": "Медная руда",
+      "id": "copper_ore",
       "class": "Ископаемое",
       "mass": 0.22,
       "bulk": true,
@@ -276,6 +331,7 @@
     },
     {
       "name": "Оловянная руда",
+      "id": "tin_ore",
       "class": "Ископаемое",
       "mass": 0.2,
       "bulk": true,
@@ -287,6 +343,7 @@
     },
     {
       "name": "Свинцовая руда",
+      "id": "lead_ore",
       "class": "Ископаемое",
       "mass": 0.28,
       "bulk": true,
@@ -298,6 +355,7 @@
     },
     {
       "name": "Уголь",
+      "id": "coal",
       "class": "Ископаемое",
       "mass": 0.16,
       "bulk": true,
@@ -309,6 +367,7 @@
     },
     {
       "name": "Камень",
+      "id": "stone",
       "class": "Ископаемое",
       "mass": 0.1,
       "bulk": true,
@@ -323,6 +382,7 @@
     },
     {
       "name": "Вольфрам",
+      "id": "tungsten",
       "class": "Ископаемое",
       "mass": 0.02,
       "bulk": true,
@@ -334,6 +394,7 @@
     },
     {
       "name": "Никель",
+      "id": "nickel",
       "class": "Ископаемое",
       "mass": 0.44,
       "bulk": true,
@@ -345,6 +406,7 @@
     },
     {
       "name": "Золотоносная порода",
+      "id": "gold_ore",
       "class": "Ископаемое",
       "mass": 0.5,
       "bulk": true,
@@ -356,6 +418,7 @@
     },
     {
       "name": "Серебряная порода",
+      "id": "silver_ore",
       "class": "Ископаемое",
       "mass": 0.46,
       "bulk": true,
@@ -367,6 +430,7 @@
     },
     {
       "name": "Пироксит",
+      "id": "pyroxite",
       "class": "Ископаемое",
       "mass": 0.12,
       "bulk": true,
@@ -378,6 +442,7 @@
     },
     {
       "name": "Лён",
+      "id": "flax",
       "class": "Растительное",
       "mass": 0.02,
       "bulk": true,
@@ -392,6 +457,7 @@
     },
     {
       "name": "Дерево",
+      "id": "wood",
       "class": "Растительное",
       "mass": 0.6,
       "bulk": false,
@@ -406,6 +472,7 @@
     },
     {
       "name": "Смола",
+      "id": "resin",
       "class": "Растительное",
       "mass": 0.002,
       "bulk": true,
@@ -420,6 +487,7 @@
     },
     {
       "name": "Целебные травы",
+      "id": "healing_herbs",
       "class": "Растительное",
       "mass": 0.02,
       "bulk": true,
@@ -434,6 +502,7 @@
     },
     {
       "name": "Глина",
+      "id": "clay",
       "class": "Минерал",
       "mass": 0.3,
       "bulk": true,
@@ -448,6 +517,7 @@
     },
     {
       "name": "Песок",
+      "id": "sand",
       "class": "Минерал",
       "mass": 0.3,
       "bulk": true,
@@ -462,6 +532,7 @@
     },
     {
       "name": "Кварцевый песок",
+      "id": "quartz_sand",
       "class": "Минерал",
       "mass": 0.3,
       "bulk": true,
@@ -473,6 +544,7 @@
     },
     {
       "name": "Известняк",
+      "id": "limestone",
       "class": "Минерал",
       "mass": 0.4,
       "bulk": true,
@@ -484,6 +556,7 @@
     },
     {
       "name": "Соль",
+      "id": "salt",
       "class": "Минерал",
       "mass": 0.2,
       "bulk": true,
@@ -495,6 +568,7 @@
     },
     {
       "name": "Сера",
+      "id": "sulfur",
       "class": "Минерал",
       "mass": 0.2,
       "bulk": true,
@@ -506,6 +580,7 @@
     },
     {
       "name": "Селитра",
+      "id": "saltpeter",
       "class": "Минерал",
       "mass": 0.2,
       "bulk": true,
@@ -517,6 +592,7 @@
     },
     {
       "name": "Вода",
+      "id": "water",
       "class": "Жидкость",
       "mass": 0.2,
       "bulk": true,
@@ -528,6 +604,7 @@
     },
     {
       "name": "Зерно",
+      "id": "grain",
       "class": "Растительное",
       "mass": 0.14,
       "bulk": true,
@@ -539,6 +616,7 @@
     },
     {
       "name": "Солома",
+      "id": "straw",
       "class": "Растительное",
       "mass": 0.02,
       "bulk": true,
@@ -550,6 +628,7 @@
     },
     {
       "name": "Овощи",
+      "id": "vegetables",
       "class": "Растительное",
       "mass": 0.16,
       "bulk": true,
@@ -561,6 +640,7 @@
     },
     {
       "name": "Бобы",
+      "id": "beans",
       "class": "Растительное",
       "mass": 0.14,
       "bulk": true,
@@ -572,6 +652,7 @@
     },
     {
       "name": "Масличные семена",
+      "id": "oil_seeds",
       "class": "Растительное",
       "mass": 0.1,
       "bulk": true,
@@ -583,6 +664,7 @@
     },
     {
       "name": "Сахарный стебель",
+      "id": "sugar_cane",
       "class": "Растительное",
       "mass": 0.2,
       "bulk": true,
@@ -594,6 +676,7 @@
     },
     {
       "name": "Сено",
+      "id": "hay",
       "class": "Растительное",
       "mass": 0.04,
       "bulk": true,
@@ -605,6 +688,7 @@
     },
     {
       "name": "Мясо",
+      "id": "meat",
       "class": "Животное",
       "mass": 0.2,
       "bulk": true,
@@ -616,6 +700,7 @@
     },
     {
       "name": "Органические отходы",
+      "id": "organic_waste",
       "class": "Отходы",
       "mass": 0.1,
       "bulk": true,
@@ -627,6 +712,7 @@
     },
     {
       "name": "Щебень",
+      "id": "crushed_stone",
       "class": "Минерал",
       "mass": 0.4,
       "bulk": true,
@@ -638,6 +724,7 @@
     },
     {
       "name": "Крошка",
+      "id": "stone_chips",
       "class": "Минерал",
       "mass": 0.4,
       "bulk": true,
@@ -649,6 +736,7 @@
     },
     {
       "name": "Слиток железа",
+      "id": "iron_ingot",
       "class": "Металл",
       "mass": 1.0,
       "bulk": false,
@@ -660,6 +748,7 @@
     },
     {
       "name": "Медный слиток",
+      "id": "copper_ingot",
       "class": "Металл",
       "mass": 1.0,
       "bulk": false,
@@ -671,6 +760,7 @@
     },
     {
       "name": "Олово",
+      "id": "tin",
       "class": "Металл",
       "mass": 1.0,
       "bulk": false,
@@ -682,6 +772,7 @@
     },
     {
       "name": "Свинец",
+      "id": "lead",
       "class": "Металл",
       "mass": 1.2,
       "bulk": false,
@@ -693,6 +784,7 @@
     },
     {
       "name": "Энергия",
+      "id": "energy",
       "class": null,
       "mass": 0,
       "bulk": false,
@@ -704,6 +796,7 @@
     },
     {
       "name": "Жила",
+      "id": "vein",
       "class": null,
       "mass": 0,
       "bulk": false,
@@ -717,6 +810,7 @@
   "operations": [
     {
       "name": "Рубка дерева",
+      "id": "logging",
       "requires": [
         "Топор"
       ],
@@ -739,6 +833,7 @@
     },
     {
       "name": "Добыча",
+      "id": "mining",
       "requires": [
         "Кирка",
         "Жила"
@@ -802,6 +897,7 @@
     },
     {
       "name": "Дробление",
+      "id": "crushing",
       "requires": [
         "Молот"
       ],
@@ -834,6 +930,7 @@
     },
     {
       "name": "Плавка железа",
+      "id": "iron_smelting",
       "requires": [
         "Печь"
       ],
@@ -862,6 +959,7 @@
     },
     {
       "name": "Плавка меди",
+      "id": "copper_smelting",
       "requires": [
         "Печь"
       ],
@@ -890,6 +988,7 @@
     },
     {
       "name": "Плавка олова",
+      "id": "tin_smelting",
       "requires": [
         "Печь"
       ],
@@ -918,6 +1017,7 @@
     },
     {
       "name": "Плавка свинца",
+      "id": "lead_smelting",
       "requires": [
         "Печь"
       ],
@@ -1558,6 +1658,7 @@
   "recipes": [
     {
       "name": "Волокно",
+      "id": "fiber",
       "level": 1,
       "section": null,
       "kind": "material",
@@ -1581,6 +1682,7 @@
     },
     {
       "name": "Верёвка",
+      "id": "rope",
       "level": 1,
       "section": null,
       "kind": "material",
@@ -1604,6 +1706,7 @@
     },
     {
       "name": "Каменный топор",
+      "id": "stone_axe",
       "level": 1,
       "section": null,
       "kind": "tool",
@@ -1631,6 +1734,7 @@
     },
     {
       "name": "Каменная кирка",
+      "id": "stone_pickaxe",
       "level": 1,
       "section": null,
       "kind": "tool",
@@ -1658,6 +1762,7 @@
     },
     {
       "name": "Корзина",
+      "id": "basket",
       "level": 1,
       "section": null,
       "kind": "gear",
@@ -1681,6 +1786,7 @@
     },
     {
       "name": "Глиняный горшок",
+      "id": "clay_pot",
       "level": 1,
       "section": null,
       "kind": "tool",
@@ -1704,6 +1810,7 @@
     },
     {
       "name": "Верстак",
+      "id": "workbench",
       "level": 2,
       "section": null,
       "kind": "station",
@@ -1729,6 +1836,7 @@
     },
     {
       "name": "Плавильная печь",
+      "id": "smelting_furnace",
       "level": 2,
       "section": null,
       "kind": "station",
@@ -1754,6 +1862,7 @@
     },
     {
       "name": "Очаг",
+      "id": "hearth",
       "level": 2,
       "section": null,
       "kind": "station",
@@ -1779,6 +1888,7 @@
     },
     {
       "name": "Рукоять",
+      "id": "handle",
       "level": 2,
       "section": null,
       "kind": "material",
@@ -1802,6 +1912,7 @@
     },
     {
       "name": "Ткань",
+      "id": "cloth",
       "level": 2,
       "section": null,
       "kind": "material",
@@ -1825,6 +1936,7 @@
     },
     {
       "name": "Мешок",
+      "id": "sack",
       "level": 2,
       "section": null,
       "kind": "gear",
@@ -1850,6 +1962,7 @@
     },
     {
       "name": "Простой рюкзак",
+      "id": "simple_backpack",
       "level": 2,
       "section": null,
       "kind": "gear",
@@ -1875,6 +1988,7 @@
     },
     {
       "name": "Шахтная крепь",
+      "id": "shaft_support",
       "level": 2,
       "section": null,
       "kind": "consumable",
@@ -1898,6 +2012,7 @@
     },
     {
       "name": "Жаровня",
+      "id": "brazier",
       "level": 2,
       "section": null,
       "kind": "station",
@@ -1923,6 +2038,7 @@
     },
     {
       "name": "Утеплённый костюм",
+      "id": "insulated_suit",
       "level": 2,
       "section": null,
       "kind": "gear",
@@ -1950,6 +2066,7 @@
     },
     {
       "name": "Тачка",
+      "id": "wheelbarrow",
       "level": 2,
       "section": null,
       "kind": "vehicle",
@@ -1975,6 +2092,7 @@
     },
     {
       "name": "Кровать",
+      "id": "bed",
       "level": 2,
       "section": null,
       "kind": "furniture",
@@ -2002,6 +2120,7 @@
     },
     {
       "name": "Стеллаж",
+      "id": "rack",
       "level": 2,
       "section": null,
       "kind": "furniture",
@@ -2027,6 +2146,7 @@
     },
     {
       "name": "Сундук",
+      "id": "chest",
       "level": 2,
       "section": null,
       "kind": "furniture",
@@ -2054,6 +2174,7 @@
     },
     {
       "name": "Кузница",
+      "id": "forge",
       "level": 3,
       "section": null,
       "kind": "station",
@@ -2081,6 +2202,7 @@
     },
     {
       "name": "Меха",
+      "id": "bellows",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2108,6 +2230,7 @@
     },
     {
       "name": "Сталь",
+      "id": "steel",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2135,6 +2258,7 @@
     },
     {
       "name": "Бронза",
+      "id": "bronze",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2160,6 +2284,7 @@
     },
     {
       "name": "Гвозди",
+      "id": "nails",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2183,6 +2308,7 @@
     },
     {
       "name": "Железная кирка",
+      "id": "iron_pickaxe",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2208,6 +2334,7 @@
     },
     {
       "name": "Стальная кирка",
+      "id": "steel_pickaxe",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2233,6 +2360,7 @@
     },
     {
       "name": "Топор",
+      "id": "axe",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2258,6 +2386,7 @@
     },
     {
       "name": "Молот",
+      "id": "hammer",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2283,6 +2412,7 @@
     },
     {
       "name": "Котёл",
+      "id": "cauldron",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2306,6 +2436,7 @@
     },
     {
       "name": "Труба",
+      "id": "pipe",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2329,6 +2460,7 @@
     },
     {
       "name": "Грелка",
+      "id": "warmer",
       "level": 3,
       "section": null,
       "kind": "consumable",
@@ -2354,6 +2486,7 @@
     },
     {
       "name": "Стальная рама",
+      "id": "steel_frame",
       "level": 3,
       "section": null,
       "kind": "material",
@@ -2377,6 +2510,7 @@
     },
     {
       "name": "Канистра",
+      "id": "canister",
       "level": 3,
       "section": null,
       "kind": "tool",
@@ -2400,6 +2534,7 @@
     },
     {
       "name": "Селекционный питомник",
+      "id": "breeding_nursery",
       "level": 4,
       "section": null,
       "kind": "station",
@@ -2427,6 +2562,7 @@
     },
     {
       "name": "Компост",
+      "id": "compost",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2452,6 +2588,7 @@
     },
     {
       "name": "Минеральное удобрение",
+      "id": "mineral_fertilizer",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2477,6 +2614,7 @@
     },
     {
       "name": "Мельница",
+      "id": "mill",
       "level": 4,
       "section": null,
       "kind": "station",
@@ -2504,6 +2642,7 @@
     },
     {
       "name": "Мука",
+      "id": "flour",
       "level": 4,
       "section": null,
       "kind": "material",
@@ -2527,6 +2666,7 @@
     },
     {
       "name": "Хлеб",
+      "id": "bread",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2552,6 +2692,7 @@
     },
     {
       "name": "Солонина",
+      "id": "salted_meat",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2577,6 +2718,7 @@
     },
     {
       "name": "Сушёные овощи",
+      "id": "dried_vegetables",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2600,6 +2742,7 @@
     },
     {
       "name": "Масло",
+      "id": "oil",
       "level": 4,
       "section": null,
       "kind": "material",
@@ -2623,6 +2766,7 @@
     },
     {
       "name": "Сахар",
+      "id": "sugar",
       "level": 4,
       "section": null,
       "kind": "material",
@@ -2646,6 +2790,7 @@
     },
     {
       "name": "Похлёбка",
+      "id": "soup",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2673,6 +2818,7 @@
     },
     {
       "name": "Жаркое",
+      "id": "roast",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2700,6 +2846,7 @@
     },
     {
       "name": "Отвар",
+      "id": "decoction",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2725,6 +2872,7 @@
     },
     {
       "name": "Бинт",
+      "id": "bandage",
       "level": 4,
       "section": null,
       "kind": "consumable",
@@ -2748,6 +2896,7 @@
     },
     {
       "name": "Лечебница",
+      "id": "infirmary",
       "level": 4,
       "section": null,
       "kind": "station",
@@ -2775,6 +2924,7 @@
     },
     {
       "name": "Водяное колесо",
+      "id": "water_wheel",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2800,6 +2950,7 @@
     },
     {
       "name": "Ветряк",
+      "id": "windmill",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2827,6 +2978,7 @@
     },
     {
       "name": "Угольная станция",
+      "id": "coal_plant",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2854,6 +3006,7 @@
     },
     {
       "name": "ТЭЦ",
+      "id": "heat_plant",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2881,6 +3034,7 @@
     },
     {
       "name": "Обогреватель",
+      "id": "heater",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2908,6 +3062,7 @@
     },
     {
       "name": "Стекло",
+      "id": "glass",
       "level": 5,
       "section": null,
       "kind": "material",
@@ -2933,6 +3088,7 @@
     },
     {
       "name": "Серная кислота",
+      "id": "sulfuric_acid",
       "level": 5,
       "section": null,
       "kind": "material",
@@ -2958,6 +3114,7 @@
     },
     {
       "name": "Аккумулятор",
+      "id": "battery",
       "level": 5,
       "section": null,
       "kind": "station",
@@ -2985,6 +3142,7 @@
     },
     {
       "name": "Кирпич",
+      "id": "brick",
       "level": 6,
       "section": null,
       "kind": "material",
@@ -3008,6 +3166,7 @@
     },
     {
       "name": "Известь",
+      "id": "lime",
       "level": 6,
       "section": null,
       "kind": "material",
@@ -3031,6 +3190,7 @@
     },
     {
       "name": "Раствор",
+      "id": "mortar",
       "level": 6,
       "section": null,
       "kind": "material",
@@ -3058,6 +3218,7 @@
     },
     {
       "name": "Каменный блок",
+      "id": "stone_block",
       "level": 6,
       "section": null,
       "kind": "material",
@@ -3081,6 +3242,7 @@
     },
     {
       "name": "Дорожное полотно",
+      "id": "road_paving",
       "level": 6,
       "section": null,
       "kind": "consumable",
@@ -3106,6 +3268,7 @@
     },
     {
       "name": "Мастерская",
+      "id": "workshop",
       "level": 6,
       "section": null,
       "kind": "station",
@@ -3135,6 +3298,7 @@
     },
     {
       "name": "Терминал маркетплейса",
+      "id": "market_terminal",
       "level": 6,
       "section": null,
       "kind": "station",
@@ -3160,6 +3324,7 @@
     },
     {
       "name": "Администрация",
+      "id": "administration",
       "level": 6,
       "section": null,
       "kind": "station",
@@ -3189,6 +3354,7 @@
     },
     {
       "name": "Библиотека",
+      "id": "library",
       "level": 6,
       "section": null,
       "kind": "station",
@@ -3216,6 +3382,7 @@
     },
     {
       "name": "Каторга",
+      "id": "prison",
       "level": 6,
       "section": null,
       "kind": "station",
@@ -3243,6 +3410,7 @@
     },
     {
       "name": "Монетная станция",
+      "id": "coin_station",
       "level": 7,
       "section": null,
       "kind": "station",
@@ -3268,6 +3436,7 @@
     },
     {
       "name": "Аффинированное золото",
+      "id": "refined_gold",
       "level": 7,
       "section": null,
       "kind": "material",
@@ -3293,6 +3462,7 @@
     },
     {
       "name": "Аффинированное серебро",
+      "id": "refined_silver",
       "level": 7,
       "section": null,
       "kind": "material",
@@ -3318,6 +3488,7 @@
     },
     {
       "name": "Золотая монета",
+      "id": "gold_coin",
       "level": 7,
       "section": null,
       "kind": "money",
@@ -3343,6 +3514,7 @@
     },
     {
       "name": "Серебряная монета",
+      "id": "silver_coin",
       "level": 7,
       "section": null,
       "kind": "money",
@@ -3368,6 +3540,7 @@
     },
     {
       "name": "Высокая печь",
+      "id": "blast_furnace",
       "level": 8,
       "section": "precision",
       "kind": "station",
@@ -3397,6 +3570,7 @@
     },
     {
       "name": "Привод",
+      "id": "drive",
       "level": 8,
       "section": "precision",
       "kind": "material",
@@ -3424,6 +3598,7 @@
     },
     {
       "name": "Прокатный стан",
+      "id": "rolling_mill",
       "level": 8,
       "section": "precision",
       "kind": "station",
@@ -3451,6 +3626,7 @@
     },
     {
       "name": "Провод",
+      "id": "wire",
       "level": 8,
       "section": "precision",
       "kind": "material",
@@ -3474,6 +3650,7 @@
     },
     {
       "name": "Медная фольга",
+      "id": "copper_foil",
       "level": 8,
       "section": "precision",
       "kind": "material",
@@ -3497,6 +3674,7 @@
     },
     {
       "name": "Вольфрамовый резец",
+      "id": "tungsten_cutter",
       "level": 8,
       "section": "precision",
       "kind": "tool",
@@ -3522,6 +3700,7 @@
     },
     {
       "name": "Токарный станок",
+      "id": "lathe",
       "level": 8,
       "section": "precision",
       "kind": "station",
@@ -3551,6 +3730,7 @@
     },
     {
       "name": "Точная деталь",
+      "id": "precision_part",
       "level": 8,
       "section": "precision",
       "kind": "material",
@@ -3574,6 +3754,7 @@
     },
     {
       "name": "Буровая установка",
+      "id": "drilling_rig",
       "level": 8,
       "section": "precision",
       "kind": "station",
@@ -3603,6 +3784,7 @@
     },
     {
       "name": "Магнит",
+      "id": "magnet",
       "level": 8,
       "section": "electric",
       "kind": "material",
@@ -3628,6 +3810,7 @@
     },
     {
       "name": "Электродвигатель",
+      "id": "electric_motor",
       "level": 8,
       "section": "electric",
       "kind": "material",
@@ -3655,6 +3838,7 @@
     },
     {
       "name": "Реле",
+      "id": "relay",
       "level": 8,
       "section": "electric",
       "kind": "material",
@@ -3682,6 +3866,7 @@
     },
     {
       "name": "Автоматическая станция",
+      "id": "auto_station",
       "level": 8,
       "section": "electric",
       "kind": "station",
@@ -3711,6 +3896,7 @@
     },
     {
       "name": "Полевой автомат",
+      "id": "field_automaton",
       "level": 8,
       "section": "electric",
       "kind": "station",
@@ -3740,6 +3926,7 @@
     },
     {
       "name": "Экзоскелет",
+      "id": "exoskeleton",
       "level": 8,
       "section": "electric",
       "kind": "gear",
@@ -3769,6 +3956,7 @@
     },
     {
       "name": "Кремний",
+      "id": "silicon",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3796,6 +3984,7 @@
     },
     {
       "name": "Кремниевая пластина",
+      "id": "silicon_wafer",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3819,6 +4008,7 @@
     },
     {
       "name": "Текстолит",
+      "id": "textolite",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3844,6 +4034,7 @@
     },
     {
       "name": "Чистая мастерская",
+      "id": "clean_workshop",
       "level": 8,
       "section": "electronics",
       "kind": "station",
@@ -3875,6 +4066,7 @@
     },
     {
       "name": "Печатная плата",
+      "id": "circuit_board",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3900,6 +4092,7 @@
     },
     {
       "name": "Микросхема",
+      "id": "microchip",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3927,6 +4120,7 @@
     },
     {
       "name": "Датчик",
+      "id": "sensor",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3954,6 +4148,7 @@
     },
     {
       "name": "Процессорный блок",
+      "id": "processor_unit",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -3983,6 +4178,7 @@
     },
     {
       "name": "Электросхема",
+      "id": "electric_circuit",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -4008,6 +4204,7 @@
     },
     {
       "name": "Болванка рецепта",
+      "id": "recipe_blank",
       "level": 8,
       "section": "electronics",
       "kind": "material",
@@ -4033,6 +4230,7 @@
     },
     {
       "name": "Рецепт",
+      "id": "recorded_recipe",
       "level": 8,
       "section": "electronics",
       "kind": "gear",
@@ -4056,6 +4254,7 @@
     },
     {
       "name": "Био-камера",
+      "id": "bio_chamber",
       "level": 9,
       "section": null,
       "kind": "material",
@@ -4083,6 +4282,7 @@
     },
     {
       "name": "Питающий контур",
+      "id": "feed_circuit",
       "level": 9,
       "section": null,
       "kind": "material",
@@ -4110,6 +4310,7 @@
     },
     {
       "name": "Биопринтер",
+      "id": "bioprinter",
       "level": 9,
       "section": null,
       "kind": "station",
@@ -4139,6 +4340,7 @@
     },
     {
       "name": "Колесо",
+      "id": "wheel",
       "level": 10,
       "section": null,
       "kind": "material",
@@ -4164,6 +4366,7 @@
     },
     {
       "name": "Повозка",
+      "id": "cart",
       "level": 10,
       "section": null,
       "kind": "vehicle",
@@ -4191,6 +4394,7 @@
     },
     {
       "name": "Бродильный чан",
+      "id": "fermentation_vat",
       "level": 11,
       "section": "fuel",
       "kind": "station",
@@ -4218,6 +4422,7 @@
     },
     {
       "name": "Спирт",
+      "id": "alcohol",
       "level": 11,
       "section": "fuel",
       "kind": "material",
@@ -4243,6 +4448,7 @@
     },
     {
       "name": "Электролизёр",
+      "id": "electrolyzer",
       "level": 11,
       "section": "fuel",
       "kind": "station",
@@ -4270,6 +4476,7 @@
     },
     {
       "name": "Кислород",
+      "id": "oxygen",
       "level": 11,
       "section": "fuel",
       "kind": "material",
@@ -4295,6 +4502,7 @@
     },
     {
       "name": "Окислитель",
+      "id": "oxidizer",
       "level": 11,
       "section": "fuel",
       "kind": "material",
@@ -4320,6 +4528,7 @@
     },
     {
       "name": "Ракетное топливо",
+      "id": "rocket_fuel",
       "level": 11,
       "section": "fuel",
       "kind": "consumable",
@@ -4345,6 +4554,7 @@
     },
     {
       "name": "Топливный бак",
+      "id": "fuel_tank",
       "level": 11,
       "section": "fuel",
       "kind": "furniture",
@@ -4372,6 +4582,7 @@
     },
     {
       "name": "Кислородный баллон",
+      "id": "oxygen_tank",
       "level": 11,
       "section": "fuel",
       "kind": "tool",
@@ -4399,6 +4610,7 @@
     },
     {
       "name": "Обшивка",
+      "id": "plating",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4424,6 +4636,7 @@
     },
     {
       "name": "Теплозащитные плиты",
+      "id": "heat_shield_tiles",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4449,6 +4662,7 @@
     },
     {
       "name": "Пироксисовая плита",
+      "id": "pyroxite_slab",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4474,6 +4688,7 @@
     },
     {
       "name": "Баллон высокого давления",
+      "id": "high_pressure_tank",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4499,6 +4714,7 @@
     },
     {
       "name": "Камера сгорания",
+      "id": "combustion_chamber",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4526,6 +4742,7 @@
     },
     {
       "name": "Насос",
+      "id": "pump",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4553,6 +4770,7 @@
     },
     {
       "name": "Двигатель I класса",
+      "id": "engine_class_1",
       "level": 11,
       "section": "hull",
       "kind": "station",
@@ -4582,6 +4800,7 @@
     },
     {
       "name": "Корпус",
+      "id": "hull",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4609,6 +4828,7 @@
     },
     {
       "name": "Корпус на пироксите",
+      "id": "pyroxite_hull",
       "level": 11,
       "section": "hull",
       "kind": "material",
@@ -4636,6 +4856,7 @@
     },
     {
       "name": "Консоль управления кораблём",
+      "id": "ship_console",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4663,6 +4884,7 @@
     },
     {
       "name": "Система жизнеобеспечения",
+      "id": "life_support_system",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4692,6 +4914,7 @@
     },
     {
       "name": "Наземная консоль управления",
+      "id": "ground_console",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4721,6 +4944,7 @@
     },
     {
       "name": "Жаростойкий скафандр",
+      "id": "heatproof_suit",
       "level": 11,
       "section": "assembly",
       "kind": "gear",
@@ -4750,6 +4974,7 @@
     },
     {
       "name": "Скафандр на пироксите",
+      "id": "pyroxite_suit",
       "level": 11,
       "section": "assembly",
       "kind": "gear",
@@ -4779,6 +5004,7 @@
     },
     {
       "name": "Гидропонная установка",
+      "id": "hydroponic_unit",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4810,6 +5036,7 @@
     },
     {
       "name": "Космическая мастерская",
+      "id": "space_workshop",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4839,6 +5066,7 @@
     },
     {
       "name": "Космическая верфь",
+      "id": "space_shipyard",
       "level": 11,
       "section": "assembly",
       "kind": "station",
@@ -4868,6 +5096,7 @@
     },
     {
       "name": "Основа узла корабля",
+      "id": "ship_node_foundation",
       "level": 11,
       "section": "assembly",
       "kind": "consumable",

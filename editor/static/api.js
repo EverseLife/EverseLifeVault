@@ -40,7 +40,7 @@ export const api = {
   removeMaterial: (name) => req('DELETE', '/api/material', { name }),
   // Класс правится с двух сторон: со стороны класса — его состав, со стороны
   // вещи — какой класс она носит. Файл один и тот же, вопрос разный.
-  putClass: (name, members, note) => req('PUT', '/api/class', { name }, { members, note }),
+  putClass: (name, members, note, id) => req('PUT', '/api/class', { name }, { members, note, id }),
   dropClass: (name) => req('DELETE', '/api/class', { name }),
   classesOf: (name, classes) => req('PUT', '/api/classes', { name }, { classes }),
   // Типы зданий (D-218): живут в data/constants.yaml, а не в рецептах, но

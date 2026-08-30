@@ -343,21 +343,26 @@ def put_class(session: Session, query: dict, body: dict) -> dict:
     """
     name = _need(query, "name").strip()
     note = str(body.get("note") or "").strip()
+    entry_id = str(body.get("id") or "").strip()
     members = [str(item).strip() for item in (body.get("members") or []) if str(item).strip()]
     with session.lock:
         file, ladder = session.open()
         original = name if name in ladder.class_notes else None
-        model.validate_class(name, members, ladder, original=original)
+        model.validate_class(name, members, ladder, original=original, entry_id=entry_id)
 
         expect = copy.deepcopy(file.doc)
         lines = list(file.lines)
         if original is None:
-            declaration = {"name": name, **({"note": note} if note else {})}
+            declaration = {
+                "name": name,
+                "id": entry_id,
+                **({"note": note} if note else {}),
+            }
             expect["meta"].setdefault("classes", []).append(declaration)
             step = vault.RecipesFile(
                 session.source, text="\n".join(lines), newline=file.newline
             )
-            lines = step.insert_meta_entry("classes", declaration, ("name", "note"))
+            lines = step.insert_meta_entry("classes", declaration, ("name", "id", "note"))
 
         was = set(ladder.classes.get(name, ()))
         for member in sorted(was - set(members)):

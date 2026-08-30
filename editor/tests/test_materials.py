@@ -36,6 +36,7 @@ def rows_of(path: Path) -> list[dict]:
 
 DIAMOND = {
     "name": "Алмаз",
+    "id": "diamond",
     "class": "Ископаемое",
     "mass": 0.5,
     "bulk": True,

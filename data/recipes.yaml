@@ -16,6 +16,13 @@
 #
 # Формат записи:
 #   name      — название предмета
+#   id        — устойчивый ключ (D-251): английский snake_case, идентичность
+#               вещи в коде, базе и проводе. Название — язык вольта и игрока,
+#               ключ — язык машины; переводы висят на ключе. Обязателен у
+#               каждого рецепта, материала, операции и класса; уникален в
+#               своём пространстве (товары, классы, операции — раздельно).
+#               Малые словари (слоты, тиры, типы зданий, свойства узлов) —
+#               в data/vocabulary.yaml
 #   inputs    — из чего делается
 #   station   — на чём делается
 #   class     — класс вещи (D-215): обобщение прежних tool_classes. Поведение
@@ -80,63 +87,63 @@ meta:
   classes:
     # Инструментальные (бывшие tool_classes): требование операции
     # закрывается любым членом класса
-    - {name: Кирка, note: "поведение: инструмент забоя — без него добычи нет"}
-    - {name: Топор, note: "поведение: инструмент рубки"}
-    - {name: Утварь, note: "поведение: посуда — готовка идёт с нею"}
+    - {name: Кирка, id: pickaxe, note: "поведение: инструмент забоя — без него добычи нет"}
+    - {name: Топор, id: axe, note: "поведение: инструмент рубки"}
+    - {name: Утварь, id: cookware, note: "поведение: посуда — готовка идёт с нею"}
     # Сырьё
-    - {name: Ископаемое, note: "поведение: лежит жилой, входит в «Добычу», разведка взвешивает темпом"}
-    - {name: Растительное, note: ярлык}
-    - {name: Животное, note: ярлык}
-    - {name: Минерал, note: "ярлык: берётся с поверхности либо дробится"}
-    - {name: Металл, note: "ярлык: продукт плавки"}
-    - {name: Жидкость, note: ярлык}
-    - {name: Отходы, note: ярлык}
+    - {name: Ископаемое, id: minable, note: "поведение: лежит жилой, входит в «Добычу», разведка взвешивает темпом"}
+    - {name: Растительное, id: flora, note: ярлык}
+    - {name: Животное, id: fauna, note: ярлык}
+    - {name: Минерал, id: mineral, note: "ярлык: берётся с поверхности либо дробится"}
+    - {name: Металл, id: metal, note: "ярлык: продукт плавки"}
+    - {name: Жидкость, id: liquid, note: ярлык}
+    - {name: Отходы, id: waste, note: ярлык}
     # Станции и мебель с собственным поведением
-    - {name: Кровать, note: "поведение: гибернация (D-091)"}
-    - {name: Аккумулятор, note: "поведение: заряд и перенос энергии (D-071, D-179)"}
-    - {name: Скафандр, note: "поведение: без него на безвоздушном узле не дышат из баллона и не выходят с борта (D-233, D-234)"}
-    - {name: Гидропоника, note: "поведение: даёт делянку в узле борта (D-234)"}
-    - {name: Биопринтер, note: "поведение: печать тела, дверь города (D-032)"}
-    - {name: Библиотека, note: "поведение: хранит носители, учит рецептам (D-068)"}
-    - {name: Каторга, note: "поведение: узел-тюрьма (D-174)"}
-    - {name: Администрация, note: "поведение: присутственная власть (D-155)"}
-    - {name: Терминал, note: "поведение: стакан узла (D-003)"}
-    - {name: Верфь, note: "поведение: космодром — стыковка и закладка корабля (D-202)"}
-    - {name: Ветряк, note: "поведение: выработка от погоды (D-082)"}
-    - {name: Водяное колесо, note: "поведение: выработка у реки (D-082)"}
-    - {name: Топливная станция, note: "поведение: жжёт привезённое с теплотворностью fuel (D-085)"}
-    - {name: Буровая, note: "поведение: добыча временем без игрока (D-115)"}
-    - {name: Питомник, note: "поведение: скрещивание сортов (D-057)"}
-    - {name: Жизнеобеспечение, note: "поведение: вместимость экипажа корабля (D-202)"}
-    - {name: Рубка, note: "поведение: консоль управления кораблём — отстыковка и рейс отсюда, окно только на борту (D-230)"}
-    - {name: Наземная рубка, note: "поведение: те же приказы своим кораблям с земли; корпус должен нести «Рубку», чтобы приказ было чем принять (D-242)"}
-    - {name: Топливный бак, note: "поведение: из него корабль жжёт топливо; принимает только жидкости (D-230)"}
-    - {name: Ёмкость, note: "поведение: переносная тара — жидкость носят только в ней (D-230)"}
-    - {name: Автомат, note: "поведение: автоматическая станция — быстрее, без инструмента, за энергию (D-035)"}
+    - {name: Кровать, id: bed, note: "поведение: гибернация (D-091)"}
+    - {name: Аккумулятор, id: battery, note: "поведение: заряд и перенос энергии (D-071, D-179)"}
+    - {name: Скафандр, id: spacesuit, note: "поведение: без него на безвоздушном узле не дышат из баллона и не выходят с борта (D-233, D-234)"}
+    - {name: Гидропоника, id: hydroponics, note: "поведение: даёт делянку в узле борта (D-234)"}
+    - {name: Биопринтер, id: bioprinter, note: "поведение: печать тела, дверь города (D-032)"}
+    - {name: Библиотека, id: library, note: "поведение: хранит носители, учит рецептам (D-068)"}
+    - {name: Каторга, id: prison, note: "поведение: узел-тюрьма (D-174)"}
+    - {name: Администрация, id: administration, note: "поведение: присутственная власть (D-155)"}
+    - {name: Терминал, id: terminal, note: "поведение: стакан узла (D-003)"}
+    - {name: Верфь, id: shipyard, note: "поведение: космодром — стыковка и закладка корабля (D-202)"}
+    - {name: Ветряк, id: windmill, note: "поведение: выработка от погоды (D-082)"}
+    - {name: Водяное колесо, id: water_wheel, note: "поведение: выработка у реки (D-082)"}
+    - {name: Топливная станция, id: fuel_plant, note: "поведение: жжёт привезённое с теплотворностью fuel (D-085)"}
+    - {name: Буровая, id: rig, note: "поведение: добыча временем без игрока (D-115)"}
+    - {name: Питомник, id: nursery, note: "поведение: скрещивание сортов (D-057)"}
+    - {name: Жизнеобеспечение, id: life_support, note: "поведение: вместимость экипажа корабля (D-202)"}
+    - {name: Рубка, id: bridge, note: "поведение: консоль управления кораблём — отстыковка и рейс отсюда, окно только на борту (D-230)"}
+    - {name: Наземная рубка, id: ground_bridge, note: "поведение: те же приказы своим кораблям с земли; корпус должен нести «Рубку», чтобы приказ было чем принять (D-242)"}
+    - {name: Топливный бак, id: fuel_tank, note: "поведение: из него корабль жжёт топливо; принимает только жидкости (D-230)"}
+    - {name: Ёмкость, id: vessel, note: "поведение: переносная тара — жидкость носят только в ней (D-230)"}
+    - {name: Автомат, id: automaton, note: "поведение: автоматическая станция — быстрее, без инструмента, за энергию (D-035)"}
     # Тепло и мерзлота (D-231): узел либо тёплый, либо холодный. Пула просит
     # только ТЭЦ и обогреватель; жаровня жжёт своё и потому работает в мороз
-    - {name: ТЭЦ, note: "поведение: греет свой узел и соседние за энергию городского пула (D-231)"}
-    - {name: Обогреватель, note: "поведение: греет свой узел за энергию городского пула (D-231)"}
-    - {name: Жаровня, note: "поведение: греет свой узел, жжёт топливо напрямую, без пула (D-231)"}
-    - {name: Утеплённый костюм, note: "поведение: множит теплозапас тела (D-231)"}
-    - {name: Грелка, note: "поведение: разово добавляет часы теплозапаса (D-231)"}
+    - {name: ТЭЦ, id: heat_plant, note: "поведение: греет свой узел и соседние за энергию городского пула (D-231)"}
+    - {name: Обогреватель, id: heater, note: "поведение: греет свой узел за энергию городского пула (D-231)"}
+    - {name: Жаровня, id: brazier, note: "поведение: греет свой узел, жжёт топливо напрямую, без пула (D-231)"}
+    - {name: Утеплённый костюм, id: insulated_suit, note: "поведение: множит теплозапас тела (D-231)"}
+    - {name: Грелка, id: warmer, note: "поведение: разово добавляет часы теплозапаса (D-231)"}
     # Реликвии Предтеч (D-232): их нашли, а не собрали. Класс даёт поведение,
     # `relic` — то, что вещь не снимается и не разбирается никогда
-    - {name: Реактор Предтеч, note: "поведение: тепло распада → энергия города без топлива и людей; выход гаснет за год (D-232)"}
+    - {name: Реактор Предтеч, id: precursor_reactor, note: "поведение: тепло распада → энергия города без топлива и людей; выход гаснет за год (D-232)"}
     # Классы для клиента (D-223): у станции со своим окном — кухня, чеканка —
     # окно открывается по классу, а не по имени станции
-    - {name: Кухня, note: "поведение: котёл по ролям (D-119); окно кухни у клиента"}
-    - {name: Монетный двор, note: "поведение: чеканка монеты (D-086); окно чеканки у клиента"}
+    - {name: Кухня, id: kitchen, note: "поведение: котёл по ролям (D-119); окно кухни у клиента"}
+    - {name: Монетный двор, id: mint, note: "поведение: чеканка монеты (D-086); окно чеканки у клиента"}
     # Расходники и материалы с собственным поведением
-    - {name: Крепь, note: "поведение: держит свод забоя (D-143)"}
-    - {name: Корабельное топливо, note: "поведение: списывается рейсом (D-202)"}
-    - {name: Основа корабля, note: "поведение: закладывает узел борта (D-202)"}
-    - {name: Полотно, note: "поведение: укладка дороги (D-158)"}
-    - {name: Носитель, note: "поведение: предмет с записанным рецептом (D-209)"}
-    - {name: Болванка, note: "поведение: то, чем становится стёртый носитель (D-209)"}
+    - {name: Крепь, id: mine_support, note: "поведение: держит свод забоя (D-143)"}
+    - {name: Корабельное топливо, id: ship_fuel, note: "поведение: списывается рейсом (D-202)"}
+    - {name: Основа корабля, id: ship_foundation, note: "поведение: закладывает узел борта (D-202)"}
+    - {name: Полотно, id: roadbed, note: "поведение: укладка дороги (D-158)"}
+    - {name: Носитель, id: carrier, note: "поведение: предмет с записанным рецептом (D-209)"}
+    - {name: Болванка, id: blank, note: "поведение: то, чем становится стёртый носитель (D-209)"}
     # Транспорт: таблицы transport.speed_k и transport.capacity ключуются классом
-    - {name: Тачка, note: "поведение: лёгкий транспорт"}
-    - {name: Повозка, note: "поведение: тяжёлый транспорт"}
+    - {name: Тачка, id: wheelbarrow, note: "поведение: лёгкий транспорт"}
+    - {name: Повозка, id: cart, note: "поведение: тяжёлый транспорт"}
 
   # Реестр материалов (D-215): всё, что не делается рецептом, — сырьё мира и
   # продукты операций. Одна строка на вещь; заведённая здесь строка — это всё,
@@ -170,72 +177,72 @@ meta:
     # делают, их находят. `relic` — не снимается, не разбирается, не
     # поднимается с земли; масса стоит здесь ради полноты реестра, а не ради
     # переноски. Класс даёт поведение: ТЭЦ греет, верфь стыкует, реактор кормит
-    - {name: ТЭЦ Предтеч, class: ТЭЦ, relic: true, mass: 4000}
-    - {name: Изотопный реактор Предтеч, class: Реактор Предтеч, relic: true, mass: 12000}
-    - {name: Верфь Предтеч, class: Верфь, relic: true, mass: 20000}
+    - {name: ТЭЦ Предтеч, id: precursor_heat_plant, class: ТЭЦ, relic: true, mass: 4000}
+    - {name: Изотопный реактор Предтеч, id: precursor_isotope_reactor, class: Реактор Предтеч, relic: true, mass: 12000}
+    - {name: Верфь Предтеч, id: precursor_shipyard, class: Верфь, relic: true, mass: 20000}
     # Оригинал (D-028): вечный, бесплатный, безлимитный, стоит в столице Терры.
     # Второго такого не будет — рецепта у него нет и быть не может
-    - {name: Биопринтер Предтеч, class: Биопринтер, relic: true, mass: 8000}
+    - {name: Биопринтер Предтеч, id: precursor_bioprinter, class: Биопринтер, relic: true, mass: 8000}
     # Порода, а не «руда вообще» (D-151): медный узел и железный — разные
     # места с разной ценностью, и за них по-разному дерутся. Железо — якорь
     # (mining.iron_per_hour), остальные реже: темп добычи и есть
     # относительная редкость металла
-    - {name: Железная руда, class: Ископаемое, mass: 0.2, bulk: true, rate: 60}
-    - {name: Медная руда, class: Ископаемое, mass: 0.22, bulk: true, rate: 45}
-    - {name: Оловянная руда, class: Ископаемое, mass: 0.2, bulk: true, rate: 30}
-    - {name: Свинцовая руда, class: Ископаемое, mass: 0.28, bulk: true, rate: 40}
-    - {name: Уголь, class: Ископаемое, mass: 0.16, bulk: true, rate: 60, fuel: 50}
-    - {name: Камень, class: Ископаемое, mass: 0.1, bulk: true, rate: 80, forage: {finds: 14, handful: 3}}
-    - {name: Вольфрам, class: Ископаемое, mass: 0.02, bulk: true, rate: 6}
-    - {name: Никель, class: Ископаемое, mass: 0.44, bulk: true, rate: 10}
-    - {name: Золотоносная порода, class: Ископаемое, mass: 0.5, bulk: true, rate: 4}
-    - {name: Серебряная порода, class: Ископаемое, mass: 0.46, bulk: true, rate: 12}
+    - {name: Железная руда, id: iron_ore, class: Ископаемое, mass: 0.2, bulk: true, rate: 60}
+    - {name: Медная руда, id: copper_ore, class: Ископаемое, mass: 0.22, bulk: true, rate: 45}
+    - {name: Оловянная руда, id: tin_ore, class: Ископаемое, mass: 0.2, bulk: true, rate: 30}
+    - {name: Свинцовая руда, id: lead_ore, class: Ископаемое, mass: 0.28, bulk: true, rate: 40}
+    - {name: Уголь, id: coal, class: Ископаемое, mass: 0.16, bulk: true, rate: 60, fuel: 50}
+    - {name: Камень, id: stone, class: Ископаемое, mass: 0.1, bulk: true, rate: 80, forage: {finds: 14, handful: 3}}
+    - {name: Вольфрам, id: tungsten, class: Ископаемое, mass: 0.02, bulk: true, rate: 6}
+    - {name: Никель, id: nickel, class: Ископаемое, mass: 0.44, bulk: true, rate: 10}
+    - {name: Золотоносная порода, id: gold_ore, class: Ископаемое, mass: 0.5, bulk: true, rate: 4}
+    - {name: Серебряная порода, id: silver_ore, class: Ископаемое, mass: 0.46, bulk: true, rate: 12}
     # Пироксит (D-054, D-233): на Терре его нет вовсе, на Пироксисе — в
     # изобилии. Минерал, рождённый лавой и лаву переживающий: из него
     # теплозащита легче глиняной и тигель, который держит температуру,
     # непосильную обычной печи. Темп добычи высокий — редким его делает не
     # порода, а дорога до неё
-    - {name: Пироксит, class: Ископаемое, mass: 0.12, bulk: true, rate: 50}
+    - {name: Пироксит, id: pyroxite, class: Ископаемое, mass: 0.12, bulk: true, rate: 50}
     # Поверхность и земля. Лён — сырьё для волокна (D-196): его находят
     # собирательством и растят на делянке; само волокно вьют руками
-    - {name: Лён, class: Растительное, mass: 0.02, bulk: true, rate: 30, forage: {finds: 10, handful: 3}}
-    - {name: Дерево, class: Растительное, mass: 0.6, rate: 40, forage: {finds: 12, handful: 2}}
-    - {name: Смола, class: Растительное, mass: 0.002, bulk: true, rate: 12, forage: {finds: 2, handful: 1}}
-    - {name: Целебные травы, class: Растительное, mass: 0.02, bulk: true, edible: true, rate: 8, forage: {finds: 2, handful: 1}}
-    - {name: Глина, class: Минерал, mass: 0.3, bulk: true, rate: 70, forage: {finds: 6, handful: 2}}
-    - {name: Песок, class: Минерал, mass: 0.3, bulk: true, rate: 90, forage: {finds: 6, handful: 2}}
-    - {name: Кварцевый песок, class: Минерал, mass: 0.3, bulk: true, rate: 50}
-    - {name: Известняк, class: Минерал, mass: 0.4, bulk: true, rate: 70}
-    - {name: Соль, class: Минерал, mass: 0.2, bulk: true, edible: true, rate: 30}
-    - {name: Сера, class: Минерал, mass: 0.2, bulk: true, rate: 20}
-    - {name: Селитра, class: Минерал, mass: 0.2, bulk: true, rate: 15}
-    - {name: Вода, class: Жидкость, mass: 0.2, bulk: true, liquid: true, edible: true, rate: 200}
+    - {name: Лён, id: flax, class: Растительное, mass: 0.02, bulk: true, rate: 30, forage: {finds: 10, handful: 3}}
+    - {name: Дерево, id: wood, class: Растительное, mass: 0.6, rate: 40, forage: {finds: 12, handful: 2}}
+    - {name: Смола, id: resin, class: Растительное, mass: 0.002, bulk: true, rate: 12, forage: {finds: 2, handful: 1}}
+    - {name: Целебные травы, id: healing_herbs, class: Растительное, mass: 0.02, bulk: true, edible: true, rate: 8, forage: {finds: 2, handful: 1}}
+    - {name: Глина, id: clay, class: Минерал, mass: 0.3, bulk: true, rate: 70, forage: {finds: 6, handful: 2}}
+    - {name: Песок, id: sand, class: Минерал, mass: 0.3, bulk: true, rate: 90, forage: {finds: 6, handful: 2}}
+    - {name: Кварцевый песок, id: quartz_sand, class: Минерал, mass: 0.3, bulk: true, rate: 50}
+    - {name: Известняк, id: limestone, class: Минерал, mass: 0.4, bulk: true, rate: 70}
+    - {name: Соль, id: salt, class: Минерал, mass: 0.2, bulk: true, edible: true, rate: 30}
+    - {name: Сера, id: sulfur, class: Минерал, mass: 0.2, bulk: true, rate: 20}
+    - {name: Селитра, id: saltpeter, class: Минерал, mass: 0.2, bulk: true, rate: 15}
+    - {name: Вода, id: water, class: Жидкость, mass: 0.2, bulk: true, liquid: true, edible: true, rate: 200}
     # Делянка и двор
-    - {name: Зерно, class: Растительное, mass: 0.14, bulk: true, edible: true, rate: 25}
-    - {name: Солома, class: Растительное, mass: 0.02, bulk: true, rate: 40}
-    - {name: Овощи, class: Растительное, mass: 0.16, bulk: true, edible: true, rate: 30}
-    - {name: Бобы, class: Растительное, mass: 0.14, bulk: true, edible: true, rate: 22}
-    - {name: Масличные семена, class: Растительное, mass: 0.1, bulk: true, rate: 18}
-    - {name: Сахарный стебель, class: Растительное, mass: 0.2, bulk: true, rate: 20}
-    - {name: Сено, class: Растительное, mass: 0.04, bulk: true, rate: 35}
-    - {name: Мясо, class: Животное, mass: 0.2, bulk: true, edible: true, rate: 10}
-    - {name: Органические отходы, class: Отходы, mass: 0.1, bulk: true, rate: 60}
+    - {name: Зерно, id: grain, class: Растительное, mass: 0.14, bulk: true, edible: true, rate: 25}
+    - {name: Солома, id: straw, class: Растительное, mass: 0.02, bulk: true, rate: 40}
+    - {name: Овощи, id: vegetables, class: Растительное, mass: 0.16, bulk: true, edible: true, rate: 30}
+    - {name: Бобы, id: beans, class: Растительное, mass: 0.14, bulk: true, edible: true, rate: 22}
+    - {name: Масличные семена, id: oil_seeds, class: Растительное, mass: 0.1, bulk: true, rate: 18}
+    - {name: Сахарный стебель, id: sugar_cane, class: Растительное, mass: 0.2, bulk: true, rate: 20}
+    - {name: Сено, id: hay, class: Растительное, mass: 0.04, bulk: true, rate: 35}
+    - {name: Мясо, id: meat, class: Животное, mass: 0.2, bulk: true, edible: true, rate: 10}
+    - {name: Органические отходы, id: organic_waste, class: Отходы, mass: 0.1, bulk: true, rate: 60}
     # Продукты операций: их массу тоже задают руками — операция берёт материю
     # из мира либо дробит её, и выводить вес не из чего
-    - {name: Щебень, class: Минерал, mass: 0.4, bulk: true, rate: 70}
-    - {name: Крошка, class: Минерал, mass: 0.4, bulk: true, rate: 70}
+    - {name: Щебень, id: crushed_stone, class: Минерал, mass: 0.4, bulk: true, rate: 70}
+    - {name: Крошка, id: stone_chips, class: Минерал, mass: 0.4, bulk: true, rate: 70}
     # Металлы идут в темпе станции, а не в темпе добычи (D-141). Гряда
     # 10/8/7/7 сохраняет прежний порядок — железо легче, олово и свинец
     # тяжелее, — но опущена втрое: печь работает не быстрее верстака
-    - {name: Слиток железа, class: Металл, mass: 1.0, rate: 10}
-    - {name: Медный слиток, class: Металл, mass: 1.0, rate: 8}
-    - {name: Олово, class: Металл, mass: 1.0, rate: 7}
-    - {name: Свинец, class: Металл, mass: 1.2, rate: 7}
+    - {name: Слиток железа, id: iron_ingot, class: Металл, mass: 1.0, rate: 10}
+    - {name: Медный слиток, id: copper_ingot, class: Металл, mass: 1.0, rate: 8}
+    - {name: Олово, id: tin, class: Металл, mass: 1.0, rate: 7}
+    - {name: Свинец, id: lead, class: Металл, mass: 1.2, rate: 7}
     # Энергия невесома по определению: она либо в пуле, либо в аккумуляторе,
     # и вес есть у аккумулятора, а не у заряда (D-071)
-    - {name: Энергия, mass: 0, rate: 200}
+    - {name: Энергия, id: energy, mass: 0, rate: 200}
     # «Жила» — не предмет, а требование механики добычи
-    - {name: Жила, mass: 0}
+    - {name: Жила, id: vein, mass: 0}
 
   # Единица измерения — то, что дорисовывается рядом с числом: «5 шт», «3 м».
   # Ни на что в движке не влияет: дробное количество или целое решает `bulk`,
@@ -287,13 +294,13 @@ operations:
   # древесина в мире считается одной вещью. Ранняя древесина по-прежнему не
   # требует стального инструмента, иначе лестница не проходится с нуля (D-084)
   # place — свойство узла, где операция возможна (D-177): рубят там, где лес
-  - {name: Рубка дерева, requires: [Топор], gives: [Дерево], consumes: [], place: лес}
+  - {name: Рубка дерева, id: logging, requires: [Топор], gives: [Дерево], consumes: [], place: лес}
   # Выходы — весь класс «Ископаемое» (D-186, D-215): сборка разворачивает
   # класс в перечень, и новая порода из реестра материалов добывается сразу.
   # Редкость задаёт темп rate, а не отсутствие в списке: золото добывается
   # медленнее всех и находится реже
-  - {name: Добыча, requires: [Кирка, Жила], gives: {class: Ископаемое}, consumes: []}
-  - {name: Дробление, requires: [Молот], gives: [Щебень, Крошка], consumes: [Камень]}
+  - {name: Добыча, id: mining, requires: [Кирка, Жила], gives: {class: Ископаемое}, consumes: []}
+  - {name: Дробление, id: crushing, requires: [Молот], gives: [Щебень, Крошка], consumes: [Камень]}
   # Уголь здесь топливо и потому расходуется, а не «требуется»: печь остаётся,
   # уголь сгорает. Вес 0.8/0.2: топливо не стоит половины плавки, иначе руды
   # и угля уходит поровну и передел перестаёт читаться как обогащение (D-141).
@@ -302,13 +309,13 @@ operations:
   # вообще» в мире нет. Одна операция на четыре выхода означала бы, что в
   # каждый металл идут все четыре породы разом. Обжига среди операций больше
   # нет (D-223): кирпич и известь делаются рецептом на той же печи
-  - {name: Плавка железа, requires: [Печь], gives: [Слиток железа],
+  - {name: Плавка железа, id: iron_smelting, requires: [Печь], gives: [Слиток железа],
      consumes: [Железная руда, Уголь], weights: {Железная руда: 0.8, Уголь: 0.2}}
-  - {name: Плавка меди, requires: [Печь], gives: [Медный слиток],
+  - {name: Плавка меди, id: copper_smelting, requires: [Печь], gives: [Медный слиток],
      consumes: [Медная руда, Уголь], weights: {Медная руда: 0.8, Уголь: 0.2}}
-  - {name: Плавка олова, requires: [Печь], gives: [Олово],
+  - {name: Плавка олова, id: tin_smelting, requires: [Печь], gives: [Олово],
      consumes: [Оловянная руда, Уголь], weights: {Оловянная руда: 0.8, Уголь: 0.2}}
-  - {name: Плавка свинца, requires: [Печь], gives: [Свинец],
+  - {name: Плавка свинца, id: lead_smelting, requires: [Печь], gives: [Свинец],
      consumes: [Свинцовая руда, Уголь], weights: {Свинцовая руда: 0.8, Уголь: 0.2}}
 
 # Рабочие станции (D-223): у каждой `hours` и `amounts` заданы руками — станция
@@ -326,18 +333,18 @@ levels:
       # верстаке; сам верстак — единственная станция, собираемая без станции
       # Волокно вьют изо льна руками (D-196): без этого шага верёвка,
       # а с ней и первый топор, брались из ниоткуда
-      - {name: Волокно, kind: material, bulk: true, mass: 0.06, inputs: [Лён], station: Руками}
-      - {name: Верёвка, kind: material, bulk: true, inputs: [Волокно], station: Руками}
+      - {name: Волокно, id: fiber, kind: material, bulk: true, mass: 0.06, inputs: [Лён], station: Руками}
+      - {name: Верёвка, id: rope, kind: material, bulk: true, inputs: [Волокно], station: Руками}
       # Составы на одной станции не совпадают (D-209): изобретение узнаёт рецепт
       # по составу с количествами, и двух рецептов с одним составом быть не может.
       # Количества руками (D-223): вывод давал десять камней на топор —
       # артефакт потолка, а не замысел. Топор — два камня на рукояти,
       # кирка — три камня, и составы различимы
-      - {name: Каменный топор, kind: tool, class: Топор, mass: 0.6, inputs: [Камень, Дерево, Верёвка], amounts: {Камень: 2, Дерево: 1, Верёвка: 1}, station: Руками}
-      - {name: Каменная кирка, kind: tool, class: Кирка, mass: 1, inputs: [Камень, Дерево, Верёвка], amounts: {Камень: 3, Дерево: 1, Верёвка: 2}, station: Руками}
+      - {name: Каменный топор, id: stone_axe, kind: tool, class: Топор, mass: 0.6, inputs: [Камень, Дерево, Верёвка], amounts: {Камень: 2, Дерево: 1, Верёвка: 1}, station: Руками}
+      - {name: Каменная кирка, id: stone_pickaxe, kind: tool, class: Кирка, mass: 1, inputs: [Камень, Дерево, Верёвка], amounts: {Камень: 3, Дерево: 1, Верёвка: 2}, station: Руками}
       # Пять верёвок: корзина — час работы, а не полдня (D-215)
-      - {name: Корзина, kind: gear, slot: спина, mass: 0.3, inputs: [Верёвка], amounts: {Верёвка: 5}, station: Руками}
-      - {name: Глиняный горшок, kind: tool, class: Утварь, inputs: [Глина], station: Руками, note: утварь}
+      - {name: Корзина, id: basket, kind: gear, slot: спина, mass: 0.3, inputs: [Верёвка], amounts: {Верёвка: 5}, station: Руками}
+      - {name: Глиняный горшок, id: clay_pot, kind: tool, class: Утварь, inputs: [Глина], station: Руками, note: утварь}
 
   - id: 2
     title: Верстак и дерево
@@ -345,114 +352,114 @@ levels:
     recipes:
       # Верстак — начало лестницы рабочих станций: он один собирается руками,
       # а все прочие требуют верстака либо станции глубже (D-106)
-      - {name: Верстак, kind: station, hours: 0.033333, inputs: [Дерево, Верёвка], amounts: {Дерево: 8, Верёвка: 2}, station: Руками}
-      - {name: Плавильная печь, kind: station, hours: 2, inputs: [Камень, Глина], amounts: {Камень: 20, Глина: 10}, station: Верстак}
-      - {name: Очаг, kind: station, class: Кухня, hours: 1, inputs: [Камень, Глина], amounts: {Камень: 10, Глина: 5}, station: Верстак, note: готовка}
-      - {name: Рукоять, kind: material, inputs: [Дерево], amounts: {Дерево: 3}, station: Верстак}
-      - {name: Ткань, kind: material, bulk: true, inputs: [Волокно], station: Верстак}
-      - {name: Мешок, kind: gear, slot: спина, inputs: [Ткань, Верёвка], station: Верстак}
+      - {name: Верстак, id: workbench, kind: station, hours: 0.033333, inputs: [Дерево, Верёвка], amounts: {Дерево: 8, Верёвка: 2}, station: Руками}
+      - {name: Плавильная печь, id: smelting_furnace, kind: station, hours: 2, inputs: [Камень, Глина], amounts: {Камень: 20, Глина: 10}, station: Верстак}
+      - {name: Очаг, id: hearth, kind: station, class: Кухня, hours: 1, inputs: [Камень, Глина], amounts: {Камень: 10, Глина: 5}, station: Верстак, note: готовка}
+      - {name: Рукоять, id: handle, kind: material, inputs: [Дерево], amounts: {Дерево: 3}, station: Верстак}
+      - {name: Ткань, id: cloth, kind: material, bulk: true, inputs: [Волокно], station: Верстак}
+      - {name: Мешок, id: sack, kind: gear, slot: спина, inputs: [Ткань, Верёвка], station: Верстак}
       # Восемь тканей: рюкзак — пять часов труда, а не четырнадцать (D-215).
       # От «Мешка» (1+1) состав отличим
-      - {name: Простой рюкзак, kind: gear, slot: спина, mass: 0.4, inputs: [Ткань, Верёвка], amounts: {Ткань: 8, Верёвка: 4}, station: Верстак, note: носимое}
-      - {name: Шахтная крепь, kind: consumable, class: Крепь, key: true, inputs: [Дерево], amounts: {Дерево: 2}, station: Верстак}
+      - {name: Простой рюкзак, id: simple_backpack, kind: gear, slot: спина, mass: 0.4, inputs: [Ткань, Верёвка], amounts: {Ткань: 8, Верёвка: 4}, station: Верстак, note: носимое}
+      - {name: Шахтная крепь, id: shaft_support, kind: consumable, class: Крепь, key: true, inputs: [Дерево], amounts: {Дерево: 2}, station: Верстак}
       # Мороз (D-231): жаровня жжёт топливо напрямую и потому работает там, где
       # станция пула не работает, — первая искра мёртвого города и тепло лагеря
-      - {name: Жаровня, kind: station, class: Жаровня, hours: 1, inputs: [Камень, Глина], amounts: {Камень: 8, Глина: 4}, station: Верстак, note: тепло лагеря}
-      - {name: Утеплённый костюм, kind: gear, class: Утеплённый костюм, slot: тело, inputs: [Ткань, Волокно, Верёвка], amounts: {Ткань: 10, Волокно: 6, Верёвка: 2}, station: Верстак, note: носимое}
-      - {name: Тачка, kind: vehicle, class: Тачка, inputs: [Дерево, Верёвка], amounts: {Дерево: 14, Верёвка: 3}, station: Верстак}
+      - {name: Жаровня, id: brazier, kind: station, class: Жаровня, hours: 1, inputs: [Камень, Глина], amounts: {Камень: 8, Глина: 4}, station: Верстак, note: тепло лагеря}
+      - {name: Утеплённый костюм, id: insulated_suit, kind: gear, class: Утеплённый костюм, slot: тело, inputs: [Ткань, Волокно, Верёвка], amounts: {Ткань: 10, Волокно: 6, Верёвка: 2}, station: Верстак, note: носимое}
+      - {name: Тачка, id: wheelbarrow, kind: vehicle, class: Тачка, inputs: [Дерево, Верёвка], amounts: {Дерево: 14, Верёвка: 3}, station: Верстак}
       # Кровать и стеллаж — мебель, а не рабочие станции: на них не работают, они
       # обустраивают здание (гибернация, хранение)
-      - {name: Кровать, kind: furniture, class: Кровать, inputs: [Дерево, Ткань, Верёвка], amounts: {Дерево: 2, Ткань: 2, Верёвка: 1}, station: Верстак, note: гибернация}
+      - {name: Кровать, id: bed, kind: furniture, class: Кровать, inputs: [Дерево, Ткань, Верёвка], amounts: {Дерево: 2, Ткань: 2, Верёвка: 1}, station: Верстак, note: гибернация}
       # store — вместимость хранилища в килограммах (D-181). Ею мебель и
       # становится хранилищем: движок не знает имён, он читает поле
-      - {name: Стеллаж, kind: furniture, store: 120, inputs: [Дерево, Гвозди], station: Верстак, note: хранение}
-      - {name: Сундук, kind: furniture, store: 300, inputs: [Дерево, Гвозди, Верёвка], station: Верстак, note: хранение}
+      - {name: Стеллаж, id: rack, kind: furniture, store: 120, inputs: [Дерево, Гвозди], station: Верстак, note: хранение}
+      - {name: Сундук, id: chest, kind: furniture, store: 300, inputs: [Дерево, Гвозди, Верёвка], station: Верстак, note: хранение}
 
   - id: 3
     title: Кузница и металл
     short: кузница и металл
     recipes:
-      - {name: Кузница, kind: station, hours: 3, inputs: [Камень, Глина, Дерево], amounts: {Камень: 20, Глина: 10, Дерево: 6}, station: Верстак}
-      - {name: Меха, kind: material, inputs: [Ткань, Дерево, Гвозди], station: Верстак}
-      - {name: Сталь, kind: material, mix: true, inputs: [Слиток железа, Уголь, Известняк], station: Кузница}
+      - {name: Кузница, id: forge, kind: station, hours: 3, inputs: [Камень, Глина, Дерево], amounts: {Камень: 20, Глина: 10, Дерево: 6}, station: Верстак}
+      - {name: Меха, id: bellows, kind: material, inputs: [Ткань, Дерево, Гвозди], station: Верстак}
+      - {name: Сталь, id: steel, kind: material, mix: true, inputs: [Слиток железа, Уголь, Известняк], station: Кузница}
       # Бронза — спрос на олово (D-223): четвёртая порода D-151 до этого
       # плавилась и не шла никуда. Из бронзы котёл, привод и насос
-      - {name: Бронза, kind: material, mix: true, inputs: [Медный слиток, Олово], weights: {Медный слиток: 0.7, Олово: 0.3}, station: Кузница}
+      - {name: Бронза, id: bronze, kind: material, mix: true, inputs: [Медный слиток, Олово], weights: {Медный слиток: 0.7, Олово: 0.3}, station: Кузница}
       # Гвозди куют, а не строгают: металл формуется в кузнице. Скобы влиты
       # в гвозди (D-223): два крепежа из одного слитка отличались именем
-      - {name: Гвозди, kind: material, inputs: [Слиток железа], station: Кузница}
-      - {name: Железная кирка, kind: tool, class: Кирка, inputs: [Слиток железа, Рукоять], station: Кузница}
-      - {name: Стальная кирка, kind: tool, class: Кирка, inputs: [Сталь, Рукоять], amounts: {Сталь: 2, Рукоять: 1}, station: Кузница}
-      - {name: Топор, kind: tool, class: Топор, inputs: [Сталь, Рукоять], station: Кузница}
-      - {name: Молот, kind: tool, inputs: [Сталь, Рукоять], amounts: {Сталь: 3, Рукоять: 1}, station: Кузница}
-      - {name: Котёл, kind: tool, class: Утварь, inputs: [Бронза], station: Кузница, note: утварь}
-      - {name: Труба, kind: material, inputs: [Сталь], amounts: {Сталь: 2}, station: Кузница}
+      - {name: Гвозди, id: nails, kind: material, inputs: [Слиток железа], station: Кузница}
+      - {name: Железная кирка, id: iron_pickaxe, kind: tool, class: Кирка, inputs: [Слиток железа, Рукоять], station: Кузница}
+      - {name: Стальная кирка, id: steel_pickaxe, kind: tool, class: Кирка, inputs: [Сталь, Рукоять], amounts: {Сталь: 2, Рукоять: 1}, station: Кузница}
+      - {name: Топор, id: axe, kind: tool, class: Топор, inputs: [Сталь, Рукоять], station: Кузница}
+      - {name: Молот, id: hammer, kind: tool, inputs: [Сталь, Рукоять], amounts: {Сталь: 3, Рукоять: 1}, station: Кузница}
+      - {name: Котёл, id: cauldron, kind: tool, class: Утварь, inputs: [Бронза], station: Кузница, note: утварь}
+      - {name: Труба, id: pipe, kind: material, inputs: [Сталь], amounts: {Сталь: 2}, station: Кузница}
       # Разовые часы теплозапаса (D-231): то, с чем уходят в разведку
-      - {name: Грелка, kind: consumable, class: Грелка, inputs: [Сталь, Уголь], amounts: {Сталь: 1, Уголь: 6}, station: Кузница}
-      - {name: Стальная рама, kind: material, inputs: [Сталь], amounts: {Сталь: 3}, station: Кузница}
+      - {name: Грелка, id: warmer, kind: consumable, class: Грелка, inputs: [Сталь, Уголь], amounts: {Сталь: 1, Уголь: 6}, station: Кузница}
+      - {name: Стальная рама, id: steel_frame, kind: material, inputs: [Сталь], amounts: {Сталь: 3}, station: Кузница}
       # Тара для жидкостей (D-230): вода, спирт и топливо существуют только
       # в ней. Носится полной — содержимое считается в предел носимого
-      - {name: Канистра, kind: tool, class: Ёмкость, store: 20, holds: жидкость, hours: 1, inputs: [Сталь], amounts: {Сталь: 3}, station: Кузница}
+      - {name: Канистра, id: canister, kind: tool, class: Ёмкость, store: 20, holds: жидкость, hours: 1, inputs: [Сталь], amounts: {Сталь: 3}, station: Кузница}
 
   - id: 4
     title: Земледелие и еда
     short: земледелие и еда
     recipes:
-      - {name: Селекционный питомник, kind: station, class: Питомник, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 2}, station: Верстак}
-      - {name: Компост, kind: consumable, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
-      - {name: Минеральное удобрение, kind: consumable, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
-      - {name: Мельница, kind: station, hours: 4, inputs: [Камень, Дерево, Гвозди], amounts: {Камень: 20, Дерево: 10, Гвозди: 4}, station: Верстак}
-      - {name: Мука, kind: material, bulk: true, edible: true, inputs: [Зерно], station: Мельница}
-      - {name: Хлеб, kind: consumable, roles: true, food: true, mass: 0.5, inputs: [Мука, Вода], station: Очаг}
-      - {name: Солонина, kind: consumable, food: true, inputs: [Мясо, Соль], station: Верстак, highlight: [Соль]}
-      - {name: Сушёные овощи, kind: consumable, food: true, inputs: [Овощи], station: Очаг}
-      - {name: Масло, kind: material, bulk: true, edible: true, inputs: [Масличные семена], station: Верстак, note: отжим}
-      - {name: Сахар, kind: material, bulk: true, edible: true, inputs: [Сахарный стебель], station: Очаг}
-      - {name: Похлёбка, kind: consumable, roles: true, food: true, hot: true, mass: 0.6, inputs: [Бобы, Овощи, Вода], station: Очаг}
-      - {name: Жаркое, kind: consumable, roles: true, food: true, hot: true, mass: 0.6, inputs: [Мясо, Овощи, Масло], station: Очаг}
+      - {name: Селекционный питомник, id: breeding_nursery, kind: station, class: Питомник, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 2}, station: Верстак}
+      - {name: Компост, id: compost, kind: consumable, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
+      - {name: Минеральное удобрение, id: mineral_fertilizer, kind: consumable, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
+      - {name: Мельница, id: mill, kind: station, hours: 4, inputs: [Камень, Дерево, Гвозди], amounts: {Камень: 20, Дерево: 10, Гвозди: 4}, station: Верстак}
+      - {name: Мука, id: flour, kind: material, bulk: true, edible: true, inputs: [Зерно], station: Мельница}
+      - {name: Хлеб, id: bread, kind: consumable, roles: true, food: true, mass: 0.5, inputs: [Мука, Вода], station: Очаг}
+      - {name: Солонина, id: salted_meat, kind: consumable, food: true, inputs: [Мясо, Соль], station: Верстак, highlight: [Соль]}
+      - {name: Сушёные овощи, id: dried_vegetables, kind: consumable, food: true, inputs: [Овощи], station: Очаг}
+      - {name: Масло, id: oil, kind: material, bulk: true, edible: true, inputs: [Масличные семена], station: Верстак, note: отжим}
+      - {name: Сахар, id: sugar, kind: material, bulk: true, edible: true, inputs: [Сахарный стебель], station: Очаг}
+      - {name: Похлёбка, id: soup, kind: consumable, roles: true, food: true, hot: true, mass: 0.6, inputs: [Бобы, Овощи, Вода], station: Очаг}
+      - {name: Жаркое, id: roast, kind: consumable, roles: true, food: true, hot: true, mass: 0.6, inputs: [Мясо, Овощи, Масло], station: Очаг}
       # Медицина (D-096): отвар и бинт — всё, что есть. Настойка и походный
       # набор были их дублями и сняты (D-223)
-      - {name: Отвар, kind: consumable, mix: true, inputs: [Целебные травы, Вода], station: Очаг}
-      - {name: Бинт, kind: consumable, inputs: [Ткань], station: Верстак}
-      - {name: Лечебница, kind: station, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 6}, station: Верстак}
+      - {name: Отвар, id: decoction, kind: consumable, mix: true, inputs: [Целебные травы, Вода], station: Очаг}
+      - {name: Бинт, id: bandage, kind: consumable, inputs: [Ткань], station: Верстак}
+      - {name: Лечебница, id: infirmary, kind: station, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 6}, station: Верстак}
 
   - id: 5
     title: Энергия
     short: энергия
     recipes:
-      - {name: Водяное колесо, kind: station, class: Водяное колесо, hours: 4, inputs: [Дерево, Гвозди], amounts: {Дерево: 20, Гвозди: 6}, station: Верстак}
-      - {name: Ветряк, kind: station, class: Ветряк, hours: 5, inputs: [Дерево, Ткань, Гвозди], amounts: {Дерево: 20, Ткань: 8, Гвозди: 6}, station: Верстак}
-      - {name: Угольная станция, kind: station, class: Топливная станция, hours: 6, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 20, Сталь: 6, Труба: 4}, station: Мастерская}
+      - {name: Водяное колесо, id: water_wheel, kind: station, class: Водяное колесо, hours: 4, inputs: [Дерево, Гвозди], amounts: {Дерево: 20, Гвозди: 6}, station: Верстак}
+      - {name: Ветряк, id: windmill, kind: station, class: Ветряк, hours: 5, inputs: [Дерево, Ткань, Гвозди], amounts: {Дерево: 20, Ткань: 8, Гвозди: 6}, station: Верстак}
+      - {name: Угольная станция, id: coal_plant, kind: station, class: Топливная станция, hours: 6, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 20, Сталь: 6, Труба: 4}, station: Мастерская}
       # Тепло за энергию (D-231): ТЭЦ греет свой узел и соседние, обогреватель —
       # только свой. Обогретый узел ест из пула круглые сутки, и город на
       # мерзлоте платит за само своё существование
-      - {name: ТЭЦ, kind: station, class: ТЭЦ, hours: 8, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 30, Сталь: 8, Труба: 8}, station: Мастерская}
-      - {name: Обогреватель, kind: station, class: Обогреватель, hours: 3, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 8, Сталь: 3, Труба: 2}, station: Верстак}
-      - {name: Стекло, kind: material, mix: true, inputs: [Кварцевый песок, Уголь], station: Печь}
-      - {name: Серная кислота, kind: material, bulk: true, mix: true, inputs: [Сера, Вода], station: Печь, highlight: [Сера]}
+      - {name: ТЭЦ, id: heat_plant, kind: station, class: ТЭЦ, hours: 8, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 30, Сталь: 8, Труба: 8}, station: Мастерская}
+      - {name: Обогреватель, id: heater, kind: station, class: Обогреватель, hours: 3, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 8, Сталь: 3, Труба: 2}, station: Верстак}
+      - {name: Стекло, id: glass, kind: material, mix: true, inputs: [Кварцевый песок, Уголь], station: Печь}
+      - {name: Серная кислота, id: sulfuric_acid, kind: material, bulk: true, mix: true, inputs: [Сера, Вода], station: Печь, highlight: [Сера]}
       # Рабочая станция, а не носимое (D-179): аккумулятор ставится в здание и
       # заряжается там, где стоит. В руках он остаётся обычным предметом
       # со своей массой — энергию по-прежнему возят в нём (D-071).
       # Единственная станция без ручного масштаба: это прибор, а не стройка
-      - {name: Аккумулятор, kind: station, class: Аккумулятор, key: true, inputs: [Свинец, Серная кислота, Глиняный горшок], station: Верстак}
+      - {name: Аккумулятор, id: battery, kind: station, class: Аккумулятор, key: true, inputs: [Свинец, Серная кислота, Глиняный горшок], station: Верстак}
 
   - id: 6
     title: Строительство и город
     short: строительство и город
     recipes:
-      - {name: Кирпич, kind: material, inputs: [Глина], station: Печь}
-      - {name: Известь, kind: material, bulk: true, inputs: [Известняк], station: Печь}
-      - {name: Раствор, kind: material, bulk: true, mix: true, inputs: [Известь, Песок, Вода], station: Верстак}
-      - {name: Каменный блок, kind: material, inputs: [Камень], station: Кузница, note: обтёска}
-      - {name: Дорожное полотно, kind: consumable, class: Полотно, mix: true, inputs: [Щебень, Крошка], station: Верстак}
+      - {name: Кирпич, id: brick, kind: material, inputs: [Глина], station: Печь}
+      - {name: Известь, id: lime, kind: material, bulk: true, inputs: [Известняк], station: Печь}
+      - {name: Раствор, id: mortar, kind: material, bulk: true, mix: true, inputs: [Известь, Песок, Вода], station: Верстак}
+      - {name: Каменный блок, id: stone_block, kind: material, inputs: [Камень], station: Кузница, note: обтёска}
+      - {name: Дорожное полотно, id: road_paving, kind: consumable, class: Полотно, mix: true, inputs: [Щебень, Крошка], station: Верстак}
       # Мастерская собирается на верстаке: цех строят из сарая (D-216)
-      - {name: Мастерская, kind: station, hours: 8, inputs: [Кирпич, Дерево, Гвозди, Сталь], amounts: {Кирпич: 30, Дерево: 10, Гвозди: 10, Сталь: 4}, station: Верстак}
-      - {name: Терминал маркетплейса, kind: station, class: Терминал, hours: 3, inputs: [Дерево, Сталь], amounts: {Дерево: 6, Сталь: 2}, station: Верстак}
-      - {name: Администрация, kind: station, class: Администрация, hours: 10, inputs: [Кирпич, Раствор, Дерево, Сталь], amounts: {Кирпич: 30, Раствор: 10, Дерево: 10, Сталь: 4}, station: Верстак}
+      - {name: Мастерская, id: workshop, kind: station, hours: 8, inputs: [Кирпич, Дерево, Гвозди, Сталь], amounts: {Кирпич: 30, Дерево: 10, Гвозди: 10, Сталь: 4}, station: Верстак}
+      - {name: Терминал маркетплейса, id: market_terminal, kind: station, class: Терминал, hours: 3, inputs: [Дерево, Сталь], amounts: {Дерево: 6, Сталь: 2}, station: Верстак}
+      - {name: Администрация, id: administration, kind: station, class: Администрация, hours: 10, inputs: [Кирпич, Раствор, Дерево, Сталь], amounts: {Кирпич: 30, Раствор: 10, Дерево: 10, Сталь: 4}, station: Верстак}
       # Сцена узла собирается из рабочих станций (D-176): библиотеку и каторгу город
       # строит сам, как кузницу. Каторга + терминал = тюрьма (D-174)
-      - {name: Библиотека, kind: station, class: Библиотека, hours: 8, inputs: [Кирпич, Дерево, Стекло], amounts: {Кирпич: 20, Дерево: 10, Стекло: 6}, station: Верстак}
-      - {name: Каторга, kind: station, class: Каторга, hours: 10, inputs: [Каменный блок, Раствор, Сталь], amounts: {Каменный блок: 30, Раствор: 10, Сталь: 6}, station: Верстак}
+      - {name: Библиотека, id: library, kind: station, class: Библиотека, hours: 8, inputs: [Кирпич, Дерево, Стекло], amounts: {Кирпич: 20, Дерево: 10, Стекло: 6}, station: Верстак}
+      - {name: Каторга, id: prison, kind: station, class: Каторга, hours: 10, inputs: [Каменный блок, Раствор, Сталь], amounts: {Каменный блок: 30, Раствор: 10, Сталь: 6}, station: Верстак}
 
   - id: 7
     title: Деньги
@@ -461,18 +468,18 @@ levels:
       # Монетная станция — рабочая станция, а не здание: собирается в кузнице
       # и ставится в здание, как всякая другая (D-106, D-200). Пресс влит в
       # неё (D-223): станция не собирается из другой станции
-      - {name: Монетная станция, kind: station, class: Монетный двор, hours: 5, inputs: [Сталь, Дерево], amounts: {Сталь: 8, Дерево: 4}, station: Кузница}
+      - {name: Монетная станция, id: coin_station, kind: station, class: Монетный двор, hours: 5, inputs: [Сталь, Дерево], amounts: {Сталь: 8, Дерево: 4}, station: Кузница}
       # Аффинированный металл меряют граммами, а не килограммами: единица —
       # монетная навеска, из которой чеканят монету в 1 и 5 г. Без явной массы
       # им доставалось умолчание `inventory.mass_by_kind.material` = 1 кг, и
       # горсть серебра весила как мешок руды
-      - {name: Аффинированное золото, kind: material, bulk: true, mass: 0.001, mix: true, inputs: [Золотоносная порода, Уголь], station: Печь}
-      - {name: Аффинированное серебро, kind: material, bulk: true, mass: 0.001, mix: true, inputs: [Серебряная порода, Уголь], station: Печь}
+      - {name: Аффинированное золото, id: refined_gold, kind: material, bulk: true, mass: 0.001, mix: true, inputs: [Золотоносная порода, Уголь], station: Печь}
+      - {name: Аффинированное серебро, id: refined_silver, kind: material, bulk: true, mass: 0.001, mix: true, inputs: [Серебряная порода, Уголь], station: Печь}
       # Монета всегда 900-й пробы: 0.9 аффинированного металла и 0.1 слитка
       # железа лигатурой. Механики занижения пробы больше нет — количества
       # заданы вручную и есть сам рецепт монеты
-      - {name: Золотая монета, kind: money, mass: 0.001, inputs: [Аффинированное золото, Слиток железа], amounts: {Аффинированное золото: 0.9, Слиток железа: 0.1}, station: Монетная станция}
-      - {name: Серебряная монета, kind: money, mass: 0.005, inputs: [Аффинированное серебро, Слиток железа], amounts: {Аффинированное серебро: 0.9, Слиток железа: 0.1}, station: Монетная станция}
+      - {name: Золотая монета, id: gold_coin, kind: money, mass: 0.001, inputs: [Аффинированное золото, Слиток железа], amounts: {Аффинированное золото: 0.9, Слиток железа: 0.1}, station: Монетная станция}
+      - {name: Серебряная монета, id: silver_coin, kind: money, mass: 0.005, inputs: [Аффинированное серебро, Слиток железа], amounts: {Аффинированное серебро: 0.9, Слиток железа: 0.1}, station: Монетная станция}
 
   - id: 8
     title: Точность и электроника
@@ -481,66 +488,66 @@ levels:
       - id: precision
         title: Точная обработка
         recipes:
-          - {name: Высокая печь, kind: station, hours: 10, inputs: [Кирпич, Известь, Сталь, Меха], amounts: {Кирпич: 30, Известь: 10, Сталь: 6, Меха: 1}, station: Мастерская}
+          - {name: Высокая печь, id: blast_furnace, kind: station, hours: 10, inputs: [Кирпич, Известь, Сталь, Меха], amounts: {Кирпич: 30, Известь: 10, Сталь: 6, Меха: 1}, station: Мастерская}
           # Привод — бронзовый подшипник на стальном валу
-          - {name: Привод, kind: material, inputs: [Сталь, Дерево, Бронза], station: Кузница}
+          - {name: Привод, id: drive, kind: material, inputs: [Сталь, Дерево, Бронза], station: Кузница}
           # Прокатный стан катает и тянет: провод, фольга, обшивка, баллон.
           # Волочильный станок снят (D-223): первому потребителю провода
           # стан нужен всё равно
-          - {name: Прокатный стан, kind: station, hours: 6, inputs: [Сталь, Дерево, Привод], amounts: {Сталь: 10, Дерево: 4, Привод: 1}, station: Кузница}
-          - {name: Провод, kind: material, inputs: [Медный слиток], station: Прокатный стан}
-          - {name: Медная фольга, kind: material, inputs: [Медный слиток], amounts: {Медный слиток: 2}, station: Прокатный стан}
-          - {name: Вольфрамовый резец, kind: tool, inputs: [Вольфрам, Сталь], station: Высокая печь, highlight: [Вольфрам]}
-          - {name: Токарный станок, kind: station, hours: 8, inputs: [Сталь, Дерево, Вольфрамовый резец, Привод], amounts: {Сталь: 6, Дерево: 4, Вольфрамовый резец: 1, Привод: 1}, station: Мастерская}
-          - {name: Точная деталь, kind: material, inputs: [Сталь], station: Токарный станок}
-          - {name: Буровая установка, kind: station, class: Буровая, key: true, hours: 10, inputs: [Стальная рама, Привод, Точная деталь, Труба], amounts: {Стальная рама: 2, Привод: 1, Точная деталь: 4, Труба: 4}, station: Мастерская}
+          - {name: Прокатный стан, id: rolling_mill, kind: station, hours: 6, inputs: [Сталь, Дерево, Привод], amounts: {Сталь: 10, Дерево: 4, Привод: 1}, station: Кузница}
+          - {name: Провод, id: wire, kind: material, inputs: [Медный слиток], station: Прокатный стан}
+          - {name: Медная фольга, id: copper_foil, kind: material, inputs: [Медный слиток], amounts: {Медный слиток: 2}, station: Прокатный стан}
+          - {name: Вольфрамовый резец, id: tungsten_cutter, kind: tool, inputs: [Вольфрам, Сталь], station: Высокая печь, highlight: [Вольфрам]}
+          - {name: Токарный станок, id: lathe, kind: station, hours: 8, inputs: [Сталь, Дерево, Вольфрамовый резец, Привод], amounts: {Сталь: 6, Дерево: 4, Вольфрамовый резец: 1, Привод: 1}, station: Мастерская}
+          - {name: Точная деталь, id: precision_part, kind: material, inputs: [Сталь], station: Токарный станок}
+          - {name: Буровая установка, id: drilling_rig, kind: station, class: Буровая, key: true, hours: 10, inputs: [Стальная рама, Привод, Точная деталь, Труба], amounts: {Стальная рама: 2, Привод: 1, Точная деталь: 4, Труба: 4}, station: Мастерская}
       - id: electric
         title: Электротехника
         recipes:
-          - {name: Магнит, kind: material, mix: true, inputs: [Железо, Никель], station: Высокая печь, highlight: [Никель]}
-          - {name: Электродвигатель, kind: material, inputs: [Сталь, Провод, Магнит], station: Мастерская}
-          - {name: Реле, kind: material, inputs: [Медь, Сталь, Провод], station: Мастерская}
-          - {name: Автоматическая станция, kind: station, class: Автомат, hours: 10, inputs: [Стальная рама, Электродвигатель, Точная деталь, Реле], amounts: {Стальная рама: 1, Электродвигатель: 1, Точная деталь: 4, Реле: 2}, station: Мастерская}
-          - {name: Полевой автомат, kind: station, key: true, hours: 10, inputs: [Стальная рама, Электродвигатель, Реле, Труба], amounts: {Стальная рама: 1, Электродвигатель: 1, Реле: 2, Труба: 4}, station: Мастерская}
+          - {name: Магнит, id: magnet, kind: material, mix: true, inputs: [Железо, Никель], station: Высокая печь, highlight: [Никель]}
+          - {name: Электродвигатель, id: electric_motor, kind: material, inputs: [Сталь, Провод, Магнит], station: Мастерская}
+          - {name: Реле, id: relay, kind: material, inputs: [Медь, Сталь, Провод], station: Мастерская}
+          - {name: Автоматическая станция, id: auto_station, kind: station, class: Автомат, hours: 10, inputs: [Стальная рама, Электродвигатель, Точная деталь, Реле], amounts: {Стальная рама: 1, Электродвигатель: 1, Точная деталь: 4, Реле: 2}, station: Мастерская}
+          - {name: Полевой автомат, id: field_automaton, kind: station, key: true, hours: 10, inputs: [Стальная рама, Электродвигатель, Реле, Труба], amounts: {Стальная рама: 1, Электродвигатель: 1, Реле: 2, Труба: 4}, station: Мастерская}
           # Масса честно равна вошедшему (D-215)
-          - {name: Экзоскелет, kind: gear, key: true, slot: каркас, mass: 13, inputs: [Стальная рама, Электродвигатель, Аккумулятор, Реле], station: Мастерская, note: носимое}
+          - {name: Экзоскелет, id: exoskeleton, kind: gear, key: true, slot: каркас, mass: 13, inputs: [Стальная рама, Электродвигатель, Аккумулятор, Реле], station: Мастерская, note: носимое}
       - id: electronics
         title: Электроника
         recipes:
-          - {name: Кремний, kind: material, bulk: true, mix: true, inputs: [Кварцевый песок, Уголь, Энергия], station: Высокая печь, highlight: [Энергия]}
-          - {name: Кремниевая пластина, kind: material, inputs: [Кремний], station: Токарный станок}
-          - {name: Текстолит, kind: material, mix: true, inputs: [Ткань, Смола], station: Верстак}
-          - {name: Чистая мастерская, kind: station, hours: 10, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], amounts: {Стекло: 10, Сталь: 6, Кирпич: 20, Ткань: 6, Провод: 4}, station: Мастерская}
-          - {name: Печатная плата, kind: material, inputs: [Текстолит, Медная фольга], station: Чистая мастерская}
-          - {name: Микросхема, kind: material, inputs: [Кремниевая пластина, Аффинированное золото, Провод], station: Чистая мастерская, highlight: [Аффинированное золото]}
-          - {name: Датчик, kind: material, inputs: [Микросхема, Стекло, Провод], station: Чистая мастерская}
-          - {name: Процессорный блок, kind: material, key: true, inputs: [Микросхема, Печатная плата, Провод, Сталь], station: Чистая мастерская}
+          - {name: Кремний, id: silicon, kind: material, bulk: true, mix: true, inputs: [Кварцевый песок, Уголь, Энергия], station: Высокая печь, highlight: [Энергия]}
+          - {name: Кремниевая пластина, id: silicon_wafer, kind: material, inputs: [Кремний], station: Токарный станок}
+          - {name: Текстолит, id: textolite, kind: material, mix: true, inputs: [Ткань, Смола], station: Верстак}
+          - {name: Чистая мастерская, id: clean_workshop, kind: station, hours: 10, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], amounts: {Стекло: 10, Сталь: 6, Кирпич: 20, Ткань: 6, Провод: 4}, station: Мастерская}
+          - {name: Печатная плата, id: circuit_board, kind: material, inputs: [Текстолит, Медная фольга], station: Чистая мастерская}
+          - {name: Микросхема, id: microchip, kind: material, inputs: [Кремниевая пластина, Аффинированное золото, Провод], station: Чистая мастерская, highlight: [Аффинированное золото]}
+          - {name: Датчик, id: sensor, kind: material, inputs: [Микросхема, Стекло, Провод], station: Чистая мастерская}
+          - {name: Процессорный блок, id: processor_unit, kind: material, key: true, inputs: [Микросхема, Печатная плата, Провод, Сталь], station: Чистая мастерская}
           # Носитель рецепта (D-209): знание переезжает на предмет и обратно.
           # Электросхема — плата с двумя микросхемами; болванка — та же схема в
           # стальном корпусе; «Рецепт» — болванка с записью, пишется руками.
           # Массы заданы руками: носитель — крошечная память, а не корпус станка
-          - {name: Электросхема, kind: material, inputs: [Печатная плата, Микросхема], amounts: {Печатная плата: 1, Микросхема: 2}, station: Чистая мастерская}
+          - {name: Электросхема, id: electric_circuit, kind: material, inputs: [Печатная плата, Микросхема], amounts: {Печатная плата: 1, Микросхема: 2}, station: Чистая мастерская}
           # Собственное время задано руками (D-133): вывод от глубины передела
           # давал часы на «вставить схему в корпус» и «записать рецепт» —
           # работа минутная. Само время записи в игре идёт по качеству
           # болванки (carrier.write_seconds); здесь часы влияют только на трудоёмкость
-          - {name: Болванка рецепта, kind: material, class: Болванка, mass: 0.05, hours: 0.2, inputs: [Электросхема, Сталь], amounts: {Электросхема: 1, Сталь: 1}, station: Мастерская}
-          - {name: Рецепт, kind: gear, class: Носитель, mass: 0.01, hours: 0.05, inputs: [Болванка рецепта], amounts: {Болванка рецепта: 1}, station: Руками, note: носитель знания}
+          - {name: Болванка рецепта, id: recipe_blank, kind: material, class: Болванка, mass: 0.05, hours: 0.2, inputs: [Электросхема, Сталь], amounts: {Электросхема: 1, Сталь: 1}, station: Мастерская}
+          - {name: Рецепт, id: recorded_recipe, kind: gear, class: Носитель, mass: 0.01, hours: 0.05, inputs: [Болванка рецепта], amounts: {Болванка рецепта: 1}, station: Руками, note: носитель знания}
 
   - id: 9
     title: Биопринтер
     short: биопринтер
     recipes:
-      - {name: Био-камера, kind: material, inputs: [Стекло, Сталь, Ткань], station: Мастерская}
-      - {name: Питающий контур, kind: material, inputs: [Аккумулятор, Провод, Сталь], station: Мастерская}
-      - {name: Биопринтер, kind: station, class: Биопринтер, key: true, hours: 20, inputs: [Стальная рама, Био-камера, Питающий контур, Процессорный блок], amounts: {Стальная рама: 2, Био-камера: 1, Питающий контур: 1, Процессорный блок: 2}, station: Мастерская, highlight: [Процессорный блок]}
+      - {name: Био-камера, id: bio_chamber, kind: material, inputs: [Стекло, Сталь, Ткань], station: Мастерская}
+      - {name: Питающий контур, id: feed_circuit, kind: material, inputs: [Аккумулятор, Провод, Сталь], station: Мастерская}
+      - {name: Биопринтер, id: bioprinter, kind: station, class: Биопринтер, key: true, hours: 20, inputs: [Стальная рама, Био-камера, Питающий контур, Процессорный блок], amounts: {Стальная рама: 2, Био-камера: 1, Питающий контур: 1, Процессорный блок: 2}, station: Мастерская, highlight: [Процессорный блок]}
 
   - id: 10
     title: Транспорт
     short: транспорт
     recipes:
-      - {name: Колесо, kind: material, inputs: [Дерево, Сталь], amounts: {Дерево: 2, Сталь: 1}, station: Кузница}
-      - {name: Повозка, kind: vehicle, class: Повозка, inputs: [Дерево, Колесо, Верёвка], amounts: {Дерево: 12, Колесо: 4, Верёвка: 2}, station: Мастерская}
+      - {name: Колесо, id: wheel, kind: material, inputs: [Дерево, Сталь], amounts: {Дерево: 2, Сталь: 1}, station: Кузница}
+      - {name: Повозка, id: cart, kind: vehicle, class: Повозка, inputs: [Дерево, Колесо, Верёвка], amounts: {Дерево: 12, Колесо: 4, Верёвка: 2}, station: Мастерская}
 
   - id: 11
     title: Космический корабль I класса
@@ -549,44 +556,44 @@ levels:
       - id: fuel
         title: Химия и топливо
         recipes:
-          - {name: Бродильный чан, kind: station, hours: 4, inputs: [Дерево, Бронза, Труба], amounts: {Дерево: 10, Бронза: 2, Труба: 2}, station: Мастерская}
-          - {name: Спирт, kind: material, bulk: true, liquid: true, mix: true, inputs: [Сахар, Вода], station: Бродильный чан}
-          - {name: Электролизёр, kind: station, hours: 5, inputs: [Сталь, Провод, Стекло], amounts: {Сталь: 4, Провод: 4, Стекло: 4}, station: Мастерская}
+          - {name: Бродильный чан, id: fermentation_vat, kind: station, hours: 4, inputs: [Дерево, Бронза, Труба], amounts: {Дерево: 10, Бронза: 2, Труба: 2}, station: Мастерская}
+          - {name: Спирт, id: alcohol, kind: material, bulk: true, liquid: true, mix: true, inputs: [Сахар, Вода], station: Бродильный чан}
+          - {name: Электролизёр, id: electrolyzer, kind: station, hours: 5, inputs: [Сталь, Провод, Стекло], amounts: {Сталь: 4, Провод: 4, Стекло: 4}, station: Мастерская}
           # Кислород — жидкость (D-234): существует только внутри тары, как
           # вода и топливо. В руках, на полу и в сундуке его не бывает, и
           # торгуют им только тарой
-          - {name: Кислород, kind: material, bulk: true, liquid: true, inputs: [Вода, Энергия], station: Электролизёр, highlight: [Энергия]}
-          - {name: Окислитель, kind: material, bulk: true, liquid: true, inputs: [Селитра, Энергия], station: Электролизёр, highlight: [Селитра]}
-          - {name: Ракетное топливо, kind: consumable, class: Корабельное топливо, bulk: true, liquid: true, key: true, mix: true, inputs: [Спирт, Окислитель], station: Мастерская}
+          - {name: Кислород, id: oxygen, kind: material, bulk: true, liquid: true, inputs: [Вода, Энергия], station: Электролизёр, highlight: [Энергия]}
+          - {name: Окислитель, id: oxidizer, kind: material, bulk: true, liquid: true, inputs: [Селитра, Энергия], station: Электролизёр, highlight: [Селитра]}
+          - {name: Ракетное топливо, id: rocket_fuel, kind: consumable, class: Корабельное топливо, bulk: true, liquid: true, key: true, mix: true, inputs: [Спирт, Окислитель], station: Мастерская}
           # Бак (D-230): корабль жжёт только то, что в баках, и бак берёт
           # только жидкость. Полный бак — масса на каждом рейсе
-          - {name: Топливный бак, kind: furniture, class: Топливный бак, store: 2000, holds: жидкость, hours: 6, inputs: [Сталь, Труба, Баллон высокого давления], amounts: {Сталь: 20, Труба: 4, Баллон высокого давления: 2}, station: Космическая мастерская}
+          - {name: Топливный бак, id: fuel_tank, kind: furniture, class: Топливный бак, store: 2000, holds: жидкость, hours: 6, inputs: [Сталь, Труба, Баллон высокого давления], amounts: {Сталь: 20, Труба: 4, Баллон высокого давления: 2}, station: Космическая мастерская}
           # Баллон под кислород (D-234): переносная тара, и сам по себе он не
           # даёт ничего — дышат из него только в скафандре. Шесть единиц —
           # двенадцать часов снаружи, треть суток Пироксиса
-          - {name: Кислородный баллон, kind: tool, class: Ёмкость, store: 6, holds: жидкость, hours: 2, inputs: [Баллон высокого давления, Труба, Датчик], amounts: {Баллон высокого давления: 1, Труба: 1, Датчик: 1}, station: Мастерская}
+          - {name: Кислородный баллон, id: oxygen_tank, kind: tool, class: Ёмкость, store: 6, holds: жидкость, hours: 2, inputs: [Баллон высокого давления, Труба, Датчик], amounts: {Баллон высокого давления: 1, Труба: 1, Датчик: 1}, station: Мастерская}
       - id: hull
         title: Двигатель и корпус
         recipes:
-          - {name: Обшивка, kind: material, mix: true, inputs: [Сталь, Никель], station: Прокатный стан, highlight: [Никель]}
-          - {name: Теплозащитные плиты, kind: material, mix: true, inputs: [Глина, Известь], station: Высокая печь}
+          - {name: Обшивка, id: plating, kind: material, mix: true, inputs: [Сталь, Никель], station: Прокатный стан, highlight: [Никель]}
+          - {name: Теплозащитные плиты, id: heat_shield_tiles, kind: material, mix: true, inputs: [Глина, Известь], station: Высокая печь}
           # Что даёт пироксит (D-054, D-233). Ничем не запирает дорогу на
           # Пироксис — иначе круг: за пирокситом надо долететь. Он делает
           # дешевле и легче то, что уже летает, и это правильная награда за
           # вахту: та же тяга везёт больше груза
-          - {name: Пироксисовая плита, kind: material, mass: 1.6, mix: true, inputs: [Пироксит, Известь], amounts: {Пироксит: 3, Известь: 1}, station: Высокая печь, highlight: [Пироксит]}
-          - {name: Баллон высокого давления, kind: material, inputs: [Сталь, Никель], amounts: {Сталь: 2, Никель: 1}, station: Прокатный стан}
-          - {name: Камера сгорания, kind: material, inputs: [Сталь, Никель, Точная деталь], station: Токарный станок}
-          - {name: Насос, kind: material, inputs: [Точная деталь, Бронза, Привод], station: Токарный станок}
+          - {name: Пироксисовая плита, id: pyroxite_slab, kind: material, mass: 1.6, mix: true, inputs: [Пироксит, Известь], amounts: {Пироксит: 3, Известь: 1}, station: Высокая печь, highlight: [Пироксит]}
+          - {name: Баллон высокого давления, id: high_pressure_tank, kind: material, inputs: [Сталь, Никель], amounts: {Сталь: 2, Никель: 1}, station: Прокатный стан}
+          - {name: Камера сгорания, id: combustion_chamber, kind: material, inputs: [Сталь, Никель, Точная деталь], station: Токарный станок}
+          - {name: Насос, id: pump, kind: material, inputs: [Точная деталь, Бронза, Привод], station: Токарный станок}
           # Двигатель — рабочая станция, а не деталь корабля (D-202): его
           # ставят в узел борта тем же действием, что верстак в мастерскую, он
           # занимает площадь и весит. Тяга по классу — `ship.thrust`
-          - {name: Двигатель I класса, kind: station, key: true, hours: 12, inputs: [Камера сгорания, Насос, Труба, Датчик], amounts: {Камера сгорания: 1, Насос: 2, Труба: 4, Датчик: 2}, station: Космическая мастерская}
-          - {name: Корпус, kind: material, key: true, inputs: [Стальная рама, Обшивка, Теплозащитные плиты], station: Космическая мастерская}
+          - {name: Двигатель I класса, id: engine_class_1, kind: station, key: true, hours: 12, inputs: [Камера сгорания, Насос, Труба, Датчик], amounts: {Камера сгорания: 1, Насос: 2, Труба: 4, Датчик: 2}, station: Космическая мастерская}
+          - {name: Корпус, id: hull, kind: material, key: true, inputs: [Стальная рама, Обшивка, Теплозащитные плиты], station: Космическая мастерская}
           # Тот же корпус, но на пироксисовой плите: 10,5 кг против 13,8 — и
           # вся разница уходит в грузоподъёмность рейса (D-202). Плита сама
           # весит 1,6 против 4,9 у глиняной: пироксит лёгок и жара не боится
-          - {name: Корпус на пироксите, kind: material, key: true, inputs: [Стальная рама, Обшивка, Пироксисовая плита], station: Космическая мастерская, highlight: [Пироксисовая плита]}
+          - {name: Корпус на пироксите, id: pyroxite_hull, kind: material, key: true, inputs: [Стальная рама, Обшивка, Пироксисовая плита], station: Космическая мастерская, highlight: [Пироксисовая плита]}
       - id: assembly
         title: Системы и сборка
         recipes:
@@ -594,30 +601,30 @@ levels:
           # что корабль умеет, задаётся тем, что в нём стоит, а не строкой в
           # рецепте корабля. Консоль — рубка (D-230): рейс отдают от неё, и её
           # окно открывается только в узле борта
-          - {name: Консоль управления кораблём, kind: station, class: Рубка, hours: 6, inputs: [Процессорный блок, Датчик, Стекло], amounts: {Процессорный блок: 1, Датчик: 2, Стекло: 2}, station: Чистая мастерская, highlight: [Процессорный блок]}
-          - {name: Система жизнеобеспечения, kind: station, class: Жизнеобеспечение, hours: 8, inputs: [Баллон высокого давления, Кислород, Труба, Датчик], amounts: {Баллон высокого давления: 2, Кислород: 10, Труба: 2, Датчик: 1}, station: Мастерская}
+          - {name: Консоль управления кораблём, id: ship_console, kind: station, class: Рубка, hours: 6, inputs: [Процессорный блок, Датчик, Стекло], amounts: {Процессорный блок: 1, Датчик: 2, Стекло: 2}, station: Чистая мастерская, highlight: [Процессорный блок]}
+          - {name: Система жизнеобеспечения, id: life_support_system, kind: station, class: Жизнеобеспечение, hours: 8, inputs: [Баллон высокого давления, Кислород, Труба, Датчик], amounts: {Баллон высокого давления: 2, Кислород: 10, Труба: 2, Датчик: 1}, station: Мастерская}
           # Наземная консоль (D-242) — та же рубка, только на земле: приказ это
           # информация, а информация ходит по Сети (D-044). Ставится в здание на
           # своей земле и командует своими корпусами. Дороже бортовой ровно на
           # антенну: с земли надо докричаться через полсистемы
-          - {name: Наземная консоль управления, kind: station, class: Наземная рубка, hours: 10, inputs: [Процессорный блок, Датчик, Стекло, Медный слиток], amounts: {Процессорный блок: 1, Датчик: 3, Стекло: 2, Медный слиток: 6}, station: Чистая мастерская, highlight: [Процессорный блок]}
+          - {name: Наземная консоль управления, id: ground_console, kind: station, class: Наземная рубка, hours: 10, inputs: [Процессорный блок, Датчик, Стекло, Медный слиток], amounts: {Процессорный блок: 1, Датчик: 3, Стекло: 2, Медный слиток: 6}, station: Чистая мастерская, highlight: [Процессорный блок]}
           # Скафандр (D-233, D-234): без него на безвоздушном узле не дышат из
           # баллона и с борта не выходят. Слот «тело» — тот же, что у
           # утеплённого костюма: планета выбирает снаряжение, надеть оба нельзя
-          - {name: Жаростойкий скафандр, kind: gear, class: Скафандр, key: true, slot: тело, mass: 9, inputs: [Теплозащитные плиты, Ткань, Труба, Датчик], amounts: {Теплозащитные плиты: 4, Ткань: 8, Труба: 2, Датчик: 1}, station: Космическая мастерская, note: носимое}
+          - {name: Жаростойкий скафандр, id: heatproof_suit, kind: gear, class: Скафандр, key: true, slot: тело, mass: 9, inputs: [Теплозащитные плиты, Ткань, Труба, Датчик], amounts: {Теплозащитные плиты: 4, Ткань: 8, Труба: 2, Датчик: 1}, station: Космическая мастерская, note: носимое}
           # Скафандр на пироксите: та же защита, вдвое легче. Первая
           # экспедиция уходит в глиняном — иначе на Пироксис было бы не попасть
-          - {name: Скафандр на пироксите, kind: gear, class: Скафандр, slot: тело, mass: 4.5, inputs: [Пироксисовая плита, Ткань, Труба, Датчик], amounts: {Пироксисовая плита: 3, Ткань: 8, Труба: 2, Датчик: 1}, station: Космическая мастерская, note: носимое, highlight: [Пироксисовая плита]}
+          - {name: Скафандр на пироксите, id: pyroxite_suit, kind: gear, class: Скафандр, slot: тело, mass: 4.5, inputs: [Пироксисовая плита, Ткань, Труба, Датчик], amounts: {Пироксисовая плита: 3, Ткань: 8, Труба: 2, Датчик: 1}, station: Космическая мастерская, note: носимое, highlight: [Пироксисовая плита]}
           # Гидропоника (D-234) — делянка на борту, а не конвертер: ставится в
           # узел борта и даёт обычную делянку со всеми сортами и агротехникой.
           # Еда на борту живёт по тем же правилам, что еда на земле
-          - {name: Гидропонная установка, kind: station, class: Гидропоника, hours: 10, inputs: [Сталь, Труба, Стекло, Насос, Датчик], amounts: {Сталь: 8, Труба: 6, Стекло: 6, Насос: 1, Датчик: 1}, station: Космическая мастерская}
-          - {name: Космическая мастерская, kind: station, hours: 12, inputs: [Кирпич, Сталь, Дерево, Привод], amounts: {Кирпич: 30, Сталь: 10, Дерево: 10, Привод: 2}, station: Мастерская}
-          - {name: Космическая верфь, kind: station, class: Верфь, hours: 20, inputs: [Раствор, Каменный блок, Сталь, Труба], amounts: {Раствор: 20, Каменный блок: 30, Сталь: 10, Труба: 6}, station: Мастерская}
+          - {name: Гидропонная установка, id: hydroponic_unit, kind: station, class: Гидропоника, hours: 10, inputs: [Сталь, Труба, Стекло, Насос, Датчик], amounts: {Сталь: 8, Труба: 6, Стекло: 6, Насос: 1, Датчик: 1}, station: Космическая мастерская}
+          - {name: Космическая мастерская, id: space_workshop, kind: station, hours: 12, inputs: [Кирпич, Сталь, Дерево, Привод], amounts: {Кирпич: 30, Сталь: 10, Дерево: 10, Привод: 2}, station: Мастерская}
+          - {name: Космическая верфь, id: space_shipyard, kind: station, class: Верфь, hours: 20, inputs: [Раствор, Каменный блок, Сталь, Труба], amounts: {Раствор: 20, Каменный блок: 30, Сталь: 10, Труба: 6}, station: Мастерская}
           # Корабль собирается не рецептом, а по узлу за раз (D-201, D-202):
           # отдал основу на космической верфи — заложил основание, оно же коннектор;
           # отдал на борту — расширил корабль ещё одним узлом
-          - {name: Основа узла корабля, kind: consumable, class: Основа корабля, key: true, inputs: [Корпус, Точная деталь, Провод], station: Космическая мастерская}
+          - {name: Основа узла корабля, id: ship_node_foundation, kind: consumable, class: Основа корабля, key: true, inputs: [Корпус, Точная деталь, Провод], station: Космическая мастерская}
 
 # Кандидаты на урезание, если лестница окажется длинной. Пусто после D-223:
 # всё, что не имело поведения, снято, а остальное держится решениями

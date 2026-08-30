@@ -151,6 +151,7 @@ def test_virtual_stations_are_there_but_are_not_recipes(ladder: model.Ladder):
 def base(sample: dict, **rest) -> dict:
     return {
         "name": "Пробник",
+        "id": "probe",
         "kind": "material",
         "inputs": list(sample["inputs"]),
         "station": sample["station"],
@@ -206,6 +207,7 @@ def test_a_fraction_of_a_counted_thing_is_refused(ladder: model.Ladder):
         pytest.skip("в вольте все вещи весовые")
     recipe = {
         "name": "Пробник",
+        "id": "probe",
         "kind": "material",
         "inputs": [counted],
         "amounts": {counted: 0.5},
@@ -223,6 +225,7 @@ def test_a_fraction_of_a_measured_thing_is_allowed(ladder: model.Ladder):
     model.validate(
         {
             "name": "Пробник",
+            "id": "probe",
             "kind": "material",
             "inputs": [weighed],
             "amounts": {weighed: 0.5},
