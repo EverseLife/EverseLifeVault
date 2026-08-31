@@ -1,0 +1,336 @@
+# SPDX-License-Identifier: LicenseRef-EverseLife-Content
+# Copyright (C) 2026 Nurlan Urazkulov
+
+# Английские имена вещей мира (D-251, волна V).
+#
+# Оверлей поверх имён вольта: ключ — устойчивый `id`, значение — слово, каким
+# его читает англоязычный игрок. Русское имя остаётся в своих файлах и языком
+# вольта; здесь только второй язык, и сборка требует, чтобы у каждого id он
+# был — иначе игрок прочтёт `iron_ore` посреди английской фразы.
+#
+# Регистр повторяет русский: товары, классы, операции, культуры и планеты — с
+# заглавной, а слоты, тиры, типы зданий и свойства узлов — со строчной, потому
+# что они стоят внутри фразы («ступень «отличное»», «каменный дом»).
+#
+# Написание американское, под стать идентификаторам: `fiber`, `sulfur`,
+# `oxidizer`, `mineral_fertilizer` — и слово рядом с ними такое же.
+
+goods:
+  administration: Administration
+  alcohol: Alcohol
+  auto_station: Automatic station
+  axe: Axe
+  bandage: Bandage
+  basket: Basket
+  battery: Battery
+  beans: Beans
+  beans_seeds: Bean seeds
+  bed: Bed
+  bellows: Bellows
+  bio_chamber: Bio-chamber
+  bioprinter: Bioprinter
+  blast_furnace: Blast furnace
+  brazier: Brazier
+  bread: Bread
+  breeding_nursery: Breeding nursery
+  brick: Brick
+  brome_seeds: Brome seeds
+  bronze: Bronze
+  camelina_seeds: Camelina seeds
+  canister: Canister
+  cart: Cart
+  cauldron: Cauldron
+  chest: Chest
+  circuit_board: Circuit board
+  clay: Clay
+  clay_pot: Clay pot
+  clean_workshop: Clean workshop
+  cloth: Cloth
+  coal: Coal
+  coal_plant: Coal plant
+  coin_station: Coin station
+  combustion_chamber: Combustion chamber
+  compost: Compost
+  copper_foil: Copper foil
+  copper_ingot: Copper ingot
+  copper_ore: Copper ore
+  crushed_stone: Crushed stone
+  decoction: Decoction
+  dried_vegetables: Dried vegetables
+  drilling_rig: Drilling rig
+  drive: Drive
+  electric_circuit: Electric circuit
+  electric_motor: Electric motor
+  electrolyzer: Electrolyzer
+  energy: Energy
+  engine_class_1: Class I engine
+  exoskeleton: Exoskeleton
+  feed_circuit: Feed circuit
+  fermentation_vat: Fermentation vat
+  fiber: Fiber
+  field_automaton: Field automaton
+  flax: Flax
+  flax_seeds: Flax seeds
+  flour: Flour
+  forge: Forge
+  fuel_tank: Fuel tank
+  glass: Glass
+  gold_coin: Gold coin
+  gold_ore: Gold-bearing rock
+  grain: Grain
+  ground_console: Ground control console
+  hammer: Hammer
+  handle: Haft
+  hay: Hay
+  healing_herbs: Healing herbs
+  hearth: Hearth
+  heat_plant: Heat plant
+  heat_shield_tiles: Heat shield tiles
+  heater: Heater
+  heatproof_suit: Heatproof suit
+  high_pressure_tank: High-pressure cylinder
+  hull: Hull
+  hydroponic_unit: Hydroponic unit
+  infirmary: Infirmary
+  insulated_suit: Insulated suit
+  iron_ingot: Iron ingot
+  iron_ore: Iron ore
+  iron_pickaxe: Iron pickaxe
+  lathe: Lathe
+  lead: Lead
+  lead_ore: Lead ore
+  library: Library
+  life_support_system: Life support system
+  lime: Lime
+  limestone: Limestone
+  magnet: Magnet
+  market_terminal: Market terminal
+  meat: Meat
+  microchip: Microchip
+  mill: Mill
+  mineral_fertilizer: Mineral fertilizer
+  mortar: Mortar
+  nails: Nails
+  nickel: Nickel
+  oil: Oil
+  oil_seeds: Oil seeds
+  organic_waste: Organic waste
+  oxidizer: Oxidizer
+  oxygen: Oxygen
+  oxygen_tank: Oxygen tank
+  pipe: Pipe
+  plating: Plating
+  precision_part: Precision part
+  precursor_bioprinter: Precursor bioprinter
+  precursor_heat_plant: Precursor heat plant
+  precursor_isotope_reactor: Precursor isotope reactor
+  precursor_shipyard: Precursor shipyard
+  prison: Penal colony
+  processor_unit: Processor unit
+  pump: Pump
+  pyroxite: Pyroxite
+  pyroxite_hull: Pyroxite hull
+  pyroxite_slab: Pyroxite slab
+  pyroxite_suit: Pyroxite suit
+  quartz_sand: Quartz sand
+  rack: Rack
+  recipe_blank: Recipe blank
+  recorded_recipe: Recipe
+  refined_gold: Refined gold
+  refined_silver: Refined silver
+  relay: Relay
+  resin: Resin
+  road_paving: Road surface
+  roast: Roast
+  rocket_fuel: Rocket fuel
+  rolling_mill: Rolling mill
+  rope: Rope
+  sack: Sack
+  salt: Salt
+  salted_meat: Salt meat
+  saltpeter: Saltpeter
+  sand: Sand
+  sensor: Sensor
+  shaft_support: Mine timbering
+  ship_console: Ship control console
+  ship_node_foundation: Ship node foundation
+  silicon: Silicon
+  silicon_wafer: Silicon wafer
+  silver_coin: Silver coin
+  silver_ore: Silver-bearing rock
+  simple_backpack: Simple backpack
+  smelting_furnace: Smelting furnace
+  soup: Pottage
+  space_shipyard: Space shipyard
+  space_workshop: Space workshop
+  spelt_seeds: Spelt seeds
+  steel: Steel
+  steel_frame: Steel frame
+  steel_pickaxe: Steel pickaxe
+  stjohnswort_seeds: St John's wort seeds
+  stone: Stone
+  stone_axe: Stone axe
+  stone_block: Stone block
+  stone_chips: Stone chippings
+  stone_pickaxe: Stone pickaxe
+  straw: Straw
+  sugar: Sugar
+  sugar_cane: Sugar cane
+  sugarcane_seeds: Sugarcane seeds
+  sulfur: Sulfur
+  sulfuric_acid: Sulfuric acid
+  textolite: Textolite
+  tin: Tin
+  tin_ore: Tin ore
+  tungsten: Tungsten
+  tungsten_cutter: Tungsten cutter
+  turnip_seeds: Turnip seeds
+  vegetables: Vegetables
+  vein: Vein
+  warmer: Warmer
+  water: Water
+  water_wheel: Water wheel
+  wheel: Wheel
+  wheelbarrow: Wheelbarrow
+  windmill: Windmill
+  wire: Wire
+  wood: Wood
+  workbench: Workbench
+  workshop: Workshop
+
+classes:
+  administration: Administration
+  automaton: Automaton
+  axe: Axe
+  battery: Battery
+  bed: Bed
+  bioprinter: Bioprinter
+  blank: Blank
+  brazier: Brazier
+  bridge: Bridge
+  carrier: Carrier
+  cart: Cart
+  cookware: Cookware
+  fauna: Animal
+  flora: Plant matter
+  fuel_plant: Fuel plant
+  fuel_tank: Fuel tank
+  ground_bridge: Ground bridge
+  heat_plant: Heat plant
+  heater: Heater
+  hydroponics: Hydroponics
+  insulated_suit: Insulated suit
+  kitchen: Kitchen
+  library: Library
+  life_support: Life support
+  liquid: Liquid
+  metal: Metal
+  minable: Mineable
+  mine_support: Mine support
+  mineral: Mineral
+  mint: Mint
+  nursery: Nursery
+  pickaxe: Pickaxe
+  precursor_reactor: Precursor reactor
+  prison: Penal colony
+  rig: Rig
+  roadbed: Roadbed
+  ship_foundation: Ship foundation
+  ship_fuel: Ship fuel
+  shipyard: Shipyard
+  spacesuit: Spacesuit
+  terminal: Terminal
+  vessel: Vessel
+  warmer: Warmer
+  waste: Waste
+  water_wheel: Water wheel
+  wheelbarrow: Wheelbarrow
+  windmill: Windmill
+
+operations:
+  copper_smelting: Copper smelting
+  crushing: Crushing
+  iron_smelting: Iron smelting
+  lead_smelting: Lead smelting
+  logging: Logging
+  mining: Mining
+  tin_smelting: Tin smelting
+
+plants:
+  beans: Beans
+  brome: Brome
+  camelina: Camelina
+  flax: Flax
+  spelt: Spelt
+  stjohnswort: St John's wort
+  sugarcane: Sugarcane
+  turnip: Turnip
+
+virtual_stations:
+  by_hand: By hand
+
+planets:
+  aquatica: Aquatica
+  aurora: Aurora
+  pyroxis: Pyroxis
+  terra: Terra
+
+# Строчные: стоят внутри фразы, а не сами по себе.
+slots:
+  back: back
+  body: body
+  frame: frame
+
+tiers:
+  awful: awful
+  poor: poor
+  common: common
+  good: good
+  fine: fine
+
+building_kinds:
+  wooden: wooden
+  stone: stone
+  concrete: concrete
+  reinforced_concrete: reinforced concrete
+  metal: all-metal
+
+node_properties:
+  aboard: aboard
+  airless: airless
+  anvil: anvil
+  city: city
+  deferred: deferred
+  depth: depth
+  description: description
+  distance: distance
+  emblem: emblem
+  exit: exit
+  fertility: fertility
+  frost: permafrost
+  heat: scorching heat
+  indoors: indoors
+  liquid: liquid
+  map: map
+  meadow: meadow
+  open_landing: landing anywhere
+  orbit: orbit
+  orbit_node: orbit node
+  period: period
+  phase: phase
+  plot: plot
+  precipitation: precipitation
+  precursors: precursors
+  prison: prison
+  radius: radius
+  reactor: reactor
+  revealed: revealed
+  ring: ring
+  river: river
+  stones: stones
+  storey: storey
+  surveyed: surveyed
+  temperature: temperature
+  water: water
+  wild: wild
+  woods: woods

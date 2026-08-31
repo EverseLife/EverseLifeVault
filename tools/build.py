@@ -1470,6 +1470,46 @@ def load_vocabulary() -> dict:
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
 
 
+#: Языки, кроме языка вольта. Вольт пишется по-русски, и русское имя лежит
+#: рядом с самим объектом; перевод — оверлей поверх идентификаторов.
+LOCALES_DIR = DATA / "locales"
+
+
+def load_locales() -> dict[str, dict]:
+    """Оверлеи имён по языкам: `data/locales/<язык>.yaml` -> домен -> id -> имя.
+
+    Файлов может не быть вовсе — тогда язык у мира один, и это законное
+    состояние вольта до волны V. А вот неполный файл законным состоянием не
+    является: язык, у которого имя есть не у всякой вещи, показывает игроку
+    `iron_ore` посреди фразы. Полноту проверяет `check_locales`.
+    """
+    out: dict[str, dict] = {}
+    for path in sorted(LOCALES_DIR.glob("*.yaml")):
+        out[path.stem] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return out
+
+
+def check_locales(renames: dict, locales: dict[str, dict]) -> list[str]:
+    """У каждого id — имя в каждом языке, и ни одного лишнего.
+
+    Лишнее не менее важно недостающего: имя, оставшееся от переименованной
+    вещи, читается как опечатка в словаре и живёт годами, потому что его никто
+    не показывает.
+    """
+    problems: list[str] = []
+    known = {domain: set(table) for domain, table in renames["names_ru"].items()}
+    for lang, overlay in sorted(locales.items()):
+        for domain, ids in sorted(known.items()):
+            said = set(overlay.get(domain, {}))
+            for key in sorted(ids - said):
+                problems.append(f"locales/{lang}.yaml: нет имени для «{key}» ({domain})")
+            for key in sorted(said - ids):
+                problems.append(f"locales/{lang}.yaml: имя для «{key}» ({domain}), которого нет")
+        for domain in sorted(set(overlay) - set(known)):
+            problems.append(f"locales/{lang}.yaml: домен «{domain}», которого нет в ключах")
+    return problems
+
+
 def check_ids(
     recipes_doc: dict,
     vocabulary: dict,
@@ -1581,7 +1621,12 @@ def seed_ids(plants: list[dict]) -> dict[str, str]:
     }
 
 
-def build_renames(recipes_doc: dict, vocabulary: dict, plants: list[dict] = ()) -> dict:
+def build_renames(
+    recipes_doc: dict,
+    vocabulary: dict,
+    plants: list[dict] = (),
+    locales: dict[str, dict] | None = None,
+) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
     Единственный источник для миграции базы (волна II), скрипта переименования
@@ -1620,6 +1665,12 @@ def build_renames(recipes_doc: dict, vocabulary: dict, plants: list[dict] = ()) 
     out["names_ru"] = {
         domain: {v: k for k, v in table.items()} for domain, table in out.items()
     }
+    #: Второй язык и дальше — оверлеем по id, а не обращением карты имён:
+    #: у русского имя первично и id выведен из него, у остальных наоборот.
+    for lang, overlay in sorted((locales or {}).items()):
+        out[f"names_{lang}"] = {
+            domain: dict(table) for domain, table in sorted(overlay.items())
+        }
     return out
 
 
@@ -1753,6 +1804,11 @@ def main() -> int:
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
     vocabulary = load_vocabulary()
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
+    #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
+    #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
+    #: показывать игроку `iron_ore` в готовой игре.
+    locales = load_locales()
+    problems += check_locales(build_renames(recipes_doc, vocabulary, plants), locales)
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
 
@@ -1937,7 +1993,7 @@ def main() -> int:
     write(BUILD / "world.json",
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "renames.json",
-          json.dumps(build_renames(recipes_doc, vocabulary, plants),
+          json.dumps(build_renames(recipes_doc, vocabulary, plants, locales),
                      ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
