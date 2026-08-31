@@ -1382,9 +1382,15 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
         # ключ сокета. Реестр констант таких имён не знает и знать не должен,
         # а пространства у них общие с ним — «bank», «craft», «market», — и
         # проверка объявляла пропавшей константой каждое названное событие.
+        # Ревью кода — четвёртый случай той же природы, что протокол сессии:
+        # документ про код и состоит из имён кода. `ledger.post`, `body.stamina`,
+        # `market.reserve`, `bank.view` — методы, поля и команды сокета, а
+        # пространства у них общие с реестром величин. Переписать два десятка
+        # ссылок ради проверки значило бы испортить сам документ.
         if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in (
                 "90-production/02-decision-log.md", "90-production/04-simulation.md",
-                "90-production/08-session-protocol.md"):
+                "90-production/08-session-protocol.md",
+                "90-production/09-code-review-2026-08-23.md"):
             continue
         for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
             if key.rsplit(".", 1)[-1] in FILE_SUFFIXES:
