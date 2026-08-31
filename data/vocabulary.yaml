@@ -88,3 +88,6 @@ node_properties:
   - {name: река, id: river, note: engine}
   - {name: температура, id: temperature, note: engine}
   - {name: осадки, id: precipitation, note: engine}
+  - {name: орбита узел, id: orbit_node, note: engine}
+  - {name: отложена, id: deferred, note: engine}
+  - {name: посадка везде, id: open_landing, note: engine}

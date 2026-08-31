@@ -1471,7 +1471,11 @@ def load_vocabulary() -> dict:
 
 
 def check_ids(
-    recipes_doc: dict, vocabulary: dict, constants_doc: dict, world_doc: dict
+    recipes_doc: dict,
+    vocabulary: dict,
+    constants_doc: dict,
+    world_doc: dict,
+    plants: list[dict] = (),
 ) -> list[str]:
     """Каждому имени — ключ (D-251), и ровно один.
 
@@ -1515,6 +1519,10 @@ def check_ids(
         need(material, "материал", goods_seen)
     for _, _, recipe in all_recipes(recipes_doc):
         need(recipe, "рецепт", goods_seen)
+    #: Семена культур делят пространство товаров: их id выводится из id
+    #: культуры, и коллизия с рукописным id — та же ошибка, что и любая другая.
+    for seed_name, seed_id in seed_ids(list(plants)).items():
+        need({"name": seed_name, "id": seed_id}, "семя", goods_seen)
     class_seen: dict[str, str] = {}
     for cls in recipes_doc["meta"].get("classes", []):
         need(cls, "класс", class_seen)
@@ -1559,7 +1567,21 @@ def check_ids(
     return problems
 
 
-def build_renames(recipes_doc: dict, vocabulary: dict) -> dict:
+def seed_ids(plants: list[dict]) -> dict[str, str]:
+    """Семена культур — тоже товары (item.type_key), но живут в plants.yaml.
+
+    Свой id семени не пишется руками: он выводится из id культуры —
+    `spelt` -> `spelt_seeds`. Одно правило вместо восьми строк, и новая
+    культура получает ключ семени бесплатно.
+    """
+    return {
+        plant["seed"]: f"{plant['id']}_seeds"
+        for plant in plants
+        if plant.get("seed") and plant.get("id")
+    }
+
+
+def build_renames(recipes_doc: dict, vocabulary: dict, plants: list[dict] = ()) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
     Единственный источник для миграции базы (волна II), скрипта переименования
@@ -1567,7 +1589,7 @@ def build_renames(recipes_doc: dict, vocabulary: dict) -> dict:
     клиент и APS показывают русское имя, пока локалей ещё нет (волна III).
     """
     #: .get и фильтр: пропуск id — проблема из check_ids, здесь не роняем.
-    goods: dict[str, str] = {}
+    goods: dict[str, str] = dict(seed_ids(plants))
     for material in recipes_doc["meta"].get("materials", []):
         if material.get("id"):
             goods[material["name"]] = material["id"]
@@ -1586,6 +1608,12 @@ def build_renames(recipes_doc: dict, vocabulary: dict) -> dict:
             for op in recipes_doc["operations"]
             if op.get("id")
         },
+    }
+    #: Культуры (D-057): у сорта своё имя, и оно показывается игроку —
+    #: «Полба», а не `spelt`. Отдельный домен, а не товары: продукт культуры
+    #: («Зерно») и сама культура — разные вещи с разными именами.
+    out["plants"] = {
+        plant["name"]: plant["id"] for plant in plants if plant.get("id") and plant.get("name")
     }
     for domain, rows in vocabulary.items():
         out[domain] = {row["name"]: row["id"] for row in rows or []}
@@ -1724,7 +1752,7 @@ def main() -> int:
     world_doc = worldfile.load_world_doc()
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
     vocabulary = load_vocabulary()
-    problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc)
+    problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
 
@@ -1891,8 +1919,16 @@ def main() -> int:
         ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "20-systems" / "17-plant-catalog.md",
           GENERATED_WARNING.format(src="data/plants.yaml") + plants_md)
-    write(BUILD / "plants.json",
-          json.dumps({"plants": plants}, ensure_ascii=False, indent=2) + chr(10))
+    write(BUILD / "plants.json", json.dumps(
+        {
+            "plants": [
+                # seed_id (D-251): семя — товар, его ключ выводится из id
+                # культуры. Добавочно: прочие поля как были
+                {**plant, "seed_id": f"{plant['id']}_seeds"}
+                for plant in plants
+            ]
+        },
+        ensure_ascii=False, indent=2) + chr(10))
     write(ROOT / "40-society" / "07-law-catalog.md",
           GENERATED_WARNING.format(src="data/laws.yaml") + laws_md)
     write(BUILD / "laws.json", json.dumps(
@@ -1901,7 +1937,8 @@ def main() -> int:
     write(BUILD / "world.json",
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "renames.json",
-          json.dumps(build_renames(recipes_doc, vocabulary), ensure_ascii=False, indent=2) + "\n")
+          json.dumps(build_renames(recipes_doc, vocabulary, plants),
+                     ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")

@@ -27,7 +27,8 @@
       "restores_fertility": 0,
       "generosity": 3.35,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "spelt_seeds"
     },
     {
       "id": "turnip",
@@ -56,7 +57,8 @@
       "restores_fertility": 0,
       "generosity": 2.08,
       "generosity_cap": 3.5,
-      "used_in_recipes": 3
+      "used_in_recipes": 3,
+      "seed_id": "turnip_seeds"
     },
     {
       "id": "beans",
@@ -85,7 +87,8 @@
       "restores_fertility": 15,
       "generosity": 3.03,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "beans_seeds"
     },
     {
       "id": "flax",
@@ -114,7 +117,8 @@
       "restores_fertility": 0,
       "generosity": 1.68,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "flax_seeds"
     },
     {
       "id": "camelina",
@@ -143,7 +147,8 @@
       "restores_fertility": 0,
       "generosity": 4.3,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "camelina_seeds"
     },
     {
       "id": "sugarcane",
@@ -172,7 +177,8 @@
       "restores_fertility": 0,
       "generosity": 1.59,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "sugarcane_seeds"
     },
     {
       "id": "stjohnswort",
@@ -201,7 +207,8 @@
       "restores_fertility": 0,
       "generosity": 4.33,
       "generosity_cap": 5.83,
-      "used_in_recipes": 1
+      "used_in_recipes": 1,
+      "seed_id": "stjohnswort_seeds"
     },
     {
       "id": "brome",
@@ -230,7 +237,8 @@
       "restores_fertility": 0,
       "generosity": 5.31,
       "generosity_cap": 7.0,
-      "used_in_recipes": 0
+      "used_in_recipes": 0,
+      "seed_id": "brome_seeds"
     }
   ]
 }

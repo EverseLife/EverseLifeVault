@@ -122,6 +122,23 @@ def test_renames_carries_every_namespace_and_its_inverse():
         assert renames["names_ru"][domain] == {v: k for k, v in table.items()}
 
 
+def test_seed_ids_derive_from_the_plant_and_share_the_goods_namespace():
+    plants = [{"id": "spelt", "seed": "Семена полбы"}]
+    renames = build.build_renames(
+        doc(materials=[{"name": "Зерно", "id": "grain"}]), {}, plants,
+    )
+    assert renames["goods"]["Семена полбы"] == "spelt_seeds"
+    taken = problems(
+        doc(materials=[{"name": "Не семя", "id": "spelt_seeds"}]),
+    )
+    assert taken == [], "без культур коллизии нет"
+    clash = build.check_ids(
+        doc(materials=[{"name": "Не семя", "id": "spelt_seeds"}]),
+        BASE_VOCAB, EMPTY_CONSTANTS, EMPTY_WORLD, plants,
+    )
+    assert any("занят" in p for p in clash)
+
+
 def test_the_real_vault_is_fully_keyed():
     """Не правило, а данные: живой вольт обязан проходить собственную проверку.
 

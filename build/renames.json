@@ -1,5 +1,13 @@
 {
   "goods": {
+    "Семена полбы": "spelt_seeds",
+    "Семена репы": "turnip_seeds",
+    "Семена бобов": "beans_seeds",
+    "Семена льна": "flax_seeds",
+    "Семена рыжика": "camelina_seeds",
+    "Семена сахарника": "sugarcane_seeds",
+    "Семена зверобоя": "stjohnswort_seeds",
+    "Семена костреца": "brome_seeds",
     "ТЭЦ Предтеч": "precursor_heat_plant",
     "Изотопный реактор Предтеч": "precursor_isotope_reactor",
     "Верфь Предтеч": "precursor_shipyard",
@@ -232,6 +240,16 @@
     "Плавка олова": "tin_smelting",
     "Плавка свинца": "lead_smelting"
   },
+  "plants": {
+    "Полба": "spelt",
+    "Репа": "turnip",
+    "Бобы": "beans",
+    "Лён": "flax",
+    "Рыжик": "camelina",
+    "Сахарник": "sugarcane",
+    "Зверобой": "stjohnswort",
+    "Кострец": "brome"
+  },
   "slots": {
     "спина": "back",
     "тело": "body",
@@ -295,10 +313,21 @@
     "жидкость": "liquid",
     "река": "river",
     "температура": "temperature",
-    "осадки": "precipitation"
+    "осадки": "precipitation",
+    "орбита узел": "orbit_node",
+    "отложена": "deferred",
+    "посадка везде": "open_landing"
   },
   "names_ru": {
     "goods": {
+      "spelt_seeds": "Семена полбы",
+      "turnip_seeds": "Семена репы",
+      "beans_seeds": "Семена бобов",
+      "flax_seeds": "Семена льна",
+      "camelina_seeds": "Семена рыжика",
+      "sugarcane_seeds": "Семена сахарника",
+      "stjohnswort_seeds": "Семена зверобоя",
+      "brome_seeds": "Семена костреца",
       "precursor_heat_plant": "ТЭЦ Предтеч",
       "precursor_isotope_reactor": "Изотопный реактор Предтеч",
       "precursor_shipyard": "Верфь Предтеч",
@@ -531,6 +560,16 @@
       "tin_smelting": "Плавка олова",
       "lead_smelting": "Плавка свинца"
     },
+    "plants": {
+      "spelt": "Полба",
+      "turnip": "Репа",
+      "beans": "Бобы",
+      "flax": "Лён",
+      "camelina": "Рыжик",
+      "sugarcane": "Сахарник",
+      "stjohnswort": "Зверобой",
+      "brome": "Кострец"
+    },
     "slots": {
       "back": "спина",
       "body": "тело",
@@ -594,7 +633,10 @@
       "liquid": "жидкость",
       "river": "река",
       "temperature": "температура",
-      "precipitation": "осадки"
+      "precipitation": "осадки",
+      "orbit_node": "орбита узел",
+      "deferred": "отложена",
+      "open_landing": "посадка везде"
     }
   }
 }
