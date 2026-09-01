@@ -362,6 +362,24 @@ groups:
         unit: литра/м²
         note: Один полив делянки. Река рядом или её отсутствие решают всё
         decision: D-118
+      - key: farm.water_by_need
+        value: {"1": 0.5, "2": 1.0, "3": 1.5}
+        unit: множитель нормы
+        note: Жажда культуры (requires.water) масштабирует полив. Рыжик несёт
+          вдвое меньше, лён — в полтора раза больше
+        decision: D-261
+      - key: farm.hardiness_relief
+        value: 50
+        unit: "%"
+        note: Насколько выносливость 5/5 гасит штраф небрежности. Кострец
+          прощает вдвое, лён — на пятую часть
+        decision: D-261
+      - key: farm.shade_built_share
+        value: 25
+        unit: "% площади"
+        note: От этой доли застройки узел теряет ступень света. Лес отнимает
+          ступень всегда
+        decision: D-261
       - key: farm.disease_spread
         value: 20
         unit: "% делянки в сутки"
@@ -1740,6 +1758,18 @@ groups:
         unit: "%"
         note: Столько полива закрывает дождь при максимуме осадков. Сухое место поливают руками
         decision: D-126
+      - key: planet.temp_swing
+        value: {terra: 5, aquatica: 3, aurora: 18, pyroxis: 25}
+        unit: "°C"
+        note: Суточное качание температуры вокруг среднего узла. Полдень — пик,
+          полночь — дно
+        decision: D-261
+      - key: explore.near_drift
+        value: {temperature: 5, precipitation: 15, kinship: 75}
+        unit: смешанная
+        note: Поиск «ближе» — температура и осадки от истока с этим отклонением,
+          местность с вероятностью родства повторяет исток. «Дальше» — независимый бросок
+        decision: D-262
       - key: site.river_share
         value: 25
         unit: "% мест"

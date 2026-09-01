@@ -77,6 +77,13 @@
   "farm.care_time_per_m2": 0.1,
   "farm.plow_time_per_m2": 0.5,
   "farm.water_per_m2": 3,
+  "farm.water_by_need": {
+    "1": 0.5,
+    "2": 1.0,
+    "3": 1.5
+  },
+  "farm.hardiness_relief": 50,
+  "farm.shade_built_share": 25,
   "farm.disease_spread": 20,
   "farm.seed_return": 3,
   "farm.agrotech_params": 5,
@@ -576,6 +583,17 @@
     "max": 100
   },
   "site.rain_water_offset": 60,
+  "planet.temp_swing": {
+    "terra": 5,
+    "aquatica": 3,
+    "aurora": 18,
+    "pyroxis": 25
+  },
+  "explore.near_drift": {
+    "temperature": 5,
+    "precipitation": 15,
+    "kinship": 75
+  },
   "site.river_share": 25,
   "site.coast_share": 15,
   "site.forest_share": {
