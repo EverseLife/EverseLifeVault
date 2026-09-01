@@ -1435,6 +1435,24 @@ groups:
         value: 5
         unit: "%"
         note: На появление признака, которого не было у родителей
+      - key: breed.novel_trait_shift
+        value: 25
+        unit: "%"
+        note: Сдвиг нового признака от середины. Больше порога различимости
+          с запасом и не привязан к дрейфу наследования
+        decision: D-260
+      - key: breed.wild_traits
+        value: {yield_per_m2: 0.6, hardiness: 1.25}
+        unit: множители к базовому сорту
+        note: Признаки дикого предка от базовых. Урожай ниже, выносливость
+          выше — второй родитель для скрещивания
+        decision: D-260
+      - key: breed.hybrid_vigor
+        value: 20
+        unit: "% силы партии"
+        note: Гетерозис партии F1 из питомника сверх сотни. Живёт ровно один
+          посев — потомство не выше 100
+        decision: D-260
       - key: breed.generations_to_stabilize
         value: {min: 4, max: 6}
         unit: поколений

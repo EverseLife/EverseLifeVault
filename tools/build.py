@@ -1280,6 +1280,8 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
 
         out.append({
             "id": p["id"], "name": p["name"], "gives": p["gives"],
+            # дикий предок — отдельный сорт со своим именем (D-260)
+            "wild_name": p.get("wild_name"),
             # чем сеют: семена — предмет, отдельный от продукта (D-057)
             "seed": p["seed"],
             "byproduct": p.get("byproduct"), "cycle_days": p["cycle"],
@@ -1740,6 +1742,12 @@ def build_renames(
     out["plants"] = {
         plant["name"]: plant["id"] for plant in plants if plant.get("id") and plant.get("name")
     }
+    #: Дикий предок (D-260): свой сорт — своё имя, id выводится из id культуры.
+    out["plants"].update({
+        plant["wild_name"]: f"{plant['id']}_wild"
+        for plant in plants
+        if plant.get("id") and plant.get("wild_name")
+    })
     for domain, rows in vocabulary.items():
         out[domain] = {row["name"]: row["id"] for row in rows or []}
     out["names_ru"] = {

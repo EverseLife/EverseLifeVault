@@ -264,7 +264,15 @@
     "Рыжик": "camelina",
     "Сахарник": "sugarcane",
     "Зверобой": "stjohnswort",
-    "Кострец": "brome"
+    "Кострец": "brome",
+    "Дикая полба": "spelt_wild",
+    "Дикая репа": "turnip_wild",
+    "Дикие бобы": "beans_wild",
+    "Дикий лён": "flax_wild",
+    "Дикий рыжик": "camelina_wild",
+    "Дикий сахарник": "sugarcane_wild",
+    "Дикий зверобой": "stjohnswort_wild",
+    "Дикий кострец": "brome_wild"
   },
   "slots": {
     "спина": "back",
@@ -600,7 +608,15 @@
       "camelina": "Рыжик",
       "sugarcane": "Сахарник",
       "stjohnswort": "Зверобой",
-      "brome": "Кострец"
+      "brome": "Кострец",
+      "spelt_wild": "Дикая полба",
+      "turnip_wild": "Дикая репа",
+      "beans_wild": "Дикие бобы",
+      "flax_wild": "Дикий лён",
+      "camelina_wild": "Дикий рыжик",
+      "sugarcane_wild": "Дикий сахарник",
+      "stjohnswort_wild": "Дикий зверобой",
+      "brome_wild": "Дикий кострец"
     },
     "slots": {
       "back": "спина",
@@ -984,13 +1000,21 @@
     },
     "plants": {
       "beans": "Beans",
+      "beans_wild": "Wild beans",
       "brome": "Brome",
+      "brome_wild": "Wild brome",
       "camelina": "Camelina",
+      "camelina_wild": "Wild camelina",
       "flax": "Flax",
+      "flax_wild": "Wild flax",
       "spelt": "Spelt",
+      "spelt_wild": "Wild spelt",
       "stjohnswort": "St John's wort",
+      "stjohnswort_wild": "Wild St John's wort",
       "sugarcane": "Sugarcane",
-      "turnip": "Turnip"
+      "sugarcane_wild": "Wild sugarcane",
+      "turnip": "Turnip",
+      "turnip_wild": "Wild turnip"
     },
     "slots": {
       "back": "back",

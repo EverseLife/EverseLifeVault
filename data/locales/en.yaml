@@ -274,13 +274,21 @@ operations:
 
 plants:
   beans: Beans
+  beans_wild: Wild beans
   brome: Brome
+  brome_wild: Wild brome
   camelina: Camelina
+  camelina_wild: Wild camelina
   flax: Flax
+  flax_wild: Wild flax
   spelt: Spelt
+  spelt_wild: Wild spelt
   stjohnswort: St John's wort
+  stjohnswort_wild: Wild St John's wort
   sugarcane: Sugarcane
+  sugarcane_wild: Wild sugarcane
   turnip: Turnip
+  turnip_wild: Wild turnip
 
 virtual_stations:
   by_hand: By hand

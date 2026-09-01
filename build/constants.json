@@ -482,6 +482,12 @@
     "formula": "mean(parents) ± 0.15 * spread(parents)"
   },
   "breed.novel_trait_chance": 5,
+  "breed.novel_trait_shift": 25,
+  "breed.wild_traits": {
+    "yield_per_m2": 0.6,
+    "hardiness": 1.25
+  },
+  "breed.hybrid_vigor": 20,
   "breed.generations_to_stabilize": {
     "min": 4,
     "max": 6
