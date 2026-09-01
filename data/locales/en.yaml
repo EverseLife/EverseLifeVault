@@ -19,6 +19,8 @@ goods:
   administration: Administration
   alcohol: Alcohol
   asphalt_paving: Asphalt paving
+  auto_furnace: Automatic furnace
+  auto_reactor: Automatic reactor
   auto_station: Automatic station
   axe: Axe
   bandage: Bandage
@@ -110,6 +112,7 @@ goods:
   life_support_system: Life support system
   lime: Lime
   limestone: Limestone
+  lubricant: Lubricant
   magnet: Magnet
   market_terminal: Market terminal
   meat: Meat
@@ -236,6 +239,7 @@ classes:
   library: Library
   life_support: Life support
   liquid: Liquid
+  lube: Lubricant
   metal: Metal
   minable: Mineable
   mine_support: Mine support
