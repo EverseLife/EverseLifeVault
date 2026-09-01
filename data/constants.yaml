@@ -420,15 +420,24 @@ groups:
         note: Потолок отдачи от избытка плодородия. Хорошая земля — преимущество,
           а не множитель
         decision: D-256
-      - key: farm.legume_recovery
-        value: 15
-        unit: "% плодородия"
-        note: Возвращают бобы за свой цикл. Севооборот выгоднее удобрения
-        decision: D-105
       - key: farm.compost_recovery
         value: 10
         unit: "% плодородия"
+        note: За внесение компоста в пар или вспаханное. Бобы возвращают
+          своё per-культурным restores из plants.yaml (D-264)
         decision: D-105
+      - key: farm.mineral_recovery
+        value: 25
+        unit: "% плодородия"
+        note: Минеральное — больше всех; селитра из Соляных пустошей делит
+          его с консервацией, аккумуляторами и ракетой
+        decision: D-264
+      - key: farm.fertilizer_per_m2
+        value: 0.5
+        unit: ед./м²
+        note: Норма внесения любого удобрения. Разница видов — в силе,
+          а не в дозе
+        decision: D-264
       - key: farm.fallow_recovery
         value: 2
         unit: "% в сутки"
