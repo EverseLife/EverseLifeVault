@@ -82,6 +82,8 @@
   "farm.agrotech_params": 5,
   "farm.neglect_penalty": 25,
   "farm.soil_depletion": 8,
+  "farm.monoculture_penalty": 8,
+  "farm.soil_share_cap": 120,
   "farm.legume_recovery": 15,
   "farm.compost_recovery": 10,
   "farm.fallow_recovery": 2,

@@ -384,8 +384,21 @@ groups:
       - key: farm.soil_depletion
         value: 8
         unit: "% плодородия"
-        note: За цикл одной и той же культуры на делянке
-        decision: D-105
+        note: За каждый цикл на делянке, культура любая. Повтор той же добавляет
+          farm.monoculture_penalty (D-105)
+        decision: D-256
+      - key: farm.monoculture_penalty
+        value: 8
+        unit: "% плодородия"
+        note: Сверх farm.soil_depletion за повтор той же культуры подряд.
+          Монокультура ест землю вдвое
+        decision: D-256
+      - key: farm.soil_share_cap
+        value: 120
+        unit: "% нормы"
+        note: Потолок отдачи от избытка плодородия. Хорошая земля — преимущество,
+          а не множитель
+        decision: D-256
       - key: farm.legume_recovery
         value: 15
         unit: "% плодородия"
