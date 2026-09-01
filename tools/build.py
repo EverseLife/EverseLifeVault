@@ -199,6 +199,9 @@ def normalize_recipes(doc: dict) -> list[str]:
     recipe_kind: dict[str, str] = {}
     for _, _, r in all_recipes(doc):
         recipe_kind[r["name"]] = r.get("kind", "material")
+        fuel = r.get("fuel")
+        if fuel is not None and (not isinstance(fuel, (int, float)) or fuel <= 0):
+            problems.append(f"«{r['name']}»: `fuel` обязан быть числом больше нуля")
         cls = r.get("class")
         if cls is None:
             continue
@@ -285,8 +288,13 @@ def material_tables(doc: dict) -> dict[str, dict[str, float]]:
         "forage.handful": {
             m["name"]: m["forage"]["handful"] for m in materials if m.get("forage")
         },
+        #: Горючее бывает и рукотворным (D-252): нефтяной кокс — рецепт, не
+        #: сырьё, а жгут его той же топливной станцией. Потому `fuel`
+        #: читается и из реестра материалов, и из рецептов.
         "energy.fuel_energy": {
             m["name"]: m["fuel"] for m in materials if m.get("fuel")
+        } | {
+            r["name"]: r["fuel"] for _, _, r in all_recipes(doc) if r.get("fuel")
         },
     }
 

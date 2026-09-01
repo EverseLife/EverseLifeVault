@@ -231,6 +231,20 @@ nodes:
       # Питомник у поймы: скрещиванию нужно место, как всякой работе (D-057).
       - {name: Селекционный питомник, quality: 60}
 
+  # Нефтяное поле (D-252): жидкая жила второго кольца — даль 2, вдвое
+  # дальше угля. Кирка нефть не берёт: сюда везут буровую (D-115), и добытое
+  # сливают в тару (D-230). Дорога сюда — тропа: дорогу к скважине город
+  # построит сам, из её же битума.
+  - key: terra.oilfield
+    name: Нефтяное поле
+    layer: planet
+    parent: terra
+    area_m2: 400
+    anchor: terra.capital.gate
+    properties: {вода: нет, даль: 2}
+    veins:
+      - {resource: Нефть, richness: 55, remaining: 40000}
+
   # ------------------------------------------------------------- Аврора
   #
   # Три города Предтеч, и ни один не похож на другой (D-232). Раньше здесь было
@@ -329,6 +343,8 @@ edges:
   # сам построил себе эти дороги. Длина — по дали узла (D-180).
   - {a: terra.capital.gate, b: terra.coal, seconds: reach, surface: road}
   - {a: terra.capital.gate, b: terra.floodplain, seconds: reach, surface: road}
+  # К скважине дороги ещё нет: тропа по дали узла (D-180, D-252)
+  - {a: terra.capital.gate, b: terra.oilfield, seconds: reach, surface: trail}
   # От зала до причала — переход через одну площадь: порт обязан стоять внутри
   # тепла станции, и в этом вся причина, почему у города горит маяк (D-231).
   - {a: aurora.merid.hall, b: aurora.merid.port, seconds: 30, surface: paved}

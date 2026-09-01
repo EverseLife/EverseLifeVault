@@ -54,8 +54,10 @@ goods:
   copper_foil: Copper foil
   copper_ingot: Copper ingot
   copper_ore: Copper ore
+  crude_oil: Crude oil
   crushed_stone: Crushed stone
   decoction: Decoction
+  distillation_column: Distillation column
   dried_vegetables: Dried vegetables
   drilling_rig: Drilling rig
   drive: Drive
@@ -118,6 +120,7 @@ goods:
   oxidizer: Oxidizer
   oxygen: Oxygen
   oxygen_tank: Oxygen tank
+  petroleum_coke: Petroleum coke
   pipe: Pipe
   plating: Plating
   precision_part: Precision part
@@ -190,7 +193,7 @@ goods:
   warmer: Warmer
   water: Water
   water_wheel: Water wheel
-  wheel: Wheel
+  wheel: Simple wheel
   wheelbarrow: Wheelbarrow
   windmill: Windmill
   wire: Wire

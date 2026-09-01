@@ -431,6 +431,31 @@
       "items": []
     },
     {
+      "key": "terra.oilfield",
+      "name": "Нефтяное поле",
+      "layer": "planet",
+      "planet": "terra",
+      "parent": "terra",
+      "anchor": "terra.capital.gate",
+      "area_m2": 400,
+      "place": null,
+      "city": false,
+      "properties": {
+        "вода": "нет",
+        "даль": 2
+      },
+      "machines": [],
+      "relics": [],
+      "veins": [
+        {
+          "resource": "Нефть",
+          "richness": 55,
+          "remaining": 40000
+        }
+      ],
+      "items": []
+    },
+    {
       "key": "aurora.merid",
       "name": "Мерид",
       "layer": "planet",
@@ -689,6 +714,12 @@
       "b": "terra.floodplain",
       "seconds": "reach",
       "surface": "road"
+    },
+    {
+      "a": "terra.capital.gate",
+      "b": "terra.oilfield",
+      "seconds": "reach",
+      "surface": "trail"
     },
     {
       "a": "aurora.merid.hall",
