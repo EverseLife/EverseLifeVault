@@ -518,6 +518,7 @@
     "библиотека": 1.5
   },
   "chat.city_record_retention": 30,
+  "market.tank_capacity": 2000,
   "market.order_lifetime": 14,
   "market.reservation_deposit": 20,
   "market.reservation_period": 3,
