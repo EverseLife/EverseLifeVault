@@ -78,7 +78,7 @@
   "farm.plow_time_per_m2": 0.5,
   "farm.water_per_m2": 3,
   "farm.disease_spread": 20,
-  "farm.harvest_seed_share": 10,
+  "farm.seed_return": 3,
   "farm.agrotech_params": 5,
   "farm.neglect_penalty": 25,
   "farm.soil_depletion": 8,
