@@ -40,6 +40,7 @@ goods:
   canister: Canister
   cart: Cart
   cauldron: Cauldron
+  chemical_reactor: Chemical reactor
   chest: Chest
   circuit_board: Circuit board
   clay: Clay
@@ -113,6 +114,7 @@ goods:
   mineral_fertilizer: Mineral fertilizer
   mortar: Mortar
   nails: Nails
+  naphtha: Naphtha
   nickel: Nickel
   oil: Oil
   oil_seeds: Oil seeds
@@ -122,6 +124,8 @@ goods:
   oxygen_tank: Oxygen tank
   petroleum_coke: Petroleum coke
   pipe: Pipe
+  plastic: Plastic
+  plastic_canister: Plastic canister
   plating: Plating
   precision_part: Precision part
   precursor_bioprinter: Precursor bioprinter
@@ -148,6 +152,7 @@ goods:
   rocket_fuel: Rocket fuel
   rolling_mill: Rolling mill
   rope: Rope
+  rubber: Rubber
   sack: Sack
   salt: Salt
   salted_meat: Salt meat
