@@ -87,7 +87,7 @@
   "farm.disease_spread": 20,
   "farm.seed_return": 3,
   "farm.agrotech_params": 5,
-  "farm.neglect_penalty": 25,
+  "farm.neglect_total": 75,
   "farm.soil_depletion": 8,
   "farm.monoculture_penalty": 8,
   "farm.soil_share_cap": 120,
