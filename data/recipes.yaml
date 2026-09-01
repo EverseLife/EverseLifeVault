@@ -165,9 +165,11 @@ meta:
   #   rate   — ед./час: выход часа труда (D-133). Задаёт относительную цену
   #            всего в мире; у ископаемых — ещё и вес породы при разведке жилы.
   #            Константа harvest.rates собирается отсюда
-  #   forage — {finds, handful}: находок в час на forage.reference_area и
-  #            единиц за находку (D-210). Есть поле — вещь лежит на поверхности
-  #            и находится собирательством; таблицы forage.* собираются отсюда
+  #   forage — {finds, handful, place}: находок в час на forage.reference_area,
+  #            единиц за находку (D-210) и свойство места, где вещь лежит
+  #            (D-254) — то же слово, что `place` у операции (D-177). Есть
+  #            поле — вещь лежит на поверхности и находится собирательством;
+  #            нет `place` — лежит везде. Таблицы forage.* собираются отсюда
   #   fuel   — энергии с единицы (теплотворность). Есть поле — это жгут в
   #            топливной станции; прежняя константа energy.per_coal переехала сюда
   # Числа — стартовые, правятся на живой игре (D-065). Ориентир масс: час
@@ -195,7 +197,7 @@ meta:
     - {name: Оловянная руда, id: tin_ore, class: Ископаемое, mass: 0.2, bulk: true, rate: 30}
     - {name: Свинцовая руда, id: lead_ore, class: Ископаемое, mass: 0.28, bulk: true, rate: 40}
     - {name: Уголь, id: coal, class: Ископаемое, mass: 0.16, bulk: true, rate: 60, fuel: 50}
-    - {name: Камень, id: stone, class: Ископаемое, mass: 0.1, bulk: true, rate: 80, forage: {finds: 14, handful: 3}}
+    - {name: Камень, id: stone, class: Ископаемое, mass: 0.1, bulk: true, rate: 80, forage: {finds: 14, handful: 3, place: камни}}
     - {name: Вольфрам, id: tungsten, class: Ископаемое, mass: 0.02, bulk: true, rate: 6}
     - {name: Никель, id: nickel, class: Ископаемое, mass: 0.44, bulk: true, rate: 10}
     - {name: Золотоносная порода, id: gold_ore, class: Ископаемое, mass: 0.5, bulk: true, rate: 4}
@@ -214,18 +216,24 @@ meta:
     - {name: Нефть, id: crude_oil, class: Ископаемое, mass: 0.17, bulk: true, liquid: true, rate: 55}
     # Поверхность и земля. Лён — сырьё для волокна (D-196): его находят
     # собирательством и растят на делянке; само волокно вьют руками
-    - {name: Лён, id: flax, class: Растительное, mass: 0.02, bulk: true, rate: 30, forage: {finds: 10, handful: 3}}
-    - {name: Дерево, id: wood, class: Растительное, mass: 0.6, rate: 40, forage: {finds: 12, handful: 2}}
-    - {name: Смола, id: resin, class: Растительное, mass: 0.002, bulk: true, rate: 12, forage: {finds: 2, handful: 1}}
-    - {name: Целебные травы, id: healing_herbs, class: Растительное, mass: 0.02, bulk: true, edible: true, rate: 8, forage: {finds: 2, handful: 1}}
-    - {name: Глина, id: clay, class: Минерал, mass: 0.3, bulk: true, rate: 70, forage: {finds: 6, handful: 2}}
-    - {name: Песок, id: sand, class: Минерал, mass: 0.3, bulk: true, rate: 90, forage: {finds: 6, handful: 2}}
+    - {name: Лён, id: flax, class: Растительное, mass: 0.02, bulk: true, rate: 30, forage: {finds: 10, handful: 3, place: луг}}
+    - {name: Дерево, id: wood, class: Растительное, mass: 0.6, rate: 40, forage: {finds: 12, handful: 2, place: лес}}
+    - {name: Смола, id: resin, class: Растительное, mass: 0.002, bulk: true, rate: 12, forage: {finds: 2, handful: 1, place: лес}}
+    - {name: Целебные травы, id: healing_herbs, class: Растительное, mass: 0.02, bulk: true, edible: true, rate: 8, forage: {finds: 2, handful: 1, place: луг}}
+    - {name: Глина, id: clay, class: Минерал, mass: 0.3, bulk: true, rate: 70, forage: {finds: 6, handful: 2, place: вода}}
+    - {name: Песок, id: sand, class: Минерал, mass: 0.3, bulk: true, rate: 90, forage: {finds: 6, handful: 2, place: вода}}
     - {name: Кварцевый песок, id: quartz_sand, class: Минерал, mass: 0.3, bulk: true, rate: 50}
     - {name: Известняк, id: limestone, class: Минерал, mass: 0.4, bulk: true, rate: 70}
     - {name: Соль, id: salt, class: Минерал, mass: 0.2, bulk: true, edible: true, rate: 30}
     - {name: Сера, id: sulfur, class: Минерал, mass: 0.2, bulk: true, rate: 20}
     - {name: Селитра, id: saltpeter, class: Минерал, mass: 0.2, bulk: true, rate: 15}
-    - {name: Вода, id: water, class: Жидкость, mass: 0.2, bulk: true, liquid: true, edible: true, rate: 200}
+    # Вода (D-254): слой 0 обещал её «источниками», и это единственное, чего
+    # там не было. Находится у реки и льётся в тару, как всё жидкое (D-230).
+    # Горсть крупная, темп средний: за час у реки набирается около её `rate`,
+    # то есть воды столько, сколько стоит час труда над ней. Темп нарочно не
+    # выше льна — иначе река отдаёт одну воду, а глина на горшок, который
+    # только и позволяет воду унести, перестаёт попадаться
+    - {name: Вода, id: water, class: Жидкость, mass: 0.2, bulk: true, liquid: true, edible: true, rate: 200, forage: {finds: 12, handful: 20, place: вода}}
     # Делянка и двор
     - {name: Зерно, id: grain, class: Растительное, mass: 0.14, bulk: true, edible: true, rate: 25}
     - {name: Солома, id: straw, class: Растительное, mass: 0.02, bulk: true, rate: 40}
@@ -356,7 +364,11 @@ levels:
       - {name: Каменная кирка, id: stone_pickaxe, kind: tool, class: Кирка, mass: 1, inputs: [Камень, Дерево, Верёвка], amounts: {Камень: 3, Дерево: 1, Верёвка: 2}, station: Руками}
       # Пять верёвок: корзина — час работы, а не полдня (D-215)
       - {name: Корзина, id: basket, kind: gear, slot: спина, mass: 0.3, inputs: [Верёвка], amounts: {Верёвка: 5}, station: Руками}
-      - {name: Глиняный горшок, id: clay_pot, kind: tool, class: Утварь, inputs: [Глина], station: Руками, note: утварь}
+      # Горшок держит воду (D-254). Первая тара в мире и единственная, до
+      # которой новичок дотягивается: канистра — сталь и кузница, а воду
+      # без тары не поднять (D-230). Лепится руками из глины, а глина
+      # лежит у той же воды — вся цепочка укладывается в один берег
+      - {name: Глиняный горшок, id: clay_pot, kind: tool, class: Утварь, store: 5, holds: жидкость, inputs: [Глина], station: Руками, note: утварь}
 
   - id: 2
     title: Верстак и дерево

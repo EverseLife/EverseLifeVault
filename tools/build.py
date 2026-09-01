@@ -271,22 +271,67 @@ def load_recipes_doc() -> tuple[dict, list[str]]:
     return doc, normalize_recipes(doc)
 
 
-def material_tables(doc: dict) -> dict[str, dict[str, float]]:
+#: Где лежит дикое семя (D-254). Слово места — из vocabulary.yaml, как у
+#: всякого `place`; луг и есть то, с чего начинают восемь культур.
+WILD_SEED_PLACE = "луг"
+
+
+def wild_seed_finds(plants: list[dict], scale: float, handful: float) -> dict[str, dict]:
+    """Дикие семена восьми культур: находка луга (D-254).
+
+    Доля культуры НЕ ЗАДАЁТСЯ руками — она обратна требованию к плодородию,
+    как урожайность выводится из темпа (D-136). Сорняк, которому хватает
+    десяти единиц плодородия, попадается на лугу чаще сахарника, которому
+    нужно семьдесят пять, и это единственное, что о дикой культуре нужно
+    знать. Задан один общий темп `forage.wild_seeds` — остальное считается.
+    """
+    weights = {
+        plant["seed"]: 1.0 / need
+        for plant in plants
+        if plant.get("seed") and (need := float(plant["requires"]["fertility"])) > 0
+    }
+    total = sum(weights.values())
+    if not total:  # pragma: no cover -- культура без требования к плодородию
+        return {}
+    return {
+        seed: {
+            "finds": round(scale * weight / total, 4),
+            "handful": handful,
+            "place": WILD_SEED_PLACE,
+        }
+        for seed, weight in weights.items()
+    }
+
+
+def material_tables(
+    doc: dict, plants: list[dict] | None = None, wild: dict[str, dict] | None = None
+) -> dict[str, dict[str, float]]:
     """Таблицы констант, собираемые из реестра материалов (D-215).
 
     В `constants.yaml` эти ключи объявлены с `value_from` вместо `value`:
     смысл и единица живут в реестре констант, числа — в реестре материалов.
+
+    Дикие семена приезжают сюда отдельным словарём (D-254): они товары, но
+    живут не в реестре материалов, а в `plants.yaml`, — и в таблицах сбора
+    им место рядом со льном, а не в собственной константе.
     """
     materials = doc["meta"].get("materials", [])
+    forage = {m["name"]: m["forage"] for m in materials if m.get("forage")}
+    forage |= wild or {}
     return {
         "harvest.rates": {
             m["name"]: m["rate"] for m in materials if m.get("rate")
         },
         "forage.finds": {
-            m["name"]: m["forage"]["finds"] for m in materials if m.get("forage")
+            name: entry["finds"] for name, entry in forage.items()
         },
         "forage.handful": {
-            m["name"]: m["forage"]["handful"] for m in materials if m.get("forage")
+            name: entry["handful"] for name, entry in forage.items()
+        },
+        #: Где вещь лежит (D-254). Только у привязанных: вещь без записи
+        #: находится везде, и пустое место в таблице — это и есть «везде».
+        "forage.place": {
+            name: entry["place"] for name, entry in forage.items() if entry.get("place")
         },
         #: Горючее бывает и рукотворным (D-252): нефтяной кокс — рецепт, не
         #: сырьё, а жгут его той же топливной станцией. Потому `fuel`
@@ -1042,8 +1087,24 @@ def build_constants(recipes_doc: dict) -> tuple[str, dict, list[str]]:
 
     # Таблицы, ключуемые именами материалов, собираются из реестра (D-215):
     # запись в constants.yaml держит ключ, единицу и смысл (`value_from:
-    # materials`), а числа лежат у самих материалов — один источник на вещь
-    tables = material_tables(recipes_doc)
+    # materials`), а числа лежат у самих материалов — один источник на вещь.
+    # Дикие семена (D-254) считаются здесь же: `plants.yaml` читается сырым —
+    # нужны только `seed` и требование к плодородию, а не выведенный каталог,
+    # который сам ждёт готовых констант
+    plants = yaml.safe_load((DATA / "plants.yaml").read_text(encoding="utf-8"))["plants"]
+    plain = flatten_constants(doc)
+    tables = material_tables(
+        recipes_doc,
+        plants,
+        wild_seed_finds(
+            plants,
+            float(plain["forage.wild_seeds"]),
+            #: Горсть дикого семени — ровно на одну минимальную делянку: норма
+            #: высева на её площадь. Число не задаётся, потому что это не
+            #: отдельное решение, а следствие двух уже принятых.
+            float(plain["farm.seed_rate"]) * float(plain["farm.plot_min_area"]),
+        ),
+    )
     declared_keys = {c["key"] for g in doc["groups"] for c in g["constants"]}
     for group in doc["groups"]:
         for c in group["constants"]:
@@ -1616,6 +1677,11 @@ def check_ids(
     for op in recipes_doc["operations"]:
         if op.get("place"):
             properties.add(op["place"])
+    #: Место находки — то же слово и та же проверка, что у операции (D-254).
+    for m in recipes_doc["meta"].get("materials", []):
+        if (found := m.get("forage")) and found.get("place"):
+            properties.add(found["place"])
+    properties.add(WILD_SEED_PLACE)
     covered(sorted(properties), "node_properties", "properties узлов и place операций")
     covered(sorted(VIRTUAL_STATIONS), "virtual_stations", "виртуальные станции")
     return problems

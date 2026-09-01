@@ -380,7 +380,8 @@
       "rate": 80,
       "forage": {
         "finds": 14,
-        "handful": 3
+        "handful": 3,
+        "place": "камни"
       },
       "relic": false,
       "fuel": null
@@ -467,7 +468,8 @@
       "rate": 30,
       "forage": {
         "finds": 10,
-        "handful": 3
+        "handful": 3,
+        "place": "луг"
       },
       "relic": false,
       "fuel": null
@@ -482,7 +484,8 @@
       "rate": 40,
       "forage": {
         "finds": 12,
-        "handful": 2
+        "handful": 2,
+        "place": "лес"
       },
       "relic": false,
       "fuel": null
@@ -497,7 +500,8 @@
       "rate": 12,
       "forage": {
         "finds": 2,
-        "handful": 1
+        "handful": 1,
+        "place": "лес"
       },
       "relic": false,
       "fuel": null
@@ -512,7 +516,8 @@
       "rate": 8,
       "forage": {
         "finds": 2,
-        "handful": 1
+        "handful": 1,
+        "place": "луг"
       },
       "relic": false,
       "fuel": null
@@ -527,7 +532,8 @@
       "rate": 70,
       "forage": {
         "finds": 6,
-        "handful": 2
+        "handful": 2,
+        "place": "вода"
       },
       "relic": false,
       "fuel": null
@@ -542,7 +548,8 @@
       "rate": 90,
       "forage": {
         "finds": 6,
-        "handful": 2
+        "handful": 2,
+        "place": "вода"
       },
       "relic": false,
       "fuel": null
@@ -615,7 +622,11 @@
       "bulk": true,
       "edible": true,
       "rate": 200,
-      "forage": null,
+      "forage": {
+        "finds": 12,
+        "handful": 20,
+        "place": "вода"
+      },
       "relic": false,
       "fuel": null
     },
@@ -1866,8 +1877,8 @@
       "food": false,
       "hot": false,
       "slot": null,
-      "store": null,
-      "holds": null,
+      "store": 5,
+      "holds": "жидкость",
       "inputs": [
         "Глина"
       ],
