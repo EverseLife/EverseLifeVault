@@ -73,10 +73,6 @@ groups:
       - key: energy.battery_selfdischarge
         value: 2
         unit: "% в сутки"
-      - key: energy.auto_bench_draw
-        value: 40
-        unit: в час
-        note: Расход автоматической станции
       - key: energy.deep_mine_draw
         value: 20
         unit: в час
@@ -909,11 +905,6 @@ groups:
         value: {min: 0.6, max: 1.4}
         unit: "×"
         note: Множитель времени от качества станции. Разбитая наковальня работает медленно
-        decision: D-129
-      - key: craft.auto_speed_k
-        value: 2
-        unit: "×"
-        note: Во столько раз быстрее автоматическая станция. Она же работает офлайн
         decision: D-129
       - key: craft.batch_max
         value: 50
