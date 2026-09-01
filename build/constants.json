@@ -161,6 +161,10 @@
   "build.demolish_labor_k": 0.5,
   "build.stair_seconds": 20,
   "build.demolish_salvage": 0.3,
+  "road.decay_by_paving": {
+    "Дорожное полотно": 1,
+    "Асфальтовое полотно": 0.5
+  },
   "road.trail_multiplier": 2.5,
   "road.road_multiplier": 1,
   "road.paved_multiplier": 0.7,
@@ -329,6 +333,10 @@
     "Двигатель III класса": 0.5
   },
   "ship.fuel_per_ton_day": 6,
+  "ship.fuel_energy": {
+    "Ракетное топливо": 1,
+    "Керосиновое топливо": 1.25
+  },
   "ship.life_support_crew": 4,
   "quality.scale": {
     "min": 0,

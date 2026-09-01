@@ -466,6 +466,10 @@ levels:
       - {name: Раствор, id: mortar, kind: material, bulk: true, mix: true, inputs: [Известь, Песок, Вода], station: Верстак}
       - {name: Каменный блок, id: stone_block, kind: material, inputs: [Камень], station: Кузница, note: обтёска}
       - {name: Дорожное полотно, id: road_paving, kind: consumable, class: Полотно, mix: true, inputs: [Щебень, Крошка], station: Верстак}
+      # Второй член класса «Полотно» (D-252): кладётся тем же действием, а
+      # садится вдвое медленнее — таблица road.decay_by_paving. Дорога к
+      # скважине мостится её же битумом
+      - {name: Асфальтовое полотно, id: asphalt_paving, kind: consumable, class: Полотно, mix: true, inputs: [Битум, Щебень], weights: {Битум: 0.4, Щебень: 0.6}, station: Верстак}
       # Мастерская собирается на верстаке: цех строят из сарая (D-216)
       - {name: Мастерская, id: workshop, kind: station, hours: 8, inputs: [Кирпич, Дерево, Гвозди, Сталь], amounts: {Кирпич: 30, Дерево: 10, Гвозди: 10, Сталь: 4}, station: Верстак}
       - {name: Терминал маркетплейса, id: market_terminal, kind: station, class: Терминал, hours: 3, inputs: [Дерево, Сталь], amounts: {Дерево: 6, Сталь: 2}, station: Верстак}
@@ -538,6 +542,12 @@ levels:
       - {name: Нефтяной кокс, id: petroleum_coke, kind: material, bulk: true, fuel: 90, inputs: [Нефть], amounts: {Нефть: 1.5}, station: Перегонная колонна}
       # Лёгкая фракция — сырьё химии: пластик и резина начинаются здесь
       - {name: Лигроин, id: naphtha, kind: material, bulk: true, liquid: true, inputs: [Нефть], amounts: {Нефть: 5}, station: Перегонная колонна}
+      # Тяжёлый остаток — дорога: асфальт садится медленнее гравия
+      # (road.decay_by_paving), в этом весь его смысл
+      - {name: Битум, id: bitumen, kind: material, bulk: true, inputs: [Нефть], amounts: {Нефть: 2}, station: Перегонная колонна}
+      # Средняя фракция — небо: керосиновое топливо жжётся экономнее
+      # ракетного (ship.fuel_energy), как и в жизни после спирта
+      - {name: Керосин, id: kerosene, kind: material, bulk: true, liquid: true, inputs: [Нефть], amounts: {Нефть: 3}, station: Перегонная колонна}
       # Полимеризация и вулканизация. Состав разошёлся с колонной числами:
       # изобретение различает рецепты составом (D-209)
       - {name: Химический реактор, id: chemical_reactor, kind: station, hours: 8, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 15, Сталь: 8, Труба: 6}, station: Мастерская}
@@ -621,6 +631,10 @@ levels:
           - {name: Кислород, id: oxygen, kind: material, bulk: true, liquid: true, inputs: [Вода, Энергия], station: Электролизёр, highlight: [Энергия]}
           - {name: Окислитель, id: oxidizer, kind: material, bulk: true, liquid: true, inputs: [Селитра, Энергия], station: Электролизёр, highlight: [Селитра]}
           - {name: Ракетное топливо, id: rocket_fuel, kind: consumable, class: Корабельное топливо, bulk: true, liquid: true, key: true, mix: true, inputs: [Спирт, Окислитель], station: Мастерская}
+          # Второй член класса (D-252): жжётся той же тягой, но единица стоит
+          # 1.25 эталонной (ship.fuel_energy) — бак той же массы везёт дальше.
+          # После спирта пришёл керосин, ровно как в жизни
+          - {name: Керосиновое топливо, id: kerosene_fuel, kind: consumable, class: Корабельное топливо, bulk: true, liquid: true, mix: true, inputs: [Керосин, Окислитель], station: Мастерская}
           # Бак (D-230): корабль жжёт только то, что в баках, и бак берёт
           # только жидкость. Полный бак — масса на каждом рейсе
           - {name: Топливный бак, id: fuel_tank, kind: furniture, class: Топливный бак, store: 2000, holds: жидкость, hours: 6, inputs: [Сталь, Труба, Баллон высокого давления], amounts: {Сталь: 20, Труба: 4, Баллон высокого давления: 2}, station: Космическая мастерская}

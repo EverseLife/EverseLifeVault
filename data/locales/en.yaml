@@ -18,6 +18,7 @@
 goods:
   administration: Administration
   alcohol: Alcohol
+  asphalt_paving: Asphalt paving
   auto_station: Automatic station
   axe: Axe
   bandage: Bandage
@@ -29,6 +30,7 @@ goods:
   bellows: Bellows
   bio_chamber: Bio-chamber
   bioprinter: Bioprinter
+  bitumen: Bitumen
   blast_furnace: Blast furnace
   brazier: Brazier
   bread: Bread
@@ -99,6 +101,8 @@ goods:
   iron_ingot: Iron ingot
   iron_ore: Iron ore
   iron_pickaxe: Iron pickaxe
+  kerosene: Kerosene
+  kerosene_fuel: Kerosene fuel
   lathe: Lathe
   lead: Lead
   lead_ore: Lead ore
