@@ -123,6 +123,7 @@
   "build.area_min": 10,
   "build.slots_per_area": 10,
   "build.floor_per_m2": 20,
+  "build.start_stamina_per_m2": 0.1,
   "build.cost_per_area": {
     "formula": "types[kind] * footprint * sum(build.floor_growth_by_type[kind]^(n-1) for n in 1..floors)"
   },
