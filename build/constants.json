@@ -847,7 +847,6 @@
     "unanimous": 1
   },
   "vote.duration": 24,
-  "city.exit_delay": 2,
   "chat.net_group_limit": 50,
   "cheat.suspicion_sigma": 3,
   "cheat.action_sigma": 3,
