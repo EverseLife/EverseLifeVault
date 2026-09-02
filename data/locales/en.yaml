@@ -362,3 +362,32 @@ node_properties:
   water: water
   wild: wild
   woods: woods
+
+# Код-законы: имя строки в таблице законов города. С заглавной, как в русском,
+# — это заголовок, а не слово внутри фразы.
+laws:
+  access: Access to the territory
+  bank_margin: City bank margin
+  body_print: Body printing at the city's expense
+  bounty: Capture bounty
+  build_permit: Building permit
+  energy_tariff: Energy tariff
+  export_ban: Export ban
+  export_duty: Export duty
+  import_ban: Import ban
+  import_duty: Import duty
+  item_ban: Item ban
+  land_price: City land price
+  license: Occupation license
+  newcomer_grant: Newcomer grant
+  price_cap: Price cap
+  ration: Ration
+  record_access: Access to building records
+  salary: Office salary
+  spawn_citizenship: Citizenship on printing
+  spawn_term: Newcomer's term of obligation
+  tax_bank: Banking tax
+  tax_land: Land tax
+  tax_mining: Mining tax
+  tax_trade: Sales tax
+  toll: Passage toll

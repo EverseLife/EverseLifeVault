@@ -1708,6 +1708,7 @@ def build_renames(
     vocabulary: dict,
     plants: list[dict] = (),
     locales: dict[str, dict] | None = None,
+    code_laws: list[dict] = (),
 ) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
@@ -1748,6 +1749,13 @@ def build_renames(
         for plant in plants
         if plant.get("id") and plant.get("wild_name")
     })
+    #: Код-законы: у закона есть имя показа («Налог с продажи»), и по проводу
+    #: оно ездит ключом, как всякое имя вольта. Домен свой: ключи законов
+    #: короткие и общего вида (`access`, `salary`, `toll`), и общая с товарами
+    #: таблица однажды молча отдала бы одно вместо другого.
+    out["laws"] = {
+        law["name"]: law["id"] for law in code_laws if law.get("id") and law.get("name")
+    }
     for domain, rows in vocabulary.items():
         out[domain] = {row["name"]: row["id"] for row in rows or []}
     out["names_ru"] = {
@@ -1896,7 +1904,9 @@ def main() -> int:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
     #: показывать игроку `iron_ore` в готовой игре.
     locales = load_locales()
-    problems += check_locales(build_renames(recipes_doc, vocabulary, plants), locales)
+    problems += check_locales(
+        build_renames(recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"]), locales
+    )
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
 
@@ -2087,7 +2097,8 @@ def main() -> int:
     write(BUILD / "world.json",
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "renames.json",
-          json.dumps(build_renames(recipes_doc, vocabulary, plants, locales),
+          json.dumps(build_renames(recipes_doc, vocabulary, plants, locales,
+                                   code_laws=laws_doc["code_laws"]),
                      ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
