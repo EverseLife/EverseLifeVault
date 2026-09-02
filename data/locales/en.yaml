@@ -384,8 +384,6 @@ laws:
   ration: Ration
   record_access: Access to building records
   salary: Office salary
-  spawn_citizenship: Citizenship on printing
-  spawn_term: Newcomer's term of obligation
   tax_bank: Banking tax
   tax_land: Land tax
   tax_mining: Mining tax
