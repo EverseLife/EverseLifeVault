@@ -164,6 +164,56 @@
           "name": "Угольная станция",
           "class": null,
           "quality": 60
+        },
+        {
+          "name": "Мельница",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Мастерская",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Прокатный стан",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Токарный станок",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Перегонная колонна",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Химический реактор",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Чистая мастерская",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Бродильный чан",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Высокая печь",
+          "class": null,
+          "quality": 55
+        },
+        {
+          "name": "Электролизёр",
+          "class": null,
+          "quality": 55
         }
       ],
       "relics": [],
@@ -250,6 +300,11 @@
           "name": null,
           "class": "Верфь",
           "quality": 60
+        },
+        {
+          "name": "Космическая мастерская",
+          "class": null,
+          "quality": 55
         }
       ],
       "relics": [],
