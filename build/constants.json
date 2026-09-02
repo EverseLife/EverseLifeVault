@@ -315,7 +315,7 @@
   },
   "craft.input_labor_ratio": 1.0,
   "craft.amount_cap": 10,
-  "craft.copy_stamina": 3,
+  "craft.copy_stamina": 1,
   "craft.time_growth_per_level": 2.0,
   "craft.time_per_unit": 6,
   "craft.station_speed_k": {
