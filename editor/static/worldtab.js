@@ -22,6 +22,12 @@ import * as worldform from './worldform.js';
 export function createWorldTab(ctx) {
   const { app, dom, say, reportRun } = ctx;
 
+  const meta = {
+    kind: 'map',
+    placeholder: 'поиск: узел, станок, жила или вещь в нём',
+    buttons: ['act-new-node'],
+  };
+
   async function load(keepPick = true) {
     app.world = await api.world();
     const groups = worldmap.groups(app.world.nodes).map((one) => one.group);
@@ -178,5 +184,8 @@ export function createWorldTab(ctx) {
     }
   }
 
-  return { load, renderFilters, renderList, renderLegend, draw, select, openForm, openNew };
+  return {
+    meta, load, renderFilters, renderList, renderLegend, draw, select, openForm, openNew,
+    enter: load, reopen: load,
+  };
 }

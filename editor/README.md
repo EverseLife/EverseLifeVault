@@ -558,6 +558,13 @@ python -m pytest editor/tests -q
 `worldfile.py` — мир, `localefile.py` — локали и словарь, `ladder.py` — граф и
 проверки; обработчики запросов — `api_things.py`, `api_buildings.py`,
 `api_world.py`, общее для них — `session.py`, дверь — `server.py`. У интерфейса
-та же раскладка: `panel.js` — форма рецепта, `materialform.js`, `classform.js`,
-`buildingform.js`, `constantform.js` — остальные формы, `formkit.js` — их общие
-части, `constants.js` — список и таблица констант.
+та же раскладка: `app.js` — диспетчер (состояние, граф, панель, полоса внизу,
+переключение вкладок); каждая вкладка — свой модуль с одним контрактом
+(`meta` — холст, кнопки, подсказка поиска; `renderFilters`, `renderList`,
+`renderLegend`, `draw`, `enter`): `recipestab.js`, `foodtab.js`,
+`stationstab.js`, `buildingstab.js`, `constantstab.js`, `worldtab.js`; общее
+для трёх вкладок лестницы — `ladderkit.js`. Формы: `panel.js` — рецепт,
+`materialform.js`, `classform.js`, `buildingform.js`, `constantform.js` —
+остальные, `formkit.js` — их общие части; `constants.js` — список и таблица
+констант, `buildings.js` — список и доска зданий, `world.js`/`worldform.js` —
+карта и форма мира.

@@ -15,6 +15,12 @@ import { h, plural } from './ui.js';
 export function createConstantsTab(ctx) {
   const { app, dom, say, reportRun } = ctx;
 
+  const meta = {
+    kind: 'board',
+    placeholder: 'поиск: ключ, смысл, единица, значение',
+    buttons: ['act-new-constant'],
+  };
+
   async function load(keepPick = true) {
     app.constants = await api.constants();
     const groups = app.constants.groups;
@@ -117,5 +123,8 @@ export function createConstantsTab(ctx) {
     else say('записано', false, 'записано');
   }
 
-  return { load, renderFilters, renderList, renderLegend, draw, select, openForm, openNew, save: () => app.constForm?.save() };
+  return {
+    meta, load, renderFilters, renderList, renderLegend, draw, select, openForm, openNew,
+    enter: load, reopen: load, save: () => app.constForm?.save(),
+  };
 }
