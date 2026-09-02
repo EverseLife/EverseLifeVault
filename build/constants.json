@@ -793,12 +793,34 @@
     "consumable": 0.5,
     "money": 0.01
   },
-  "inventory.carry_bonus": {
-    "Корзина": 5,
-    "Мешок": 10,
-    "Простой рюкзак": 20,
-    "Экзоскелет": 60
+  "inventory.exo_bonus": {
+    "Экзоскелет": 100,
+    "Тяжёлый экзоскелет": 300,
+    "Пироксисовый экзоскелет": 1000
   },
+  "inventory.pack": {
+    "Корзина": {
+      "capacity": 8,
+      "factor": 0.9
+    },
+    "Мешок": {
+      "capacity": 15,
+      "factor": 0.85
+    },
+    "Простой рюкзак": {
+      "capacity": 20,
+      "factor": 0.8
+    },
+    "Прочный рюкзак": {
+      "capacity": 35,
+      "factor": 0.7
+    },
+    "Пироксисовый рюкзак": {
+      "capacity": 50,
+      "factor": 0.5
+    }
+  },
+  "gear.exo_energy_per_hour": 4,
   "invent.recipe_slots": 0,
   "quality.recycle_carryover": 60,
   "contract.registry_fee": 1,
