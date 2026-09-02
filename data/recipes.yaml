@@ -522,19 +522,22 @@ levels:
       - id: precision
         title: Точная обработка
         recipes:
-          - {name: Высокая печь, id: blast_furnace, kind: station, built: true, hours: 10, inputs: [Кирпич, Известь, Сталь, Меха], amounts: {Кирпич: 30, Известь: 10, Сталь: 6, Меха: 1}, station: Мастерская}
+          # Станок на электричестве (D-269): ручная партия у него берёт
+          # `craft.powered_energy_per_hour` за час — из пула по тарифу, вне
+          # города из аккумуляторов рядом; без питания станок стоит
+          - {name: Высокая печь, id: blast_furnace, kind: station, powered: true, built: true, hours: 10, inputs: [Кирпич, Известь, Сталь, Меха], amounts: {Кирпич: 30, Известь: 10, Сталь: 6, Меха: 1}, station: Мастерская}
           # Привод — бронзовый подшипник на стальном валу
           - {name: Привод, id: drive, kind: material, inputs: [Сталь, Дерево, Бронза], station: Кузница}
           # Прокатный стан катает и тянет: провод, фольга, обшивка, баллон.
           # Волочильный станок снят (D-223): первому потребителю провода
           # стан нужен всё равно
-          - {name: Прокатный стан, id: rolling_mill, kind: station, hours: 6, inputs: [Сталь, Дерево, Привод], amounts: {Сталь: 10, Дерево: 4, Привод: 1}, station: Кузница}
+          - {name: Прокатный стан, id: rolling_mill, kind: station, powered: true, hours: 6, inputs: [Сталь, Дерево, Привод], amounts: {Сталь: 10, Дерево: 4, Привод: 1}, station: Кузница}
           # Изоляция из пластика (D-252): этой строкой вся электроника —
           # двигатель, реле, плата, микросхема — встаёт выше нефти
           - {name: Провод, id: wire, kind: material, inputs: [Медный слиток, Пластик], weights: {Медный слиток: 0.8, Пластик: 0.2}, station: Прокатный стан}
           - {name: Медная фольга, id: copper_foil, kind: material, inputs: [Медный слиток], amounts: {Медный слиток: 2}, station: Прокатный стан}
           - {name: Вольфрамовый резец, id: tungsten_cutter, kind: tool, inputs: [Вольфрам, Сталь], station: Высокая печь, highlight: [Вольфрам]}
-          - {name: Токарный станок, id: lathe, kind: station, hours: 8, inputs: [Сталь, Дерево, Вольфрамовый резец, Привод], amounts: {Сталь: 6, Дерево: 4, Вольфрамовый резец: 1, Привод: 1}, station: Мастерская}
+          - {name: Токарный станок, id: lathe, kind: station, powered: true, hours: 8, inputs: [Сталь, Дерево, Вольфрамовый резец, Привод], amounts: {Сталь: 6, Дерево: 4, Вольфрамовый резец: 1, Привод: 1}, station: Мастерская}
           - {name: Точная деталь, id: precision_part, kind: material, inputs: [Сталь], station: Токарный станок}
           - {name: Буровая установка, id: drilling_rig, kind: station, class: Буровая, key: true, hours: 10, inputs: [Стальная рама, Привод, Точная деталь, Труба], amounts: {Стальная рама: 2, Привод: 1, Точная деталь: 4, Труба: 4}, station: Мастерская}
 
@@ -552,7 +555,7 @@ levels:
       # его валит. Фракции выбираются, как выход «Дробления»: одна за прогон,
       # остальное уходит в отход — перегонка расточительна по замыслу, это
       # то самое исключение ручных amounts из D-133
-      - {name: Перегонная колонна, id: distillation_column, kind: station, built: true, hours: 10, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 20, Сталь: 12, Труба: 8}, station: Мастерская}
+      - {name: Перегонная колонна, id: distillation_column, kind: station, powered: true, built: true, hours: 10, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 20, Сталь: 12, Труба: 8}, station: Мастерская}
       # Плотное топливо: жжётся в топливной станции (fuel, D-215 — у угля 50)
       # и восстанавливает кремний — передел, без которого кокс был бы тупиком
       - {name: Нефтяной кокс, id: petroleum_coke, kind: material, bulk: true, fuel: 90, inputs: [Нефть], amounts: {Нефть: 1.5}, station: Перегонная колонна}
@@ -569,7 +572,7 @@ levels:
       - {name: Смазка, id: lubricant, kind: consumable, class: Смазочный материал, bulk: true, liquid: true, inputs: [Нефть], amounts: {Нефть: 4}, station: Перегонная колонна}
       # Полимеризация и вулканизация. Состав разошёлся с колонной числами:
       # изобретение различает рецепты составом (D-209)
-      - {name: Химический реактор, id: chemical_reactor, kind: station, built: true, hours: 8, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 15, Сталь: 8, Труба: 6}, station: Мастерская}
+      - {name: Химический реактор, id: chemical_reactor, kind: station, powered: true, built: true, hours: 8, inputs: [Кирпич, Сталь, Труба], amounts: {Кирпич: 15, Сталь: 8, Труба: 6}, station: Мастерская}
       - {name: Пластик, id: plastic, kind: material, bulk: true, inputs: [Лигроин], station: Химический реактор}
       # Вулканизация: сера получает второго потребителя после кислоты
       - {name: Резина, id: rubber, kind: material, bulk: true, mix: true, inputs: [Лигроин, Сера], weights: {Лигроин: 0.7, Сера: 0.3}, station: Химический реактор}
@@ -597,10 +600,11 @@ levels:
         recipes:
           # Кокс вместо угля (D-252): восстановление кремния — нефтяной
           # передел, и электроника честно стоит выше нефти
-          - {name: Кремний, id: silicon, kind: material, bulk: true, mix: true, inputs: [Кварцевый песок, Нефтяной кокс, Энергия], station: Высокая печь, highlight: [Энергия]}
+          # Электричество — условие работы печи, а не вход рецепта (D-269)
+          - {name: Кремний, id: silicon, kind: material, bulk: true, mix: true, inputs: [Кварцевый песок, Нефтяной кокс], station: Высокая печь, highlight: [Нефтяной кокс]}
           - {name: Кремниевая пластина, id: silicon_wafer, kind: material, inputs: [Кремний], station: Токарный станок}
           - {name: Текстолит, id: textolite, kind: material, mix: true, inputs: [Ткань, Смола], station: Верстак}
-          - {name: Чистая мастерская, id: clean_workshop, kind: station, mass: 40, hours: 10, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], amounts: {Стекло: 10, Сталь: 6, Кирпич: 20, Ткань: 6, Провод: 4}, station: Мастерская}
+          - {name: Чистая мастерская, id: clean_workshop, kind: station, powered: true, mass: 40, hours: 10, inputs: [Стекло, Сталь, Кирпич, Ткань, Провод], amounts: {Стекло: 10, Сталь: 6, Кирпич: 20, Ткань: 6, Провод: 4}, station: Мастерская}
           - {name: Печатная плата, id: circuit_board, kind: material, inputs: [Текстолит, Медная фольга], station: Чистая мастерская}
           - {name: Микросхема, id: microchip, kind: material, inputs: [Кремниевая пластина, Аффинированное золото, Провод], station: Чистая мастерская, highlight: [Аффинированное золото]}
           - {name: Датчик, id: sensor, kind: material, inputs: [Микросхема, Стекло, Провод], station: Чистая мастерская}
@@ -667,12 +671,13 @@ levels:
         recipes:
           - {name: Бродильный чан, id: fermentation_vat, kind: station, hours: 4, inputs: [Дерево, Бронза, Труба], amounts: {Дерево: 10, Бронза: 2, Труба: 2}, station: Мастерская}
           - {name: Спирт, id: alcohol, kind: material, bulk: true, liquid: true, mix: true, inputs: [Сахар, Вода], station: Бродильный чан}
-          - {name: Электролизёр, id: electrolyzer, kind: station, hours: 5, inputs: [Сталь, Провод, Стекло], amounts: {Сталь: 4, Провод: 4, Стекло: 4}, station: Мастерская}
+          - {name: Электролизёр, id: electrolyzer, kind: station, powered: true, hours: 5, inputs: [Сталь, Провод, Стекло], amounts: {Сталь: 4, Провод: 4, Стекло: 4}, station: Мастерская}
           # Кислород — жидкость (D-234): существует только внутри тары, как
           # вода и топливо. В руках, на полу и в сундуке его не бывает, и
           # торгуют им только тарой
-          - {name: Кислород, id: oxygen, kind: material, bulk: true, liquid: true, inputs: [Вода, Энергия], station: Электролизёр, highlight: [Энергия]}
-          - {name: Окислитель, id: oxidizer, kind: material, bulk: true, liquid: true, inputs: [Селитра, Энергия], station: Электролизёр, highlight: [Селитра]}
+          # Ток — условие работы электролизёра, а не вход (D-269): вода одна
+          - {name: Кислород, id: oxygen, kind: material, bulk: true, liquid: true, inputs: [Вода], station: Электролизёр}
+          - {name: Окислитель, id: oxidizer, kind: material, bulk: true, liquid: true, inputs: [Селитра], station: Электролизёр, highlight: [Селитра]}
           - {name: Ракетное топливо, id: rocket_fuel, kind: consumable, class: Корабельное топливо, bulk: true, liquid: true, key: true, mix: true, inputs: [Спирт, Окислитель], station: Мастерская}
           # Второй член класса (D-252): жжётся той же тягой, но единица стоит
           # 1.25 эталонной (ship.fuel_energy) — бак той же массы везёт дальше.
@@ -738,7 +743,7 @@ levels:
           # узел борта и даёт обычную делянку со всеми сортами и агротехникой.
           # Еда на борту живёт по тем же правилам, что еда на земле
           - {name: Гидропонная установка, id: hydroponic_unit, kind: station, built: true, class: Гидропоника, hours: 10, inputs: [Сталь, Труба, Стекло, Насос, Датчик], amounts: {Сталь: 8, Труба: 6, Стекло: 6, Насос: 1, Датчик: 1}, station: Космическая мастерская}
-          - {name: Космическая мастерская, id: space_workshop, kind: station, built: true, hours: 12, inputs: [Кирпич, Сталь, Дерево, Привод], amounts: {Кирпич: 30, Сталь: 10, Дерево: 10, Привод: 2}, station: Мастерская}
+          - {name: Космическая мастерская, id: space_workshop, kind: station, powered: true, built: true, hours: 12, inputs: [Кирпич, Сталь, Дерево, Привод], amounts: {Кирпич: 30, Сталь: 10, Дерево: 10, Привод: 2}, station: Мастерская}
           - {name: Космическая верфь, id: space_shipyard, kind: station, built: true, class: Верфь, hours: 20, inputs: [Раствор, Каменный блок, Сталь, Труба], amounts: {Раствор: 20, Каменный блок: 30, Сталь: 10, Труба: 6}, station: Мастерская}
           # Корабль собирается не рецептом, а по узлу за раз (D-201, D-202):
           # отдал основу на космической верфи — заложил основание, оно же коннектор;

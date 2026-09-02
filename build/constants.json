@@ -324,6 +324,7 @@
     "max": 1.4
   },
   "craft.batch_max": 50,
+  "craft.powered_energy_per_hour": 6,
   "craft.waste_share": 5,
   "craft.waste_bad_ratio": 15,
   "craft.recycle_return": 40,

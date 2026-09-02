@@ -95,6 +95,7 @@ goods:
   heat_shield_tiles: Heat shield tiles
   heater: Heater
   heatproof_suit: Heatproof suit
+  heavy_exoskeleton: Heavy exoskeleton
   high_pressure_tank: High-pressure cylinder
   hull: Hull
   hydroponic_unit: Hydroponic unit
@@ -143,6 +144,8 @@ goods:
   processor_unit: Processor unit
   pump: Pump
   pyroxite: Pyroxite
+  pyroxite_backpack: Pyroxite backpack
+  pyroxite_exoskeleton: Pyroxite exoskeleton
   pyroxite_hull: Pyroxite hull
   pyroxite_slab: Pyroxite slab
   pyroxite_suit: Pyroxite suit
@@ -189,6 +192,7 @@ goods:
   stone_chips: Stone chippings
   stone_pickaxe: Stone pickaxe
   straw: Straw
+  sturdy_backpack: Sturdy backpack
   sugar: Sugar
   sugar_cane: Sugar cane
   sugarcane_seeds: Sugarcane seeds
