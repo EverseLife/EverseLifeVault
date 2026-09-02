@@ -389,3 +389,50 @@ laws:
   tax_mining: Mining tax
   tax_trade: Sales tax
   toll: Passage toll
+
+# Единица измерения код-закона: подпись у числа в таблице законов.
+law_units:
+  bank_margin: "% above the key rate"
+  bounty: "₭"
+  energy_tariff: "₭ per 100 energy"
+  export_duty: "% of the value above the allowance"
+  import_duty: "% of the value above the allowance"
+  land_price: "₭/m² at the centre"
+  newcomer_grant: "₭"
+  price_cap: "₭ per unit"
+  ration: "units per day"
+  salary: "₭ per day"
+  tax_bank: "%"
+  tax_land: "₭/m² of plot per day, at the centre"
+  tax_mining: "% of the yield"
+  tax_trade: "% of revenue"
+  toll: "₭"
+
+# Пояснение к код-закону — подсказка в окне города. Где закон читается
+# движком по слову («body_print», «build_permit»), значения оставлены
+# русскими: их вводит игрок, а сравнивает с ними движок, и английский
+# список звал бы набрать то, чего движок не понимает.
+law_notes:
+  access: "open · by citizenship · by permission · closed"
+  bank_margin: "The city's markup over the key rate for its own borrowers. The ceiling is `bank.city_margin_cap`; cities compete by the rate as they do by tax and tariff"
+  body_print: "Typed as «нет» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand. Energy is charged at the tariff either way; the treasury simply pays it"
+  bounty: "Out of the treasury, to whoever carried out the sentence on an outlaw"
+  build_permit: "Who may take the free plots in the rings. Typed as «никто» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand"
+  energy_tariff: "Zero means free energy"
+  export_ban: "What is listed the engine does not take out of the city. A hard guard — the ore stays with its own workshops"
+  export_duty: "The same for taking out. A soft guard over home production"
+  import_ban: "What is listed the engine does not bring into the city at all"
+  import_duty: "The goods, the rate and the duty-free allowance in kg per `trade.duty_free_window`. Charged at the border against the reference price of the city's book"
+  item_ban: "What may not be brought in or made on the territory"
+  land_price: "Any resident buying a free plot outright. The rate is the one at the bioprinter; every node away from it is cheaper by `land.decay_per_node`. The proceeds go to the treasury"
+  license: "Which occupations require the city's permission"
+  newcomer_grant: "Out of the treasury at the first printing of a body in the city. Once per identity. Zero — the city pays nothing"
+  price_cap: "An order dearer than this the city's book does not take at all"
+  ration: "How much of a regulated good one person takes at the ceiling price. Without it the ceiling is bought up wholesale"
+  record_access: "nobody without a court · the judge on the case · the guard at any time"
+  salary: "A daily tick out of the treasury. Left unpaid, the office resigns itself"
+  tax_bank: "On operations through the city's terminal"
+  tax_land: "Taken on the whole area of the plot, built up or not: hold land, pay for land. The rate is the one at the bioprinter; every node away from it is cheaper by `land.decay_per_node` (D-220)"
+  tax_mining: "Taken off the mining session"
+  tax_trade: "Paid by the seller when the order fills. The buyer sees the price without the tax — that price is the price"
+  toll: "For entering the territory or travelling the road"

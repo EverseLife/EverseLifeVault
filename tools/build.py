@@ -1761,6 +1761,17 @@ def build_renames(
     out["names_ru"] = {
         domain: {v: k for k, v in table.items()} for domain, table in out.items()
     }
+    #: Поля код-закона — единица и пояснение — только в именах, не в карте
+    #: переименований: по ним не мигрируют, и обратная карта «текст -> id»
+    #: схлопнула бы одинаковые значения («ТК» стоит единицей у трёх законов).
+    #: Закон без единицы в домен не попадает — и второго языка с него не
+    #: требуют.
+    out["names_ru"]["law_units"] = {
+        law["id"]: law["unit"] for law in code_laws if law.get("id") and law.get("unit")
+    }
+    out["names_ru"]["law_notes"] = {
+        law["id"]: law["note"] for law in code_laws if law.get("id") and law.get("note")
+    }
     #: Второй язык и дальше — оверлеем по id, а не обращением карты имён:
     #: у русского имя первично и id выведен из него, у остальных наоборот.
     for lang, overlay in sorted((locales or {}).items()):
