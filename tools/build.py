@@ -1410,8 +1410,32 @@ def build_laws() -> tuple[str, dict]:
 
 
 def check_laws(doc: dict) -> list[str]:
-    """Дерево устава должно быть связным: ссылки ведут в существующие вопросы."""
+    """Дерево устава должно быть связным: ссылки ведут в существующие вопросы.
+
+    И вариант код-закона — ключ, а не слово: движок сравнивает с ним, а язык
+    показа приходит оверлеем. Умолчание обязано быть одним из вариантов,
+    иначе новый город заводится со значением, которого нет в списке.
+    """
     problems: list[str] = []
+    for law in doc.get("code_laws", []):
+        options = law.get("options") or []
+        seen: set[str] = set()
+        for option in options:
+            key = option.get("id", "")
+            if not ID_RE.match(str(key)):
+                problems.append(
+                    f"код-закон «{law['id']}»: вариант «{key}» — не snake_case ASCII"
+                )
+            if key in seen:
+                problems.append(f"код-закон «{law['id']}»: вариант «{key}» повторяется")
+            seen.add(key)
+            if not str(option.get("label", "")).strip():
+                problems.append(f"код-закон «{law['id']}»: у варианта «{key}» нет имени показа")
+        if options and law.get("default") not in seen:
+            problems.append(
+                f"код-закон «{law['id']}»: умолчание «{law.get('default')}» "
+                "не входит в его варианты"
+            )
     ids = {q["id"] for q in doc["charter"]}
     for q in doc["charter"]:
         for dep, values in (q.get("requires") or {}).items():
@@ -1771,6 +1795,16 @@ def build_renames(
     }
     out["names_ru"]["law_notes"] = {
         law["id"]: law["note"] for law in code_laws if law.get("id") and law.get("note")
+    }
+    #: Вариант выбора у код-закона: ключ едет по проводу, слово живёт здесь.
+    #: Ключ домена составной — «закон.вариант», — потому что `citizens` стоит
+    #: вариантом у двух законов сразу и по-русски читается по-разному:
+    #: «гражданам» печатает город, «граждане» занимают участки.
+    out["names_ru"]["law_options"] = {
+        f"{law['id']}.{option['id']}": option["label"]
+        for law in code_laws
+        for option in (law.get("options") or [])
+        if law.get("id") and option.get("id") and option.get("label")
     }
     #: Второй язык и дальше — оверлеем по id, а не обращением карты имён:
     #: у русского имя первично и id выведен из него, у остальных наоборот.

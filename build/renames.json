@@ -768,7 +768,7 @@
       "salary": "Суточный тик из казны. Не платится — должность слагается сама",
       "bounty": "Из казны тому, кто исполнил приговор над меченым вне закона",
       "newcomer_grant": "Из казны при первой печати тела в городе. Один раз на личность. Ноль — город не платит ничего",
-      "body_print": "нет · гражданам · всем. Энергия всё равно списывается по тарифу — просто платит казна",
+      "body_print": "Энергия всё равно списывается по тарифу — просто платит казна",
       "tax_mining": "Списывается с сессии добычи",
       "tax_bank": "С операций через терминал города",
       "bank_margin": "Надбавка города к ключевой ставке для своих заёмщиков. Потолок — `bank.city_margin_cap`; города конкурируют ставкой, как налогом и тарифом",
@@ -779,12 +779,20 @@
       "item_ban": "Что нельзя вносить и производить на территории",
       "record_access": "никто без суда · судья по делу · стража в любой момент",
       "build_permit": "Кто вправе занимать свободные участки в кольцах",
-      "price_cap": "Ордер дороже стакан города не принимает вовсе",
-      "ration": "Сколько регулируемого товара один человек берёт по цене потолка. Без неё потолок скупают оптом",
+      "price_cap": "Ордер дороже стакан города не принимает вовсе. Без значения потолка нет — слово в поле числа читалось бы игроку как есть",
+      "ration": "Сколько регулируемого товара один человек берёт по цене потолка. Без неё потолок скупают оптом. Без значения нормы нет",
       "import_duty": "Товар, ставка и беспошлинная норма в кг за `trade.duty_free_window`. Списывается на границе по справочной цене городского стакана",
       "export_duty": "То же для вывоза. Мягкая защита внутреннего производства",
       "import_ban": "Перечисленное движок не вносит на территорию города вовсе",
       "export_ban": "Перечисленное движок не выносит за пределы города. Жёсткая защита — руда остаётся своим цехам"
+    },
+    "law_options": {
+      "body_print.nobody": "нет",
+      "body_print.citizens": "гражданам",
+      "body_print.everyone": "всем",
+      "build_permit.nobody": "никто",
+      "build_permit.citizens": "граждане",
+      "build_permit.everyone": "все"
     }
   },
   "names_en": {
@@ -1050,9 +1058,9 @@
     "law_notes": {
       "access": "open · by citizenship · by permission · closed",
       "bank_margin": "The city's markup over the key rate for its own borrowers. The ceiling is `bank.city_margin_cap`; cities compete by the rate as they do by tax and tariff",
-      "body_print": "Typed as «нет» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand. Energy is charged at the tariff either way; the treasury simply pays it",
+      "body_print": "Energy is charged at the tariff either way; the treasury simply pays it",
       "bounty": "Out of the treasury, to whoever carried out the sentence on an outlaw",
-      "build_permit": "Who may take the free plots in the rings. Typed as «никто» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand",
+      "build_permit": "Who may take the free plots in the rings",
       "energy_tariff": "Zero means free energy",
       "export_ban": "What is listed the engine does not take out of the city. A hard guard — the ore stays with its own workshops",
       "export_duty": "The same for taking out. A soft guard over home production",
@@ -1071,6 +1079,14 @@
       "tax_mining": "Taken off the mining session",
       "tax_trade": "Paid by the seller when the order fills. The buyer sees the price without the tax — that price is the price",
       "toll": "For entering the territory or travelling the road"
+    },
+    "law_options": {
+      "body_print.citizens": "to citizens",
+      "body_print.everyone": "to everyone",
+      "body_print.nobody": "nobody",
+      "build_permit.citizens": "citizens",
+      "build_permit.everyone": "everyone",
+      "build_permit.nobody": "nobody"
     },
     "law_units": {
       "bank_margin": "% above the key rate",

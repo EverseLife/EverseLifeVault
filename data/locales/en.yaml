@@ -415,9 +415,9 @@ law_units:
 law_notes:
   access: "open · by citizenship · by permission · closed"
   bank_margin: "The city's markup over the key rate for its own borrowers. The ceiling is `bank.city_margin_cap`; cities compete by the rate as they do by tax and tariff"
-  body_print: "Typed as «нет» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand. Energy is charged at the tariff either way; the treasury simply pays it"
+  body_print: "Energy is charged at the tariff either way; the treasury simply pays it"
   bounty: "Out of the treasury, to whoever carried out the sentence on an outlaw"
-  build_permit: "Who may take the free plots in the rings. Typed as «никто» · «гражданам» · «всем» — the engine reads those words, so they are entered as they stand"
+  build_permit: "Who may take the free plots in the rings"
   energy_tariff: "Zero means free energy"
   export_ban: "What is listed the engine does not take out of the city. A hard guard — the ore stays with its own workshops"
   export_duty: "The same for taking out. A soft guard over home production"
@@ -436,3 +436,13 @@ law_notes:
   tax_mining: "Taken off the mining session"
   tax_trade: "Paid by the seller when the order fills. The buyer sees the price without the tax — that price is the price"
   toll: "For entering the territory or travelling the road"
+
+# Варианты выбора у код-закона. Ключ составной — «закон.вариант»: `citizens`
+# стоит у двух законов и читается по-разному в каждом.
+law_options:
+  body_print.citizens: to citizens
+  body_print.everyone: to everyone
+  body_print.nobody: nobody
+  build_permit.citizens: citizens
+  build_permit.everyone: everyone
+  build_permit.nobody: nobody
