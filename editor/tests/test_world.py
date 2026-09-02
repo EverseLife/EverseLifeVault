@@ -19,10 +19,9 @@ import copy
 from pathlib import Path
 
 import pytest
-import yaml
-
 import vaultfile as vault
 import worldfile as layout
+import yaml
 
 
 def open_world(path: Path) -> layout.WorldFile:

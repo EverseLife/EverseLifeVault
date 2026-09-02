@@ -10,13 +10,13 @@
 
 import { api } from './api.js';
 import * as buildings from './buildings.js';
+import { createConstantsTab } from './constantstab.js';
 import { colourOf, KIND_COLOUR } from './graphview.js';
 import { createGraph } from './graphview.js';
 import { neighbourhood } from './layout.js';
 import { createPanel } from './panel.js';
-import { ask, h, plural, things } from './ui.js';
-import * as worldmap from './world.js';
-import * as worldform from './worldform.js';
+import { h, plural, things } from './ui.js';
+import { createWorldTab } from './worldtab.js';
 
 const TYPE_LABEL = {
   raw: 'сырьё',
@@ -61,6 +61,11 @@ const app = {
   world: null,
   worldPick: null,
   worldGroup: null,
+  //: Константы (D-065) — свой реестр и свой выбор: ключ константы не имя вещи.
+  constants: null,
+  constPick: null,
+  constGroup: null,
+  constForm: null,
 };
 
 // Количества на стрелках — свойство взгляда, а не выбор: на всей лестнице их
@@ -104,10 +109,23 @@ const panel = createPanel(document.getElementById('panel'), {
   //: Типы зданий живут в другом файле вольта (D-218), но правятся той же
   //: формой справа: панель спрашивает их у состояния, как и всё остальное.
   buildings: () => app.state.buildings || [],
+  //: Языки игры и имена на них (D-251): форма показывает английское имя рядом
+  //: с русским и спрашивает его у новой вещи.
+  languages: () => app.state.languages || [],
+  locales: () => app.state.locales || {},
+  //: Где вещь может лежать для собирателя (D-254): закрытый список свойств узла.
+  places: () => app.state.places || [],
   onWrite: afterWrite,
   onWriteBuilding: afterBuildingWrite,
   notify: (text, bad) => say(text, bad),
 });
+
+// Две вкладки со своими файлами — мир (D-243) и константы (D-065) — живут в
+// своих модулях и берут у страницы только общее: состояние, DOM, полосу внизу
+// и «перерисуй всё про текущую вкладку».
+const refresh = () => { renderFilters(); renderLegend(); renderList(); drawGraph(); };
+const worldTab = createWorldTab({ app, dom, say, reportRun, refresh });
+const constantsTab = createConstantsTab({ app, dom, say, reportRun, refresh, reload: () => load() });
 
 // ------------------------------------------------------------------- loading
 
@@ -118,7 +136,10 @@ async function load(keepSelection = true) {
   app.extra = new Map(state.stations
     .filter((station) => station.virtual)
     .map((station) => [station.name, { name: station.name, type: 'virtual', depth: station.depth }]));
-  dom.path.textContent = state.source;
+  //: Имя каталога вольта, а не путь целиком: путь на три строки ломал шапку,
+  //: а нужен он раз в жизни — и лежит в подсказке.
+  dom.path.textContent = state.vault.split(/[\\/]/).filter(Boolean).pop() || state.vault;
+  dom.path.title = `${state.vault}\nправятся data/recipes.yaml, constants.yaml, world.yaml, vocabulary.yaml, locales/*.yaml`;
   dom.stale.hidden = !state.stale;
   const { recipes, materials, classes, operations } = state.counts;
   dom.counts.textContent = `${recipes} ${plural(recipes, 'рецепт', 'рецепта', 'рецептов')}`
@@ -200,7 +221,11 @@ function typeOf(node) {
 
 function renderFilters() {
   if (app.tab === 'world') {
-    renderWorldFilters();
+    worldTab.renderFilters();
+    return;
+  }
+  if (app.tab === 'constants') {
+    constantsTab.renderFilters();
     return;
   }
   if (app.tab === 'buildings') {
@@ -282,12 +307,11 @@ function matches(node) {
 
 function renderList() {
   if (app.tab === 'world') {
-    if (!app.world) return;
-    worldmap.renderList(dom.list, app.world, {
-      selected: app.worldPick,
-      query: app.query,
-      onSelect: (key) => selectWorld(key),
-    });
+    worldTab.renderList();
+    return;
+  }
+  if (app.tab === 'constants') {
+    constantsTab.renderList();
     return;
   }
   if (app.tab === 'buildings') {
@@ -427,17 +451,7 @@ function renderStationList() {
 
 function renderLegend() {
   if (app.tab === 'world') {
-    dom.legend.replaceChildren(
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.city}` }), 'застройка'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.planet}` }), 'на поверхности'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.exit}` }), 'ворота города'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.vein}; border-radius:50%` }), 'жила'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.relic}; border-radius:50%` }), 'реликвия Предтеч'),
-      h('span', { text: '· число в кружке — сколько станков стоит' }),
-      h('span', { text: '· пунктирный контур — место считает движок; сплошной — прибито в файле' }),
-      h('span', { text: '· перетащить узел — прибить место (D-237)' }),
-      h('span', { text: '· Shift + потянуть от узла к узлу — проложить дорогу' }),
-    );
+    worldTab.renderLegend();
     return;
   }
   if (app.tab === 'buildings') {
@@ -445,8 +459,12 @@ function renderLegend() {
       h('span', { text: 'тип решает три вещи разом: из чего построено, во сколько раз '
         + 'дорожает следующий этаж и как быстро дом ветшает' }),
       h('span', { text: '· пятно ограничено участком, высота — нет' }),
-      h('span', { text: '· правки уходят в data/constants.yaml' }),
+      h('span', { text: '· правки уходят в data/constants.yaml, vocabulary.yaml и locales/' }),
     );
+    return;
+  }
+  if (app.tab === 'constants') {
+    constantsTab.renderLegend();
     return;
   }
   if (app.tab === 'food') {
@@ -499,7 +517,11 @@ function renderLegend() {
 
 function drawGraph() {
   if (app.tab === 'world') {
-    drawWorld();
+    worldTab.draw();
+    return;
+  }
+  if (app.tab === 'constants') {
+    constantsTab.draw();
     return;
   }
   if (app.tab === 'buildings') {
@@ -642,29 +664,44 @@ function setTab(tab) {
     button.classList.toggle('on', button.dataset.tab === tab);
   }
   const houses = tab === 'buildings';
+  const numbers = tab === 'constants';
   const ground = tab === 'world';
-  // Ни у зданий, ни у мира нет графа лестницы, и по разным причинам: типы
-  // зданий не делают друг друга, а мир — это карта, а не «из чего сделано».
-  // Каждому — свой холст на том же месте.
-  dom.graph.hidden = houses || ground;
-  dom.board.hidden = !houses;
+  const boarded = houses || numbers;
+  // Ни у зданий, ни у констант, ни у мира нет графа лестницы, и по разным
+  // причинам: типы зданий не делают друг друга, числа ничего не делают, а
+  // мир — это карта, а не «из чего сделано». Каждому — свой холст на том же месте.
+  //: Атрибутом, а не свойством: `hidden` есть у HTML-элементов, а граф — SVG,
+  //: и `svg.hidden = true` заводил поле на объекте, не трогая разметку. Так
+  //: под доской зданий и картой мира и просвечивал граф станций.
+  dom.graph.toggleAttribute('hidden', boarded || ground);
+  dom.board.hidden = !boarded;
   dom.worldStage.hidden = !ground;
-  dom.graphWrap.classList.toggle('boarded', houses);
+  dom.graphWrap.classList.toggle('boarded', boarded);
   dom.graphWrap.classList.toggle('mapped', ground);
-  document.getElementById('mode').hidden = houses || ground;
-  document.getElementById('act-fit').hidden = houses || ground;
+  document.getElementById('mode').hidden = boarded || ground;
+  document.getElementById('act-fit').hidden = boarded || ground;
+  for (const control of document.querySelectorAll('.recipes-only')) {
+    control.hidden = tab !== 'recipes' && tab !== 'food';
+  }
+  if (boarded || ground) dom.hint.textContent = '';
   const kitchen = tab === 'food';
   // Новая еда заводится блюдом или материалом со съедобностью; рецепт вообще
   // и класс — дело лестницы, на кухне им нечего делать.
-  document.getElementById('act-new').hidden = houses || kitchen || ground;
-  document.getElementById('act-new-class').hidden = houses || kitchen || ground;
-  document.getElementById('act-new-material').hidden = houses || ground;
+  document.getElementById('act-new').hidden = boarded || kitchen || ground;
+  document.getElementById('act-new-class').hidden = boarded || kitchen || ground;
+  document.getElementById('act-new-material').hidden = boarded || ground;
   document.getElementById('act-new-dish').hidden = !kitchen;
   document.getElementById('act-new-building').hidden = !houses;
+  document.getElementById('act-new-constant').hidden = !numbers;
   document.getElementById('act-new-node').hidden = !ground;
   if (ground) {
     dom.search.placeholder = 'поиск: узел, станок, жила или вещь в нём';
-    loadWorld().catch((error) => say(error.message, true, 'не удалось прочитать мир'));
+    worldTab.load().catch((error) => say(error.message, true, 'не удалось прочитать мир'));
+    return;
+  }
+  if (numbers) {
+    dom.search.placeholder = 'поиск: ключ, смысл, единица, значение';
+    constantsTab.load().catch((error) => say(error.message, true, 'не удалось прочитать константы'));
     return;
   }
   if (houses) {
@@ -675,9 +712,6 @@ function setTab(tab) {
     drawGraph();
     if (app.building) panel.openBuilding(app.building); else panel.clear();
     return;
-  }
-  for (const control of document.querySelectorAll('.recipes-only')) {
-    control.hidden = tab === 'stations';
   }
   const modes = document.getElementById('mode');
   modes.querySelector('[data-mode="all"]').textContent = tab === 'stations'
@@ -719,6 +753,7 @@ async function afterBuildingWrite(result, openKind) {
   if (app.building) panel.openBuilding(app.building); else panel.clear();
 }
 
+
 function select(name, { focus = false } = {}) {
   if (!known(name)) return;
   // «Сделать центром» на общей лестнице означает уйти в фокус вокруг вещи:
@@ -739,140 +774,6 @@ function select(name, { focus = false } = {}) {
   }
 }
 
-// --------------------------------------------------------------- the world
-//
-// Раскладка стартового мира (D-243) живёт в третьем файле вольта и читается
-// своим запросом: она не лестница, у неё нет ни ступеней, ни составов, и
-// класть её в общее состояние значило бы возить карту вместе с рецептами при
-// каждой правке.
-
-async function loadWorld(keepPick = true) {
-  app.world = await api.world();
-  const groups = worldmap.groups(app.world.nodes).map((one) => one.group);
-  if (!groups.includes(app.worldGroup)) app.worldGroup = groups[0] || null;
-  if (!keepPick || !knownInWorld(app.worldPick)) app.worldPick = null;
-  renderFilters();
-  renderLegend();
-  renderList();
-  drawGraph();
-  openWorldForm();
-}
-
-function knownInWorld(pick) {
-  if (!pick) return false;
-  if (pick.startsWith('pocket:')) return pick.slice(7) in (app.world.pockets || {});
-  return app.world.nodes.some((node) => node.key === pick);
-}
-
-// Карта — своя у каждой группы: застройка одного города, поверхность одной
-// планеты, помещения одного дома. Их не смешивают: у двух планет нет общей
-// земли, и рисовать их вместе значило бы врать про расстояния.
-function renderWorldFilters() {
-  if (!app.world) return;
-  dom.filters.replaceChildren(
-    ...worldmap.groups(app.world.nodes).map(({ group, members }) => h('button', {
-      class: 'chip' + (group === app.worldGroup ? ' on' : ''),
-      text: `${worldmap.groupTitle(group, app.world.nodes)} · ${members.length}`,
-      onclick: () => { app.worldGroup = group; renderFilters(); drawGraph(); },
-    })),
-  );
-}
-
-function drawWorld() {
-  if (!app.world || !app.worldGroup) return;
-  worldmap.renderMap(dom.worldStage, app.world, {
-    group: app.worldGroup,
-    selected: app.worldPick,
-    onSelect: (what) => { if (what.node) selectWorld(what.node); },
-    onPlace: (key, spot) => pinPlace(key, spot),
-    onConnect: (a, b) => connectNodes(a, b),
-  });
-}
-
-function selectWorld(pick) {
-  app.worldPick = pick;
-  //: Выбор с карты может быть из другой группы — из списка выбирают откуда
-  //: угодно, и карта должна показать ту, в которой узел стоит.
-  const node = app.world.nodes.find((one) => one.key === pick);
-  if (node) app.worldGroup = worldmap.groupOf(node, app.world.nodes);
-  renderFilters();
-  renderList();
-  drawGraph();
-  openWorldForm();
-}
-
-function openWorldForm() {
-  const host = document.getElementById('panel');
-  if (!app.worldPick) {
-    host.replaceChildren(h('div', { class: 'empty', text: 'Выберите узел на карте или слева.' }));
-    return;
-  }
-  if (app.worldPick.startsWith('pocket:')) {
-    worldform.pocketForm(host, app.world, app.worldPick.slice(7), worldTools);
-    return;
-  }
-  worldform.nodeForm(host, app.world, app.worldPick, worldTools);
-}
-
-// Перетащенный узел получает прибитое место: с этой минуты его считает не
-// движок, а файл, и карта редактора и карта игры сходятся по построению.
-async function pinPlace(key, [x, y]) {
-  const node = app.world.nodes.find((one) => one.key === key);
-  if (!node) return;
-  await writeWorld('место узла', () => api.putNode({ ...node, place: { x, y } }), key);
-}
-
-async function connectNodes(a, b) {
-  const already = app.world.edges.some(
-    (edge) => (edge.a === a && edge.b === b) || (edge.a === b && edge.b === a),
-  );
-  if (already) {
-    say(`дорога ${a} — ${b} уже проложена`, true, 'дорога уже есть');
-    return;
-  }
-  //: Мощёная и шаг города по умолчанию: внутри застройки так и есть, а
-  //: длина за стены правится в форме, где рядом видно «даль» узла.
-  await writeWorld('дорога', () => api.putEdge({ a, b, seconds: null, surface: 'paved' }), a);
-}
-
-const worldTools = {
-  saveNode: async (data, options = {}) => {
-    await writeWorld('узел мира', () => api.putNode(data, options.after, options.fresh), data.key);
-  },
-  deleteNode: async (key) => {
-    const answer = await ask({
-      title: `Удалить «${key}»?`,
-      body: 'Узел уйдёт из файла вместе со всеми дорогами, которые к нему вели. '
-        + 'На уже созданный мир это не влияет: сид не сносит того, что стоит (D-007).',
-      ok: 'Удалить',
-    });
-    if (!answer) return;
-    await writeWorld('узел мира', () => api.dropNode(key), null);
-  },
-  saveEdge: async (data) => {
-    await writeWorld('дорога', () => api.putEdge(data), app.worldPick);
-  },
-  deleteEdge: async (a, b) => {
-    await writeWorld('дорога', () => api.dropEdge(a, b), app.worldPick);
-  },
-  savePocket: async (owner, items) => {
-    await writeWorld('карман', () => api.putPocket(owner, items),
-      items.length ? `pocket:${owner}` : null);
-  },
-};
-
-async function writeWorld(what, call, openPick) {
-  try {
-    const result = await call();
-    app.worldPick = openPick;
-    await loadWorld();
-    if (result.check) reportRun(result.check, 'проверка вольта');
-    else say('записано', false, 'записано');
-  } catch (error) {
-    say(error.message, true, `${what}: не вышло`);
-  }
-}
-
 // ------------------------------------------------------------------- console
 
 function say(text, bad = false, title = null) {
@@ -884,7 +785,11 @@ function say(text, bad = false, title = null) {
 
 function reportRun(result, what) {
   const bad = result.code !== 0;
-  say(result.output || '(без вывода)', bad, `${what}: ${bad ? 'проблемы' : 'чисто'}`);
+  //: Сборка пишет файлы и выходит нулём даже с проблемами — заголовок «чисто»
+  //: над списком проблем врал бы. Слова проверки ищутся в её же выводе.
+  const complained = /НОВЫЕ проблемы/.test(result.output || '');
+  say(result.output || '(без вывода)', bad || complained,
+    `${what}: ${bad ? 'проблемы' : complained ? 'сделано, но проверка нашла проблемы' : 'чисто'}`);
 }
 
 async function afterWrite(result, openName) {
@@ -905,7 +810,12 @@ async function run(what, call, button) {
     else if (result.output !== undefined) reportRun(result, what);
     else say(JSON.stringify(result), false, what);
     await load();
-    if (app.selected) panel.open(app.selected);
+    //: Откат и сборка меняют не только лестницу: вкладка перечитывает своё.
+    if (app.tab === 'constants') await constantsTab.load();
+    else if (app.tab === 'world') await worldTab.load();
+    else if (app.tab === 'buildings') {
+      if (app.building) panel.openBuilding(app.building); else panel.clear();
+    } else if (app.selected) panel.open(app.selected);
   } catch (error) {
     say(error.message, true, `${what}: не вышло`);
   } finally {
@@ -976,22 +886,15 @@ document.getElementById('act-new-dish').addEventListener('click', () => {
   });
 });
 
-// Новый узел заводится там же, где стоит выбранный: группа и якорь берутся у
-// него. Мир — граф, и узел без соседа в нём просто негде поставить.
-document.getElementById('act-new-node').addEventListener('click', () => {
-  const node = app.world?.nodes.find((one) => one.key === app.worldPick);
-  app.worldPick = null;
-  renderList();
-  worldform.newNodeForm(document.getElementById('panel'), app.world, worldTools, node
-    ? { layer: node.layer || 'city', parent: node.parent, anchor: node.key }
-    : {});
-});
+document.getElementById('act-new-node').addEventListener('click', () => worldTab.openNew());
 
 document.getElementById('act-new-building').addEventListener('click', () => {
   app.building = null;
   renderList();
   panel.openNewBuilding();
 });
+
+document.getElementById('act-new-constant').addEventListener('click', () => constantsTab.openNew());
 
 document.getElementById('act-masses').addEventListener('click', (event) => {
   run('расчёт масс', api.masses, event.target);
@@ -1019,7 +922,15 @@ document.addEventListener('keydown', (event) => {
   }
   if (event.key === 's' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
-    panel.save();
+    if (app.tab === 'constants') constantsTab.save();
+    else panel.save();
+  }
+  //: Ctrl+Z в поле ввода — отмена набора, как везде; вне поля — откат правки.
+  const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName);
+  if (event.key === 'z' && (event.ctrlKey || event.metaKey) && !typing) {
+    event.preventDefault();
+    const button = document.getElementById('act-undo');
+    if (!button.disabled) run('откат последней правки', api.undo, button);
   }
 });
 

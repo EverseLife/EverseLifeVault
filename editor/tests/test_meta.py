@@ -16,16 +16,9 @@ from pathlib import Path
 
 import pytest
 import server
+import store
 import vaultfile as vault
 import yaml
-
-
-@pytest.fixture
-def session(recipes: Path, source: Path, monkeypatch) -> server.Session:
-    made = server.Session(source.parent.parent)
-    made.source = recipes
-    monkeypatch.setattr(server, "_check", lambda _session: None)
-    return made
 
 
 def doc_of(path: Path) -> dict:
@@ -34,7 +27,7 @@ def doc_of(path: Path) -> dict:
 
 def written(path: Path, lines: list[str], expect: dict) -> dict:
     file = vault.RecipesFile(path)
-    vault.save_doc(path, lines, expect, file.mtime, file.newline)
+    store.save_doc(path, lines, expect, file.mtime, file.newline)
     return doc_of(path)
 
 
@@ -203,7 +196,7 @@ def test_a_wrong_expectation_stops_the_write(recipes: Path):
     name = file.recipes()[0]["name"]
     lines = vault.MetaBlock(file, "units").put(name, "м")
     with pytest.raises(vault.VaultError, match="не так, как задумано"):
-        vault.save_doc(recipes, lines, file.doc, file.mtime, file.newline)
+        store.save_doc(recipes, lines, file.doc, file.mtime, file.newline)
 
 
 def test_the_rest_of_the_file_is_left_alone(recipes: Path):

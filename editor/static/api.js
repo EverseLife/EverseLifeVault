@@ -35,19 +35,25 @@ export const api = {
   remove: (name, body) => req('DELETE', '/api/recipe', { name }, body),
   measure: (name, body) => req('PUT', '/api/measure', { name }, body),
   // Реестр материалов (D-215): одна строка — всё, что нужно новому сырью.
-  createMaterial: (data) => req('POST', '/api/material', null, { data }),
-  updateMaterial: (name, data) => req('PUT', '/api/material', { name }, { data }),
+  createMaterial: (body) => req('POST', '/api/material', null, body),
+  updateMaterial: (name, body) => req('PUT', '/api/material', { name }, body),
   removeMaterial: (name) => req('DELETE', '/api/material', { name }),
   // Класс правится с двух сторон: со стороны класса — его состав, со стороны
   // вещи — какой класс она носит. Файл один и тот же, вопрос разный.
-  putClass: (name, members, note, id) => req('PUT', '/api/class', { name }, { members, note, id }),
+  putClass: (name, body) => req('PUT', '/api/class', { name }, body),
   dropClass: (name) => req('DELETE', '/api/class', { name }),
   classesOf: (name, classes) => req('PUT', '/api/classes', { name }, { classes }),
   // Типы зданий (D-218): живут в data/constants.yaml, а не в рецептах, но
-  // тип — это состав, и правится он там же, где составы.
-  createBuilding: (data) => req('POST', '/api/building', null, { data }),
-  updateBuilding: (name, data) => req('PUT', '/api/building', { name }, { data }),
+  // тип — это состав, и правится он там же, где составы. Тело несёт и ключ с
+  // именами (D-251): словарь и локали пишутся той же правкой.
+  createBuilding: (body) => req('POST', '/api/building', null, body),
+  updateBuilding: (name, body) => req('PUT', '/api/building', { name }, body),
   removeBuilding: (name) => req('DELETE', '/api/building', { name }),
+  // Константы (D-065): реестр целиком и одна запись за раз.
+  constants: () => req('GET', '/api/constants'),
+  createConstant: (body) => req('POST', '/api/constant', null, body),
+  updateConstant: (key, body) => req('PUT', '/api/constant', { key }, body),
+  removeConstant: (key) => req('DELETE', '/api/constant', { key }, { with_comment: true }),
   // Раскладка стартового мира (D-243): узлы, дороги и карманы живут в
   // data/world.yaml, и правятся картой, а не формой рецепта.
   world: () => req('GET', '/api/world'),

@@ -15,6 +15,7 @@ from collections import Counter
 from pathlib import Path
 
 import pytest
+import store
 import vaultfile as vault
 import yaml
 
@@ -46,8 +47,54 @@ def test_every_recipe_line_renders_back_identically(recipes: Path):
     for recipe in file.recipes():
         data = {k: v for k, v in recipe.items() if k not in ("level", "section")}
         entry = file.entries[recipe["name"]]
-        rendered = vault.render_entry(data, entry.indent)
+        rendered = vault.render_entry(data, entry.indent, existing=list(entry.data))
         assert rendered == "\n".join(file.lines[entry.start : entry.end + 1])
+
+
+def test_every_material_row_renders_back_identically(recipes: Path):
+    """The registry rows (D-215) are written in the same dialect as recipes."""
+    file = vault.RecipesFile(recipes)
+    for entry in file.meta_entries("materials"):
+        rendered = vault.render_entry(
+            entry.data, entry.indent, vault.MATERIAL_KEY_ORDER, existing=list(entry.data)
+        )
+        assert rendered == "\n".join(file.lines[entry.start : entry.end + 1])
+
+
+def test_every_authored_key_is_known_to_the_editor(recipes: Path):
+    """A key the editor does not know is a key a save would silently drop.
+
+    `built`, `fuel` and `liquid` were exactly that: written by hand, shown by
+    nobody, and gone the first time the recipe was saved from the form.
+    """
+    file = vault.RecipesFile(recipes)
+    for recipe in file.recipes():
+        for key in recipe:
+            if key in ("level", "section"):
+                continue
+            assert key in vault.KEY_ORDER, f"«{recipe['name']}»: ключ {key} редактору неизвестен"
+    for row in file.meta().get("materials") or []:
+        for key in row:
+            known = key in vault.MATERIAL_KEY_ORDER
+            assert known, f"«{row['name']}»: ключ {key} редактору неизвестен"
+        for part in row.get("forage") or {}:
+            assert part in vault.FORAGE_KEYS, f"«{row['name']}»: forage.{part} редактору неизвестен"
+
+
+def test_a_new_key_lands_in_its_canonical_place():
+    """A recipe keeps its own order; a key it never had goes where the canon says."""
+    order = vault.key_order(
+        {"name": "X", "kind": "tool", "mass": 1, "class": "К", "inputs": ["a"], "station": "s"},
+        vault.KEY_ORDER,
+        existing=["name", "kind", "mass", "class", "inputs", "station"],
+    )
+    assert order == ["name", "kind", "mass", "class", "inputs", "station"]
+    order = vault.key_order(
+        {"name": "X", "kind": "tool", "mass": 1, "class": "К", "hours": 2, "inputs": ["a"]},
+        vault.KEY_ORDER,
+        existing=["name", "kind", "mass", "class", "inputs"],
+    )
+    assert order == ["name", "kind", "mass", "class", "hours", "inputs"]
 
 
 @pytest.mark.parametrize(
@@ -78,7 +125,7 @@ def test_replace_touches_one_line_and_keeps_line_endings(recipes: Path):
     data = {k: v for k, v in file.recipes()[0].items() if k not in ("level", "section")}
     data["note"] = "правка"
     lines = file.replace(data["name"], data)
-    vault.save(recipes, lines, {"name": data["name"], "data": data}, file.mtime, file.newline)
+    store.save(recipes, lines, {"name": data["name"], "data": data}, file.mtime, file.newline)
 
     after = lines_of(recipes)
     assert len(before) == len(after)
@@ -95,7 +142,7 @@ def test_insert_lands_right_after_the_last_recipe_of_its_level(recipes: Path):
     data = {"name": "Пробник", "kind": "material", "inputs": [file.meta()["materials"][0]["name"]],
             "station": "Руками"}
     lines = file.insert(data, level["id"], None)
-    vault.save(recipes, lines, {"name": data["name"], "data": data}, file.mtime, file.newline)
+    store.save(recipes, lines, {"name": data["name"], "data": data}, file.mtime, file.newline)
 
     again = vault.RecipesFile(recipes)
     assert again.groups["Пробник"] == (level["id"], None)
@@ -116,7 +163,7 @@ def test_insert_into_a_level_of_sections_is_refused(recipes: Path):
 
     section = level["sections"][0]["id"]
     lines = file.insert(data, level["id"], section)
-    vault.save(recipes, lines, {"name": "Пробник", "data": data}, file.mtime, file.newline)
+    store.save(recipes, lines, {"name": "Пробник", "data": data}, file.mtime, file.newline)
     assert vault.RecipesFile(recipes).groups["Пробник"] == (level["id"], section)
 
 
@@ -127,7 +174,7 @@ def test_cut_removes_the_line_and_optionally_its_comment(recipes: Path):
     comment = file.comment_above(named)
 
     lines = file.cut(named)
-    vault.save(recipes, lines, {"name": named, "data": None}, file.mtime, file.newline)
+    store.save(recipes, lines, {"name": named, "data": None}, file.mtime, file.newline)
     kept = vault.RecipesFile(recipes)
     #: `entries` may still hold a class declaration of the same name (D-215):
     #: the recipe itself is what must be gone.
@@ -138,7 +185,7 @@ def test_cut_removes_the_line_and_optionally_its_comment(recipes: Path):
     other = next(name for name in file.entries if file.comment_above(name) and name in file.groups)
     other_comment = file.comment_above(other)
     lines = file.cut(other, with_comment=True)
-    vault.save(recipes, lines, {"name": other, "data": None}, file.mtime, file.newline)
+    store.save(recipes, lines, {"name": other, "data": None}, file.mtime, file.newline)
     assert "\n".join(other_comment) not in read(recipes).replace("\r\n", "\n")
 
 
@@ -147,7 +194,7 @@ def test_a_stale_file_is_not_overwritten(recipes: Path):
     data = {k: v for k, v in file.recipes()[0].items() if k not in ("level", "section")}
     recipes.write_bytes(recipes.read_bytes() + "\n# кто-то другой правил файл\n".encode())
     with pytest.raises(vault.VaultError, match="изменился на диске"):
-        vault.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
+        store.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
                    file.mtime, file.newline)
 
 
@@ -156,7 +203,7 @@ def test_save_refuses_when_the_document_did_not_change_as_asked(recipes: Path):
     data = {"name": "Небылица", "kind": "material", "inputs": [file.meta()["materials"][0]["name"]],
             "station": "Руками"}
     with pytest.raises(vault.VaultError, match="не появился"):
-        vault.save(recipes, file.lines, {"name": data["name"], "data": data}, file.mtime)
+        store.save(recipes, file.lines, {"name": data["name"], "data": data}, file.mtime)
 
 
 # ------------------------------------------------------------------- rename
@@ -210,8 +257,8 @@ def test_undo_walks_back_one_edit(recipes: Path):
     file = vault.RecipesFile(recipes)
     data = {k: v for k, v in file.recipes()[0].items() if k not in ("level", "section")}
     data["note"] = "правка"
-    vault.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
+    store.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
                file.mtime, file.newline)
     assert read(recipes) != original
-    vault.undo(recipes)
+    store.undo(recipes)
     assert read(recipes) == original

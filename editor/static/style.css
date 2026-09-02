@@ -39,6 +39,11 @@
 
 * { box-sizing: border-box; }
 
+/* `hidden` обязан побеждать любой `display` ниже по файлу: без `!important`
+   `display: flex` у сегмента и `display: block` у графа перебивали атрибут, и
+   под доской зданий просвечивал граф станций, а ползунки не прятались. */
+[hidden] { display: none !important; }
+
 html, body {
   height: 100%;
   margin: 0;
@@ -87,20 +92,41 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 /* ------------------------------------------------------------------ header */
 
+/* Одна строка и ничего не переносится: шапка — панель инструментов, а не
+   текст. Путь — относительный, целиком он в подсказке; счётчики ушли под
+   список, где им и место. */
 .bar {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   padding: 6px 12px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  min-height: 40px;
 }
-.brand { display: flex; align-items: baseline; gap: 8px; }
+.brand { display: flex; align-items: baseline; gap: 8px; flex: none; }
 .brand b { font-size: 14px; letter-spacing: .2px; }
+.tabs { flex: none; }
 .tabs button { padding: 4px 12px; }
 .path { color: var(--text-faint); font-family: var(--mono); font-size: 11px; }
-.counts { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
-.actions { margin-left: auto; display: flex; gap: 6px; }
+.counts {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-top: 1px solid var(--line-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.actions { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.actions button { white-space: nowrap; }
+.actions .gap { width: 8px; }
+.mono { font-family: var(--mono); }
+@media (max-width: 1180px) {
+  .path { display: none; }
+}
 
 .badge {
   padding: 1px 6px;
@@ -167,6 +193,10 @@ main {
   padding: 3px 10px;
   cursor: pointer;
   border-left: 2px solid transparent;
+  /* Заголовок группы липкий, и строка, подъехавшая к верху списка, оказывалась
+     под ним — выбранная с графа вещь пряталась. Отступ прокрутки — ровно
+     высота заголовка. */
+  scroll-margin-top: 28px;
 }
 .row:hover { background: var(--panel-2); }
 .row.sel { background: #212836; border-left-color: var(--accent); }
@@ -243,21 +273,26 @@ main {
   background: var(--panel);
   z-index: 2;
 }
-.panel-head h2 { font-size: 15px; margin: 0; flex: 1; }
+.panel-head h2 { font-size: 15px; margin: 0; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .panel-head button { padding: 2px 8px; font-size: 11px; }
-.panel-head .tag { font-size: 11px; color: var(--text-faint); }
+.panel-head .tag { font-size: 11px; color: var(--text-faint); white-space: nowrap; }
 
 .form { padding: 10px 12px 16px; display: flex; flex-direction: column; gap: 10px; }
-.field { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 8px; }
+.field { display: grid; grid-template-columns: 86px minmax(0, 1fr); align-items: center; gap: 8px; }
 /* Колонка сетки по умолчанию не уже своего содержимого, а содержимое здесь —
    `select` с длинными строками уровней. Без этого панель уезжает вбок. */
 .field > * { min-width: 0; }
 .field > label { color: var(--text-dim); font-size: 11px; }
+.field > .hint { grid-column: 2; color: var(--text-faint); font-size: 11px; margin-top: -4px; }
 .field.wide { grid-template-columns: 1fr; }
+.field textarea.yaml { resize: vertical; font-size: 11.5px; line-height: 1.5; white-space: pre; }
 .pair { display: flex; gap: 6px; }
 /* min-width: 0 обязателен: `select` иначе не сжимается ниже своего содержимого,
    и панель уезжает в горизонтальную прокрутку из-за одной длинной строки. */
 .pair > * { flex: 1; min-width: 0; }
+.pair.wide > select { flex: 0 0 46%; }
+.tick { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 11px; cursor: pointer; }
+.note-line.warn { color: var(--warn); }
 
 fieldset {
   border: 1px solid var(--line-soft);
@@ -279,6 +314,8 @@ legend { color: var(--text-faint); font-size: 11px; padding: 0 4px; }
 /* Строка состава класса: количества и «узкого места» у неё нет — есть вещь и
    крестик, и больше ничего. */
 .inp.cls { grid-template-columns: 1fr 22px; }
+/* Строка «ключ — значение»: состав здания, таблица константы. */
+.inp.two { grid-template-columns: 1fr 96px; }
 .inp .star, .inp .del {
   padding: 2px 0;
   text-align: center;
@@ -362,6 +399,15 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
 .board-table .mut { color: var(--text-dim); }
 .board-table tr.on td { background: #212836; }
 .board-bill { display: flex; flex-direction: column; gap: 6px; }
+/* Таблица констант: заголовок прилипает, строка кликабельна, ключ моноширинный,
+   смысл переносится — он длиннее всего остального вместе взятого. */
+.board-table.consts thead th { position: sticky; top: 0; background: var(--bg); z-index: 1; }
+.board-table.consts tbody tr { cursor: pointer; }
+.board-table.consts tbody tr:hover td { background: var(--panel-2); }
+.board-table.consts td.note { font-size: 11px; max-width: 520px; }
+.board-table.consts td.rt { white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.board-table.consts tr.grp td { color: var(--text-faint); font-size: 11px; padding-top: 10px; text-transform: lowercase; }
+.row .nm.mono { font-size: 12px; }
 
 /* ----------------------------------------------------------------- console */
 

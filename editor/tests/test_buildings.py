@@ -17,17 +17,9 @@ from pathlib import Path
 import constantsfile as consts
 import pytest
 import server
+import store
 import vaultfile as vault
 import yaml
-
-
-@pytest.fixture
-def session(recipes: Path, constants: Path, source: Path, monkeypatch) -> server.Session:
-    made = server.Session(source.parent.parent)
-    made.source = recipes
-    made.constants = constants
-    monkeypatch.setattr(server, "_check", lambda _session: None)
-    return made
 
 
 def doc_of(path: Path) -> dict:
@@ -50,6 +42,8 @@ BRICK = {
     "growth": 1.4,
     "decay": 0.25,
 }
+#: A type is also a key in the small dictionary and a name per language (D-251).
+NEW = {"id": "brick", "names": {"en": "brick"}}
 
 
 # ------------------------------------------------------------------- reading
@@ -72,7 +66,7 @@ def test_the_ladder_reads_as_rows(constants: Path):
 
 
 def test_a_new_type_lands_in_every_map(session: server.Session, constants: Path):
-    server.building_create(session, {}, {"data": BRICK})
+    server.building_create(session, {}, {"data": BRICK, **NEW})
 
     maps = maps_of(constants)
     assert maps[consts.COMPOSITION]["кирпичный"] == {"Кирпич": 30, "Раствор": 6}
@@ -92,7 +86,7 @@ def test_the_new_type_goes_last(session: server.Session, constants: Path):
     a named type is built of -- and the houses already standing were not.
     """
     before = [row["kind"] for row in consts.ConstantsFile(constants).types()]
-    server.building_create(session, {}, {"data": BRICK})
+    server.building_create(session, {}, {"data": BRICK, **NEW})
     after = [row["kind"] for row in consts.ConstantsFile(constants).types()]
     assert after == [*before, "кирпичный"]
 
@@ -101,7 +95,7 @@ def test_the_rest_of_the_file_is_untouched(session: server.Session, constants: P
     """One block changes and nothing else: comments, units and notes survive."""
     before = doc_of(constants)
     text_before = constants.read_bytes().decode("utf-8")
-    server.building_create(session, {}, {"data": BRICK})
+    server.building_create(session, {}, {"data": BRICK, **NEW})
     after = doc_of(constants)
 
     for group in before["groups"]:
@@ -169,30 +163,30 @@ def test_a_material_the_vault_does_not_know_is_refused(session: server.Session):
     moment somebody tries to build a house. The refusal belongs here."""
     with pytest.raises(vault.VaultError, match="Древесина"):
         server.building_create(
-            session, {}, {"data": {**BRICK, "per_m2": {"Древесина": 10}}}
+            session, {}, {"data": {**BRICK, "per_m2": {"Древесина": 10}}, **NEW}
         )
 
 
 def test_an_empty_composition_is_refused(session: server.Session):
     with pytest.raises(vault.VaultError, match="состав пуст"):
-        server.building_create(session, {}, {"data": {**BRICK, "per_m2": {}}})
+        server.building_create(session, {}, {"data": {**BRICK, "per_m2": {}}, **NEW})
 
 
 def test_a_floor_cheaper_than_the_one_below_is_refused(session: server.Session):
     """Growth under one would make a tower cheaper than a hut: not a balance
     choice but an arithmetic slip, and it is caught before it is written."""
     with pytest.raises(vault.VaultError, match="этаж"):
-        server.building_create(session, {}, {"data": {**BRICK, "growth": 0.5}})
+        server.building_create(session, {}, {"data": {**BRICK, "growth": 0.5}, **NEW})
 
 
 def test_a_missing_number_is_refused(session: server.Session):
     with pytest.raises(vault.VaultError, match="порча"):
-        server.building_create(session, {}, {"data": {**BRICK, "decay": ""}})
+        server.building_create(session, {}, {"data": {**BRICK, "decay": ""}, **NEW})
 
 
 def test_a_name_taken_twice_is_refused(session: server.Session):
     with pytest.raises(vault.VaultError, match="уже есть"):
-        server.building_create(session, {}, {"data": {**BRICK, "kind": "деревянный"}})
+        server.building_create(session, {}, {"data": {**BRICK, "kind": "деревянный"}, **NEW})
 
 
 def test_the_last_type_is_not_deleted(session: server.Session, constants: Path):
@@ -206,7 +200,7 @@ def test_the_last_type_is_not_deleted(session: server.Session, constants: Path):
 def test_a_refused_write_leaves_the_file_alone(session: server.Session, constants: Path):
     before = constants.read_bytes()
     with pytest.raises(vault.VaultError):
-        server.building_create(session, {}, {"data": {**BRICK, "per_m2": {"Нетакого": 1}}})
+        server.building_create(session, {}, {"data": {**BRICK, "per_m2": {"Нетакого": 1}}, **NEW})
     assert constants.read_bytes() == before
 
 
@@ -224,17 +218,17 @@ def test_undo_walks_back_the_file_that_was_written(
     file = vault.RecipesFile(recipes)
     data = {k: v for k, v in file.recipes()[0].items() if k not in ("level", "section")}
     data["note"] = "правка"
-    vault.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
+    store.save(recipes, file.replace(data["name"], data), {"name": data["name"], "data": data},
                file.mtime, file.newline)
-    server.building_create(session, {}, {"data": BRICK})
+    server.building_create(session, {}, {"data": BRICK, **NEW})
     assert constants.read_bytes() != constants_before
 
-    vault.undo(session.source)
+    store.undo(session.source)
     assert constants.read_bytes() == constants_before, "откатился не тот файл"
     assert recipes.read_bytes() != recipes_before, "правка рецепта откатилась заодно"
 
     #: Кнопка отката была и остаётся качелями, а не стопкой: сам откат делает
     #: копию, и следующее нажатие возвращает отменённое. Здесь проверяется не
     #: это, а что качели качают тот файл, который правили последним.
-    vault.undo(session.source)
+    store.undo(session.source)
     assert constants.read_bytes() != constants_before

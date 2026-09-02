@@ -18,14 +18,6 @@ import vaultfile as vault
 import yaml
 
 
-@pytest.fixture
-def session(recipes: Path, source: Path, monkeypatch) -> server.Session:
-    made = server.Session(source.parent.parent)
-    made.source = recipes
-    monkeypatch.setattr(server, "_check", lambda _session: None)
-    return made
-
-
 def doc_of(path: Path) -> dict:
     return yaml.safe_load(path.read_bytes().decode("utf-8"))
 
@@ -42,12 +34,14 @@ DIAMOND = {
     "bulk": True,
     "rate": 2,
 }
+#: The name in the other language of the game, asked for with the row (D-251).
+NAMES = {"en": "Diamond"}
 
 
 def test_a_new_mineral_is_one_row(session: server.Session, recipes: Path):
     """«Алмаз» class «Ископаемое»: after one write it is a member of the class,
     and the expanded «Добыча» of the ladder already gives it."""
-    server.material_create(session, {}, {"data": dict(DIAMOND)})
+    server.material_create(session, {}, {"data": dict(DIAMOND), "names": NAMES})
 
     row = next(r for r in rows_of(recipes) if r["name"] == "Алмаз")
     assert row == DIAMOND
@@ -62,7 +56,7 @@ def test_a_new_mineral_is_one_row(session: server.Session, recipes: Path):
 
 def test_the_registry_row_lands_after_the_last_one(session: server.Session, recipes: Path):
     before = recipes.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")
-    server.material_create(session, {}, {"data": dict(DIAMOND)})
+    server.material_create(session, {}, {"data": dict(DIAMOND), "names": NAMES})
     after = recipes.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")
     added = [line for line in after if line not in before and "Алмаз" in line]
     assert len(added) == 1, "материал — одна строка файла"
@@ -72,20 +66,20 @@ def test_a_mineral_without_a_rate_is_refused(session: server.Session):
     """No pace -- exploration never finds the vein: the refusal says so up front."""
     poor = {k: v for k, v in DIAMOND.items() if k != "rate"}
     with pytest.raises(vault.VaultError, match="rate"):
-        server.material_create(session, {}, {"data": poor})
+        server.material_create(session, {}, {"data": poor, "names": NAMES})
 
 
 def test_an_unknown_class_is_refused(session: server.Session):
     wrong = {**DIAMOND, "class": "Ископаемые"}
     with pytest.raises(vault.VaultError, match="не объявлен"):
-        server.material_create(session, {}, {"data": wrong})
+        server.material_create(session, {}, {"data": wrong, "names": NAMES})
 
 
 def test_a_duplicate_material_is_refused(session: server.Session):
     _, ladder = session.open()
     taken = next(iter(ladder.materials))
     with pytest.raises(vault.VaultError, match="уже есть"):
-        server.material_create(session, {}, {"data": {"name": taken, "mass": 1}})
+        server.material_create(session, {}, {"data": {"name": taken, "mass": 1}, "names": NAMES})
 
 
 def test_a_material_is_edited_in_place(session: server.Session, recipes: Path):
@@ -120,7 +114,7 @@ def test_a_used_material_is_not_deleted(session: server.Session):
 
 
 def test_an_unused_material_is_deleted(session: server.Session, recipes: Path):
-    server.material_create(session, {}, {"data": dict(DIAMOND)})
+    server.material_create(session, {}, {"data": dict(DIAMOND), "names": NAMES})
     server.material_delete(session, {"name": ["Алмаз"]}, {})
     assert all(row["name"] != "Алмаз" for row in rows_of(recipes))
 
@@ -128,10 +122,10 @@ def test_an_unused_material_is_deleted(session: server.Session, recipes: Path):
 def test_forage_makes_the_thing_findable(session: server.Session):
     """A `forage` pair on the row is what puts the thing on the surface (D-210)."""
     data = {**DIAMOND, "forage": {"finds": 1, "handful": 1}}
-    server.material_create(session, {}, {"data": data})
+    server.material_create(session, {}, {"data": data, "names": NAMES})
     _, ladder = session.open()
     assert ladder.materials["Алмаз"]["forage"] == {"finds": 1, "handful": 1}
 
     hollow = {**DIAMOND, "name": "Пустышка", "forage": {"finds": 1, "handful": 0}}
     with pytest.raises(vault.VaultError, match="handful"):
-        server.material_create(session, {}, {"data": hollow})
+        server.material_create(session, {}, {"data": hollow, "names": NAMES})

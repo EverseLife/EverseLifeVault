@@ -15,30 +15,32 @@ Copyright (C) 2026 Nurlan Urazkulov
 
 <header class="bar">
   <div class="brand">
-    <b>Рецепты</b>
+    <b>Вольт</b>
     <span class="path" id="source-path" title="что правит редактор"></span>
     <span class="badge stale" id="stale" hidden
-          title="build/recipes.json в вольте старше data/recipes.yaml: серые числа справа — со времени прошлой сборки">числа не пересчитаны — соберите</span>
+          title="build/recipes.json в вольте старше data/recipes.yaml: серые числа справа — со времени прошлой сборки">не пересчитано</span>
   </div>
   <div class="seg tabs" id="tabs">
     <button data-tab="recipes" class="on">Рецепты</button>
     <button data-tab="food" title="блюда (D-119), съедобное и станции, на которых готовят">Еда</button>
     <button data-tab="stations">Станции</button>
     <button data-tab="buildings" title="типы зданий (D-218): состав на м², цена этажа, порча">Здания</button>
+    <button data-tab="constants" title="все числа игры (D-065): по одному, с единицей, смыслом и решением">Константы</button>
     <button data-tab="world" title="раскладка стартового мира (D-243): узлы, дороги в секундах, станки, жилы">Мир</button>
   </div>
-  <div class="counts" id="counts"></div>
   <div class="actions">
     <button id="act-new" class="primary">+ рецепт</button>
     <button id="act-new-dish" class="primary" title="блюдо (D-119): расходник с пометкой «еда», входы — роли, готовится на очаге" hidden>+ блюдо</button>
     <button id="act-new-material" title="материал (D-215): вещь без рецепта — сырьё мира. Одна строка реестра, и «Алмаз» уже находится разведкой">+ материал</button>
     <button id="act-new-class" title="класс вещей (D-215): «любая из кирок», «любая кровать»">+ класс</button>
-    <button id="act-new-building" title="тип здания (D-218): свой состав на м² пола, свой рост цены этажа и своя скорость порчи" hidden>+ тип здания</button>
-    <button id="act-new-node" title="узел мира (D-243): место, куда приходят и где стоят станки" hidden>+ узел</button>
+    <button id="act-new-building" class="primary" title="тип здания (D-218): свой состав на м² пола, свой рост цены этажа и своя скорость порчи" hidden>+ тип здания</button>
+    <button id="act-new-constant" class="primary" title="константа (D-065): ключ, значение, единица, смысл, решение" hidden>+ константа</button>
+    <button id="act-new-node" class="primary" title="узел мира (D-243): место, куда приходят и где стоят станки" hidden>+ узел</button>
+    <span class="gap"></span>
     <button id="act-masses" title="пересчитать массы из входов (D-228) и показать, у кого вес переопределён вручную">Массы</button>
-    <button id="act-check">Проверить</button>
-    <button id="act-build">Собрать</button>
-    <button id="act-undo" title="вернуть файл к состоянию до последней правки">Отменить правку</button>
+    <button id="act-check" title="tools/build.py --check: ничего не пишет, говорит о проблемах">Проверить</button>
+    <button id="act-build" title="tools/build.py: пересобрать документы и build/*.json вольта">Собрать</button>
+    <button id="act-undo" title="вернуть файлы к состоянию до последней правки (Ctrl+Z вне поля ввода)">Отменить</button>
   </div>
 </header>
 
@@ -49,6 +51,7 @@ Copyright (C) 2026 Nurlan Urazkulov
     </div>
     <div class="filters" id="filters"></div>
     <div class="list" id="list"></div>
+    <div class="counts" id="counts" title="что в файле сейчас"></div>
   </aside>
 
   <section class="canvas">

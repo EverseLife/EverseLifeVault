@@ -34,7 +34,8 @@ from typing import Any
 
 import yaml
 
-from vaultfile import VaultError, _backup, _comparable
+import store
+from vaultfile import VaultError, _comparable
 
 #: The sections of the file, in the order they lie in it.
 SECTIONS = ("external", "nodes", "edges", "pockets")
@@ -291,21 +292,9 @@ class WorldFile:
         The whole document rather than one entry, because an edit here moves
         more than one: dropping a node drops its roads with it.
         """
-        if self.path.stat().st_mtime_ns != self.mtime:
-            raise VaultError(
-                "файл мира изменился на диске, пока он был открыт в редакторе. "
-                "Обновите страницу и повторите правку."
-            )
-        text = "\n".join(lines)
-        try:
-            written = yaml.safe_load(text) or {}
-        except yaml.YAMLError as error:
-            raise VaultError(f"после правки файл перестал читаться: {error}") from error
-        if _comparable(written) != _comparable(expect_doc):
-            raise VaultError("после правки мир читается не так, как задумано — запись отменена")
-        backup = _backup(self.path)
-        self.path.write_text(text, encoding="utf-8", newline=self.newline)
-        return backup
+        return store.commit(
+            store.prepare_doc(self.path, lines, expect_doc, self.mtime, self.newline)
+        )[0]
 
 
 # ------------------------------------------------------------------ scanning

@@ -18,25 +18,20 @@ The safety net is double:
 
 Derived numbers (amounts, labor, mass) are never written here: the build derives
 them from labour (D-133), and the editor only shows what the last build produced.
+
+Putting the lines on disk -- the last check, the backup, the undo -- is
+`store.py`: the same door for every file the editor writes.
 """
 
 from __future__ import annotations
 
 import os
 import re
-import shutil
-import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import yaml
-
-# Both are overridable because the editor also runs in a container, where the
-# repository and the backups live on mounted volumes rather than beside the code.
-BACKUPS = Path(
-    os.environ.get("EVERSELIFE_EDITOR_BACKUPS") or Path(__file__).resolve().parent / "backups"
-)
 
 # The one word that stands for "no machine needed" (D-216), and the spoken name
 # of a station -> the recipe that makes it. Mirrors tools/build.py: the
@@ -64,6 +59,7 @@ KEY_ORDER = (
     "name",
     "id",
     "kind",
+    "built",
     "class",
     "bulk",
     "liquid",
@@ -78,6 +74,7 @@ KEY_ORDER = (
     "mass",
     "hours",
     "mix",
+    "fuel",
     "inputs",
     "amounts",
     "weights",
@@ -91,8 +88,10 @@ MATERIAL_KEY_ORDER = (
     "name",
     "id",
     "class",
+    "relic",
     "mass",
     "bulk",
+    "liquid",
     "edible",
     "rate",
     "forage",
@@ -102,10 +101,16 @@ MATERIAL_KEY_ORDER = (
 
 # Fields the editor is allowed to write. `manual_amounts` and everything derived
 # is deliberately absent: it is computed by the build, not authored.
-BOOL_FIELDS = ("key", "mix", "roles", "food", "hot", "bulk", "liquid", "edible")
-NUMBER_FIELDS = ("mass", "store", "hours")
+BOOL_FIELDS = ("built", "key", "mix", "roles", "food", "hot", "bulk", "liquid", "edible")
+NUMBER_FIELDS = ("mass", "store", "hours", "fuel")
 LIST_FIELDS = ("inputs", "highlight")
 MAP_FIELDS = ("amounts", "weights")
+#: What a container may hold (D-230): the one word the build accepts, or nothing.
+HOLDS_VALUES = ("жидкость",)
+#: The parts of a material's `forage` row (D-210, D-254).
+FORAGE_KEYS = ("finds", "handful", "place")
+MATERIAL_BOOL_FIELDS = ("relic", "bulk", "liquid", "edible")
+MATERIAL_NUMBER_FIELDS = ("mass", "rate", "fuel")
 
 
 class VaultError(Exception):
@@ -159,10 +164,19 @@ def _scalar(value: str) -> str:
 
 
 def _number(value: float) -> str:
-    """A number without an exponent: `1e-05` would parse back as a string."""
+    """A number without an exponent: `1e-05` would parse back as a string.
+
+    A whole number keeps the form it was read in: the registry writes the
+    ingots' mass as `1.0`, and a line saved untouched must come out untouched.
+    A form sends whole numbers as integers, so what is authored comes out `1`.
+    """
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
     number = float(value)
     if number.is_integer():
-        return str(int(number))
+        return f"{int(number)}.0"
     text = f"{number:.6f}".rstrip("0").rstrip(".")
     return text if text not in ("", "0", "-0") else repr(number)
 
@@ -181,10 +195,43 @@ def _flow(value: Any) -> str:
     raise VaultError(f"нечего записать: {value!r}")
 
 
-def render_entry(data: dict, indent: int, order: tuple[str, ...] = KEY_ORDER) -> str:
+def key_order(data: dict, order: tuple[str, ...], existing: list[str] | None = None) -> list[str]:
+    """The keys of an entry in the order they are written.
+
+    A new entry follows the canonical order. An entry already in the file keeps
+    **its own** order -- the file is not uniform to the key (`mass` stands
+    before `class` on one line and after it on the next), and a save that
+    reshuffled an untouched line would put noise into every diff. A key the
+    entry did not have before goes where the canonical order puts it, after the
+    last of its present keys that the canon lists earlier.
+    """
+    if not existing:
+        ordered = [key for key in order if key in data]
+        return ordered + [key for key in data if key not in order]
+    ordered = [key for key in existing if key in data]
+    rank = {key: index for index, key in enumerate(order)}
+    for key in data:
+        if key in ordered:
+            continue
+        if key not in rank:
+            ordered.append(key)
+            continue
+        seat = 0
+        for index, present in enumerate(ordered):
+            if rank.get(present, -1) < rank[key]:
+                seat = index + 1
+        ordered.insert(seat, key)
+    return ordered
+
+
+def render_entry(
+    data: dict,
+    indent: int,
+    order: tuple[str, ...] = KEY_ORDER,
+    existing: list[str] | None = None,
+) -> str:
     """One entry as a line of the file, verified by parsing it back."""
-    ordered = [key for key in order if key in data]
-    ordered += [key for key in data if key not in order]
+    ordered = key_order(data, order, existing)
     body = ", ".join(f"{key}: {_flow(data[key])}" for key in ordered)
     line = " " * indent + "- {" + body + "}"
     back = yaml.safe_load(line[indent + 2 :])
@@ -343,7 +390,7 @@ class RecipesFile:
         entry = self.entries.get(name)
         if entry is None:
             raise VaultError(f"рецепта «{name}» нет в файле")
-        line = render_entry(data, entry.indent)
+        line = render_entry(data, entry.indent, existing=list(entry.data))
         return self.lines[: entry.start] + [line] + self.lines[entry.end + 1 :]
 
     def insert(self, data: dict, level_id: int, section_id: str | None) -> list[str]:
@@ -414,7 +461,7 @@ class RecipesFile:
         self, key: str, name: str, data: dict, order: tuple[str, ...]
     ) -> list[str]:
         entry = self.meta_entry(key, name)
-        line = render_entry(data, entry.indent, order)
+        line = render_entry(data, entry.indent, order, existing=list(entry.data))
         return self.lines[: entry.start] + [line] + self.lines[entry.end + 1 :]
 
     def insert_meta_entry(self, key: str, data: dict, order: tuple[str, ...]) -> list[str]:
@@ -612,77 +659,7 @@ def _substitute(value: Any, pattern: re.Pattern, new: str) -> Any:
     return value
 
 
-# --------------------------------------------------------------------- write
-
-
-def save(
-    path: Path,
-    lines: list[str],
-    expect: dict,
-    mtime: int | None = None,
-    newline: str = "\n",
-) -> Path:
-    """Write the file back, after checking that it changed exactly as expected.
-
-    `expect` is what the document must show for the touched name afterwards:
-    `{"name": ..., "data": {...} | None}` -- None for a deletion. The check is
-    what makes a line-level edit safe: a mistake in line arithmetic cannot pass it.
-    """
-    text, doc = _reread(path, lines, mtime)
-
-    for gone in expect.get("absent") or []:
-        if _find_recipe(doc, gone) is not None:
-            raise VaultError(f"«{gone}» остался в файле после переименования")
-
-    found = _find_recipe(doc, expect["name"])
-    wanted = expect["data"]
-    if wanted is None:
-        if found is not None:
-            raise VaultError(f"«{expect['name']}» остался в файле после удаления")
-    else:
-        if found is None:
-            raise VaultError(f"«{expect['name']}» не появился в файле после записи")
-        if _comparable(found) != _comparable(wanted):
-            raise VaultError(f"записанное не совпало с задуманным: {found} != {wanted}")
-
-    backup = _backup(path)
-    path.write_text(text, encoding="utf-8", newline=newline)
-    return backup
-
-
-def save_doc(
-    path: Path,
-    lines: list[str],
-    expect_doc: dict,
-    mtime: int | None = None,
-    newline: str = "\n",
-) -> Path:
-    """Write the file back, checking the whole document against what was meant.
-
-    Used where the edit is not one entry but a line inside `meta`: there is no
-    single name to look up afterwards, so the entire parsed document is compared
-    with the one the caller built by hand. Anything the line arithmetic touched
-    besides the intended change shows up as a mismatch and stops the write.
-    """
-    text, doc = _reread(path, lines, mtime)
-    if _comparable(doc) != _comparable(expect_doc):
-        raise VaultError("после правки файл читается не так, как задумано — запись отменена")
-    backup = _backup(path)
-    path.write_text(text, encoding="utf-8", newline=newline)
-    return backup
-
-
-def _reread(path: Path, lines: list[str], mtime: int | None) -> tuple[str, dict]:
-    if mtime is not None and path.stat().st_mtime_ns != mtime:
-        raise VaultError(
-            "файл вольта изменился на диске, пока он был открыт в редакторе. "
-            "Обновите страницу и повторите правку."
-        )
-    text = "\n".join(lines)
-    try:
-        return text, yaml.safe_load(text)
-    except yaml.YAMLError as error:
-        raise VaultError(f"после правки файл перестал читаться: {error}") from error
+# --------------------------------------------------------------- the document
 
 
 def _find_recipe(doc: dict, name: str) -> dict | None:
@@ -695,74 +672,3 @@ def _find_recipe(doc: dict, name: str) -> dict | None:
                 if recipe.get("name") == name:
                     return recipe
     return None
-
-
-def _backup(path: Path) -> Path:
-    BACKUPS.mkdir(parents=True, exist_ok=True)
-    stamp = time.strftime("%Y%m%d-%H%M%S")
-    #: Two saves inside one millisecond used to land on the same name, and the
-    #: second copy overwrote the first. On a fast machine that is not exotic:
-    #: `undo` makes its own backup right before restoring, and a collision made
-    #: it roll back to the very edit it was undoing. The suffix keeps names
-    #: unique and their order chronological.
-    #: The file's own name leads, because the editor writes more than one of
-    #: them: `data/recipes.yaml` and `data/constants.yaml` (D-218). Undo has to
-    #: know which file the newest edit was to, and the name is where it says so.
-    base = f"{path.stem}-{stamp}-{int(time.time() * 1000) % 1000:03d}"
-    target = BACKUPS / f"{base}.yaml"
-    twin = 0
-    while target.exists():
-        twin += 1
-        target = BACKUPS / f"{base}-{twin:02d}.yaml"
-    shutil.copy2(path, target)
-    _trim_backups(path.stem)
-    return target
-
-
-def _trim_backups(stem: str, keep: int = 40) -> None:
-    """Each edited file keeps its own depth of history: they are edited apart."""
-    saved = sorted(BACKUPS.glob(f"{stem}-*.yaml"), key=_stamp_of)
-    for old in saved[:-keep]:
-        old.unlink(missing_ok=True)
-
-
-def _stamp_of(path: Path) -> str:
-    """The time part of a backup's name -- everything after the file's own stem."""
-    _, _, stamp = path.stem.partition("-")
-    return stamp
-
-
-def last_backup() -> Path | None:
-    """The newest backup of any file the editor writes.
-
-    Sorted by the stamp inside the name and not by the whole name: two files
-    sorted as text would put every `constants-*` before every `recipes-*`, and
-    undo would walk back an edit made hours ago instead of the last one.
-    """
-    if not BACKUPS.exists():
-        return None
-    saved = sorted(BACKUPS.glob("*.yaml"), key=_stamp_of)
-    return saved[-1] if saved else None
-
-
-def undo(path: Path) -> str:
-    """Roll back the newest edit, keeping the current state as a backup too.
-
-    `path` says where the vault's data files lie, not which one to restore: the
-    newest edit may have been to `constants.yaml` while the page was showing
-    recipes, and undoing the wrong file would be worse than not undoing at all.
-    """
-    backup = last_backup()
-    if backup is None:
-        raise VaultError("отменять нечего: правок в этой копии ещё не было")
-    stem, _, _ = backup.stem.partition("-")
-    target = path.with_name(f"{stem}{path.suffix}")
-    if not target.exists():
-        raise VaultError(f"откатывать некуда: файла {target.name} нет рядом")
-    #: Read before writing: what is being restored must not depend on the
-    #: backup file surviving the backup that `undo` itself makes.
-    restored = backup.read_bytes()
-    _backup(target)
-    target.write_bytes(restored)
-    backup.unlink(missing_ok=True)
-    return backup.name
