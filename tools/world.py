@@ -246,6 +246,9 @@ def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:
             problems.append(f"мир: внешний узел «{key}» — не планета")
 
     nodes: dict[str, dict] = {}
+    #: Занятые имена городов — по нижнему регистру: чем их сверять, решает не
+    #: вольт, а Сеть, и она равняет имена каналов без учёта регистра.
+    city_names: dict[str, str] = {}
     for node in doc.get("nodes") or []:
         key = node.get("key")
         if not key or not isinstance(key, str):
@@ -283,11 +286,22 @@ def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:
             #: `name` как есть).
             if title is not None and not isinstance(title, str):
                 problems.append(f"мир: имя города «{key}» — не строка")
-            elif title is not None and len(title) > WORLD_CITY_NAME_LIMIT:
-                problems.append(
-                    f"мир: имя города «{key}» — {len(title)} знаков "
-                    f"при потолке {WORLD_CITY_NAME_LIMIT}"
-                )
+            elif title is not None:
+                if len(title) > WORLD_CITY_NAME_LIMIT:
+                    problems.append(
+                        f"мир: имя города «{key}» — {len(title)} знаков "
+                        f"при потолке {WORLD_CITY_NAME_LIMIT}"
+                    )
+                #: Одно имя — один город, и регистр не в счёт. Держится это
+                #: уникальным индексом в движке, так что раскладка с двумя
+                #: тёзками не «выдаст двух», а не разложится вовсе: сид упадёт
+                #: посреди создания мира. Сказать об этом здесь — сказать тому,
+                #: кто правит вольт, и до того, как деплой попробует.
+                first = city_names.setdefault(title.lower(), key)
+                if first != key:
+                    problems.append(
+                        f"мир: города «{first}» и «{key}» носят одно имя «{title}»"
+                    )
         properties = node.get("properties") or {}
         if not isinstance(properties, dict):
             problems.append(f"мир: у «{key}» свойства — не словарь")
