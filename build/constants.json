@@ -375,16 +375,6 @@
   },
   "ship.ascent_hours": 4,
   "ship.descent_hours": 3,
-  "ship.route_window_hours": {
-    "aurora-terra": 10,
-    "pyroxis-terra": 16,
-    "aurora-pyroxis": 24
-  },
-  "ship.route_apart_hours": {
-    "aurora-terra": 48,
-    "pyroxis-terra": 72,
-    "aurora-pyroxis": 84
-  },
   "ship.min_thrust_ratio": 0.15,
   "ship.reference_ratio": 0.5,
   "ship.route_min_share": 50,
@@ -396,11 +386,22 @@
     "Двигатель III класса": 0.5
   },
   "ship.fuel_per_ton_day": 6,
+  "ship.fuel_per_ton_speed": 0.03,
   "ship.fuel_energy": {
     "Ракетное топливо": 1,
     "Керосиновое топливо": 1.25
   },
   "ship.life_support_crew": 4,
+  "orbit.thrust_scale": 1600,
+  "orbit.burn_share": 0.5,
+  "orbit.corona_radius": 35,
+  "orbit.longest_days": 45,
+  "orbit.flyby_mu": 150,
+  "orbit.flyby_radius": 1.5,
+  "orbit.slider_from_hours": 2,
+  "orbit.slider_step": 10,
+  "orbit.calendar_step": 25,
+  "orbit.calendar_days": 60,
   "quality.scale": {
     "min": 0,
     "max": 100
@@ -522,11 +523,19 @@
   },
   "carrier.write_wear": 5,
   "carrier.wipe_wear": 5,
-  "trial.duration": 90,
+  "trial.duration": 30,
   "trial.transfer_limit_base": 500,
   "trial.transfer_limit_growth": 10,
   "trial.transfer_limit_cap": 20,
   "trial.market_unlimited": true,
+  "subscription.price_month": 9.99,
+  "subscription.price_quarter_month": 8.99,
+  "subscription.price_year_month": 6.99,
+  "subscription.share_cis": 50,
+  "subscription.price_month_rub": 449,
+  "subscription.alt_discount": 50,
+  "subscription.ru_acquiring_threshold": 300,
+  "supporter.badge_price": 15,
   "chat.leak_base": 8,
   "chat.leak_per_person": 1,
   "chat.leak_crowd_free": 4,
