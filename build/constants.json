@@ -477,6 +477,8 @@
   "bank.council_lockout": 10,
   "works.recycle_ramp": 2,
   "works.print_cap": 0,
+  "emission.proposal_hours": 24,
+  "emission.signature_share": 50,
   "works.hour_rate": 3,
   "works.road_threshold": 60,
   "works.city_cofinance": 50,
