@@ -395,17 +395,6 @@ groups:
         note: Кратность семенной отдачи при полном уходе на здоровой почве.
           Небрежность и бедная земля опускают её ниже единицы — фонд тает
         decision: D-257
-      - key: farm.agrotech_params
-        value: 5
-        unit: параметров
-        note: Полив, подкормка, прополка, прореживание, защита от болезней
-        decision: D-105
-      - key: farm.neglect_total
-        value: 75
-        unit: "% урожая"
-        note: Снимается с кодом D-293 — штраф долей цикла заменён здоровьем
-          делянки; живёт, пока движок объявляет ключ
-        decision: D-263
       - key: farm.moisture_by_need
         value: {"1": {min: 20, max: 45}, "2": {min: 40, max: 65}, "3": {min: 60, max: 85}}
         unit: влага 0–100
@@ -420,9 +409,10 @@ groups:
       - key: farm.dry_rate
         value: 30
         unit: "% текущей влаги в сутки"
-        note: Влага уходит долей от того, что есть — мокрая земля сохнет быстро,
-          сухая еле-еле. Множится на жажду культуры farm.water_by_need, жару,
-          дождь (site.rain_water_offset) и реку (farm.river_dry_share)
+        note: Скорость-доля, не срез суток — за сутки при опорной температуре
+          остаётся e^(−0,3) ≈ 74 %. Мокрая земля сохнет быстро, сухая еле-еле.
+          Множится на жажду культуры farm.water_by_need, жару, дождь
+          (site.rain_water_offset) и реку (farm.river_dry_share)
         decision: D-293
       - key: farm.dry_temp_ref
         value: 15

@@ -86,8 +86,6 @@
   "farm.shade_built_share": 25,
   "farm.disease_spread": 20,
   "farm.seed_return": 3,
-  "farm.agrotech_params": 5,
-  "farm.neglect_total": 75,
   "farm.moisture_by_need": {
     "1": {
       "min": 20,
