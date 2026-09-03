@@ -104,6 +104,7 @@ goods:
   iron_ingot: Iron ingot
   iron_ore: Iron ore
   iron_pickaxe: Iron pickaxe
+  isotope_generator: Isotope generator
   kerosene: Kerosene
   kerosene_fuel: Kerosene fuel
   lathe: Lathe
@@ -178,6 +179,7 @@ goods:
   silver_ore: Silver-bearing rock
   simple_backpack: Simple backpack
   smelting_furnace: Smelting furnace
+  solar_panel: Solar panel
   soup: Pottage
   space_shipyard: Space shipyard
   space_workshop: Space workshop
@@ -239,6 +241,7 @@ classes:
   heater: Heater
   hydroponics: Hydroponics
   insulated_suit: Insulated suit
+  isotope_generator: Isotope generator
   kitchen: Kitchen
   library: Library
   life_support: Life support
@@ -258,6 +261,7 @@ classes:
   ship_foundation: Ship foundation
   ship_fuel: Ship fuel
   shipyard: Shipyard
+  solar_panel: Solar panel
   spacesuit: Spacesuit
   terminal: Terminal
   vessel: Vessel
