@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import sys
 from collections import Counter
@@ -1216,8 +1217,9 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
     труда (И2). Значит культура за цикл должна дать ровно столько, сколько
     даёт `harvest.rates` её продукта за потраченные на неё часы:
 
-        часы за цикл = (обход + уход × площадь)/60 × цикл + вспашка × площадь/60
-        урожай с м²  = harvest.rates[продукт] × часы ÷ площадь
+        действий за цикл = цикл / суток_в_полосе + подкормок
+        часы за цикл     = (накладные + уход × площадь)/60 × действий + вспашка × площадь/60
+        урожай с м²      = harvest.rates[продукт] × часы ÷ площадь
 
     Отсюда сама собой выходит честная связь: долгий цикл окупается большим
     урожаем, а быстрая репа берёт оборотом, а не разовым сбором.
@@ -1225,8 +1227,12 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
     flat = flatten_constants(constants)
     rates = flat.get("harvest.rates", {})
     area = doc["meta"].get("reference_area", 100)
-    care = (3 * flat["farm.plot_overhead"] + flat["farm.care_time_per_m2"] * area) / 60
+    # Одно действие на опорном хозяйстве — три делянки на сотню метров (D-293)
+    action = (3 * flat["farm.plot_overhead"] + flat["farm.care_time_per_m2"] * area) / 60
     plow = flat["farm.plow_time_per_m2"] * area / 60
+    dry_rate = flat["farm.dry_rate"] / 100
+    drink = flat["farm.water_by_need"]
+    bands = flat["farm.moisture_by_need"]
     budget = flat.get("plant.trait_budget", 3.5)
 
     # Сколько рецептов потребляют продукт культуры. Отсюда правило:
@@ -1250,9 +1256,17 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
             problems.append(f"культура «{p['name']}»: продукт «{p['gives']}» "
                             "не описан в `harvest.rates` — урожайность не вывести")
             continue
-        hours = care * p["cycle"] + plow
-        total = rate * hours
         req, tr = p["requires"], p["traits"]
+        # Действий за цикл — из самой модели ухода (D-293): поливов столько,
+        # сколько раз влага уйдёт из полосы при опорном климате (без реки и
+        # дождя, farm.dry_temp_ref) — экспонента с жаждой культуры; подкормок —
+        # по строкам таблицы. Суточной нормы нет: сколько просит земля
+        need = str(req["water"])
+        band = bands[need]
+        leave_days = math.log(band["max"] / band["min"]) / (dry_rate * float(drink[need]))
+        waterings = p["cycle"] / leave_days
+        hours = action * (waterings + len(p.get("feeding") or [])) + plow
+        total = rate * hours
 
         # Щедрость культуры: чем выше, тем меньше она требует и больше прощает.
         # Правило D-057 — показатели и требования идут парой, поэтому сумма
@@ -1286,17 +1300,20 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
             "seed": p["seed"],
             "byproduct": p.get("byproduct"), "cycle_days": p["cycle"],
             "yield_per_m2": round(total / area, 3),
+            "waterings_per_cycle": round(waterings, 1),
             "yield_per_cycle": round(total, 1),
             "requires": req, "traits": tr,
             "restores_fertility": p.get("restores", 0),
+            # подкормка растущего по фазам — знание, скрытое от игрока (D-293)
+            "feeding": p.get("feeding") or [],
             "generosity": score, "generosity_cap": allowed, "used_in_recipes": uses,
         })
     return out, problems
 
 
 def render_plants(plants: list[dict]) -> str:
-    rows = ["| Культура | Даёт | Цикл | Урожай с м² | Температура | Вода | Плодородие | Свет |",
-            "|---|---|---|---|---|---|---|---|"]
+    rows = ["| Культура | Даёт | Цикл | Поливов за цикл | Урожай с м² | Температура | Вода | Плодородие | Свет |",
+            "|---|---|---|---|---|---|---|---|---|"]
     water = {1: "мало", 2: "средне", 3: "много"}
     light = {1: "терпит тень", 2: "среднее", 3: "любит свет"}
     for p in plants:
@@ -1304,7 +1321,7 @@ def render_plants(plants: list[dict]) -> str:
         extra = f" + {p['byproduct']}" if p["byproduct"] else ""
         rows.append(
             f"| **{p['name']}** | {p['gives']}{extra} | {p['cycle_days']} сут | "
-            f"{p['yield_per_m2']:g} | {r['temp']['min']}…{r['temp']['max']} °C | "
+            f"{p['waterings_per_cycle']:g} | {p['yield_per_m2']:g} | {r['temp']['min']}…{r['temp']['max']} °C | "
             f"{water[r['water']]} | {r['fertility']} | {light[r['light']]} |")
     return "\n".join(rows)
 
@@ -1321,9 +1338,57 @@ def render_plant_traits(plants: list[dict]) -> str:
     return "\n".join(rows)
 
 
+#: Фазы роста (D-293): всходы — от нуля, границы остальных — `farm.stage_bounds`.
+STAGE_WORDS = {"sprout": "всходы", "leaf": "лист", "bloom": "цветение", "fill": "налив"}
+
+
+def fertilizer_names(recipes_doc: dict) -> dict[str, str]:
+    """id → имя для вещей класса «Удобрение»: список класса ведётся именами,
+    а `plants.yaml` зовёт удобрение устойчивым ключом (D-251, D-291)."""
+    members = set(recipes_doc["meta"].get("classes_map", {}).get("Удобрение", []))
+    return {r["id"]: r["name"] for _, _, r in all_recipes(recipes_doc)
+            if r.get("id") and r.get("name") in members}
+
+
+def check_feeding(doc: dict, constants: dict, recipes_doc: dict) -> list[str]:
+    """Подкормка по фазам (D-293): фаза из закрытого списка, удобрение — вещь
+    класса «Удобрение», ускорение — положительное число."""
+    flat = flatten_constants(constants)
+    stages = ("sprout", *(flat.get("farm.stage_bounds") or {}).keys())
+    known = fertilizer_names(recipes_doc)
+    problems: list[str] = []
+    for p in doc["plants"]:
+        for row in p.get("feeding") or []:
+            where = f"культура «{p['name']}», подкормка {row}"
+            if row.get("stage") not in stages:
+                problems.append(f"{where}: фаза не из {list(stages)}")
+            if row.get("fertilizer") not in known:
+                problems.append(f"{where}: «{row.get('fertilizer')}» — не вещь класса «Удобрение»")
+            growth = row.get("growth")
+            if not isinstance(growth, (int, float)) or growth <= 0:
+                problems.append(f"{where}: ускорение должно быть положительным числом")
+    return problems
+
+
+def render_plant_feeding(plants: list[dict], recipes_doc: dict) -> str:
+    names = fertilizer_names(recipes_doc)
+    rows = ["| Культура | Фаза | Удобрение | Быстрее до конца фазы |", "|---|---|---|---|"]
+    for p in plants:
+        feeding = p.get("feeding") or []
+        if not feeding:
+            rows.append(f"| **{p['name']}** | — | не кормят: любое удобрение — ожог | — |")
+            continue
+        for n, row in enumerate(feeding):
+            head = f"**{p['name']}**" if n == 0 else ""
+            rows.append(f"| {head} | {STAGE_WORDS.get(row['stage'], row['stage'])} | "
+                        f"{names.get(row['fertilizer'], row['fertilizer'])} | +{row['growth']:g} % |")
+    return "\n".join(rows)
+
+
 def build_plants(constants: dict, recipes_doc: dict) -> tuple[str, list[dict], list[str]]:
     doc = yaml.safe_load((DATA / "plants.yaml").read_text(encoding="utf-8"))
     plants, problems = compute_plants(doc, constants, recipes_doc)
+    problems += check_feeding(doc, constants, recipes_doc)
 
     def resolve(token: str) -> str:
         _, _, what = token.partition(":")
@@ -1331,6 +1396,8 @@ def build_plants(constants: dict, recipes_doc: dict) -> tuple[str, list[dict], l
             return render_plants(plants)
         if what == "traits":
             return render_plant_traits(plants)
+        if what == "feeding":
+            return render_plant_feeding(plants, recipes_doc)
         if what == "count":
             return str(len(plants))
         raise KeyError(f"неизвестный плейсхолдер {{{{{token}}}}}")

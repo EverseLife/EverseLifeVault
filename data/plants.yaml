@@ -38,6 +38,12 @@
 #                 density_risk 1–5 — чувствительность к загущению
 #                 spoilage_k   ×   — множитель к `spoilage.food_base` для урожая
 #   restores  — сколько плодородия культура ВОЗВРАЩАЕТ почве, % (только бобы)
+#   feeding   — подкормка растущего (D-293): список {stage, fertilizer, growth}.
+#               stage — фаза: sprout, leaf, bloom, fill; fertilizer — id вещи
+#               класса «Удобрение»; growth — на сколько % быстрее растёт до
+#               конца фазы. Всего, чего в списке нет, растение не прощает —
+#               ожог farm.feed_wrong_burn. Порядок и фаза — то знание, ради
+#               которого агротехника отделена от семян (D-057)
 #
 # Правило баланса (D-057): показатели и требования идут парой. Культура,
 # хорошая во всём, существовать не должна — сборка это проверяет и ругается.
@@ -63,6 +69,9 @@ plants:
       fertility: 45
       light: 2
     traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.5}
+    feeding:
+      - {stage: sprout, fertilizer: compost, growth: 60}
+      - {stage: leaf, fertilizer: mineral_fertilizer, growth: 100}
     note: Основа питания. Неприхотлива, средний цикл, солома идёт в корм и на подстилку
 
   - id: turnip
@@ -77,6 +86,9 @@ plants:
       fertility: 40
       light: 2
     traits: {hardiness: 3, disease_risk: 3, density_risk: 3, spoilage_k: 1.6}
+    # Минеральное гонит корнеплод в ботву — для репы это ожог, а не корм
+    feeding:
+      - {stage: sprout, fertilizer: compost, growth: 80}
     note: Еда новичка. Быстрый цикл и много массы, но портится быстрее всех
 
   - id: beans
@@ -92,6 +104,9 @@ plants:
       light: 2
     traits: {hardiness: 3, disease_risk: 2, density_risk: 2, spoilage_k: 0.6}
     restores: 15
+    # Бобовые добывают азот сами: минеральное им — ожог
+    feeding:
+      - {stage: bloom, fertilizer: compost, growth: 60}
     note: Единственная культура, которая платит почве, а не берёт. Требует тепла
 
   - id: flax
@@ -109,6 +124,9 @@ plants:
       fertility: 55
       light: 2
     traits: {hardiness: 2, disease_risk: 3, density_risk: 4, spoilage_k: 0.2}
+    feeding:
+      - {stage: sprout, fertilizer: compost, growth: 40}
+      - {stage: leaf, fertilizer: mineral_fertilizer, growth: 80}
     note: Долгий цикл и капризность в обмен на всю лёгкую промышленность
 
   - id: camelina
@@ -123,6 +141,9 @@ plants:
       fertility: 20
       light: 3
     traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.4}
+    feeding:
+      - {stage: sprout, fertilizer: mineral_fertilizer, growth: 80}
+      - {stage: leaf, fertilizer: compost, growth: 40}
     note: Культура окраин — терпит бедные и сухие земли, зато любит свет
 
   - id: sugarcane
@@ -137,6 +158,11 @@ plants:
       fertility: 75
       light: 3
     traits: {hardiness: 2, disease_risk: 4, density_risk: 3, spoilage_k: 0.5}
+    # Жаден и к подкормке: два окна под минеральное — цена спирта
+    feeding:
+      - {stage: sprout, fertilizer: compost, growth: 60}
+      - {stage: leaf, fertilizer: mineral_fertilizer, growth: 120}
+      - {stage: fill, fertilizer: mineral_fertilizer, growth: 80}
     note: Жаден к почве и теплу, но открывает химию, спирт и ракетное топливо
 
   - id: stjohnswort
@@ -151,6 +177,8 @@ plants:
       fertility: 15
       light: 3
     traits: {hardiness: 4, disease_risk: 2, density_risk: 2, spoilage_k: 0.3}
+    # Зверобой не кормят: трава скудных земель, любое удобрение — ожог (D-293)
+    feeding: []
     note: Растёт на скудных землях, выход мал. Вся медицина держится на нём
 
   - id: brome
@@ -165,4 +193,10 @@ plants:
       fertility: 10
       light: 1
     traits: {hardiness: 5, disease_risk: 1, density_risk: 1, spoilage_k: 0.3}
+    # Ест что дают и когда дают: нетребовательность и здесь
+    feeding:
+      - {stage: sprout, fertilizer: compost, growth: 40}
+      - {stage: sprout, fertilizer: mineral_fertilizer, growth: 60}
+      - {stage: leaf, fertilizer: compost, growth: 40}
+      - {stage: leaf, fertilizer: mineral_fertilizer, growth: 60}
     note: Страховка от неурожая — растёт почти везде, но кормит только скот

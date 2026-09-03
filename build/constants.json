@@ -76,7 +76,7 @@
   "farm.plot_overhead": 2,
   "farm.care_time_per_m2": 0.1,
   "farm.plow_time_per_m2": 0.5,
-  "farm.water_per_m2": 3,
+  "farm.water_per_m2": 6,
   "farm.water_by_need": {
     "1": 0.5,
     "2": 1.0,
@@ -88,6 +88,39 @@
   "farm.seed_return": 3,
   "farm.agrotech_params": 5,
   "farm.neglect_total": 75,
+  "farm.moisture_by_need": {
+    "1": {
+      "min": 20,
+      "max": 45
+    },
+    "2": {
+      "min": 40,
+      "max": 65
+    },
+    "3": {
+      "min": 60,
+      "max": 85
+    }
+  },
+  "farm.sown_moisture": 50,
+  "farm.dry_rate": 30,
+  "farm.dry_temp_ref": 15,
+  "farm.dry_per_degree": 3,
+  "farm.river_dry_share": 50,
+  "farm.stress_per_point": 0.5,
+  "farm.heal_per_day": 5,
+  "farm.stage_bounds": {
+    "leaf": 20,
+    "bloom": 45,
+    "fill": 70
+  },
+  "farm.health_bands": {
+    "strong": 70,
+    "weak": 40,
+    "sick": 15
+  },
+  "farm.feed_wrong_burn": 25,
+  "farm.overfeed_yield_penalty": 20,
   "farm.soil_depletion": 8,
   "farm.monoculture_penalty": 8,
   "farm.soil_share_cap": 120,
