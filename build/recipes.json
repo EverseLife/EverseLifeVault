@@ -95,6 +95,9 @@
     "Кровать": [
       "Кровать"
     ],
+    "Кузница": [
+      "Кузница"
+    ],
     "Кухня": [
       "Очаг"
     ],
@@ -189,6 +192,10 @@
       "Каменный топор",
       "Топор"
     ],
+    "Удобрение": [
+      "Компост",
+      "Минеральное удобрение"
+    ],
     "Утварь": [
       "Глиняный горшок",
       "Котёл"
@@ -238,12 +245,14 @@
     "Реактор Предтеч": "precursor_reactor",
     "Кухня": "kitchen",
     "Монетный двор": "mint",
+    "Кузница": "forge",
     "Крепь": "mine_support",
     "Корабельное топливо": "ship_fuel",
     "Основа корабля": "ship_foundation",
     "Полотно": "roadbed",
     "Носитель": "carrier",
     "Болванка": "blank",
+    "Удобрение": "fertilizer",
     "Тачка": "wheelbarrow",
     "Повозка": "cart"
   },
@@ -2355,7 +2364,7 @@
       "level": 3,
       "section": null,
       "kind": "station",
-      "class": null,
+      "class": "Кузница",
       "key": false,
       "built": false,
       "powered": false,
@@ -2775,7 +2784,7 @@
       "level": 4,
       "section": null,
       "kind": "consumable",
-      "class": null,
+      "class": "Удобрение",
       "key": false,
       "built": false,
       "powered": false,
@@ -2803,7 +2812,7 @@
       "level": 4,
       "section": null,
       "kind": "consumable",
-      "class": null,
+      "class": "Удобрение",
       "key": false,
       "built": false,
       "powered": false,

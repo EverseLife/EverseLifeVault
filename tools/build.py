@@ -1551,6 +1551,48 @@ def check_building_types(constants_doc: dict, recipes_doc: dict) -> list[str]:
     return problems
 
 
+#: Таблицы констант, чьи ключи — вещи одного класса (D-291): у каждого члена
+#: класса есть строка, у каждой строки — член. Поведение у класса, число — у
+#: вещи; расхождение между ними движок заметил бы только на команде игрока
+CLASS_ROW_TABLES = (
+    ("farm.fertilizer_recovery", "Удобрение"),
+)
+
+#: Таблицы, ключуемые классами вещей (D-215, D-291): ключ, которого нет среди
+#: объявленных классов, не совпал бы ни с одной стоящей вещью и молча
+#: выпал бы из механики. `transport.*` сюда не входят: там рядом с классами
+#: стоят слова без класса («судно»), и это законно до их появления
+CLASS_KEYED_TABLES = (
+    "chat.leak_location_modifier",
+)
+
+
+def check_class_tables(constants_doc: dict, recipes_doc: dict) -> list[str]:
+    """Класс вещи и таблица по вещи обязаны совпадать (D-291)."""
+    flat = flatten_constants(constants_doc)
+    classes: dict[str, list[str]] = recipes_doc["meta"].get("classes_map") or {}
+    declared = {c.get("name") for c in recipes_doc["meta"].get("classes", [])}
+    problems: list[str] = []
+    for key, cls in CLASS_ROW_TABLES:
+        rows = flat.get(key)
+        if not isinstance(rows, dict):
+            problems.append(f"{key}: нет таблицы по вещам класса «{cls}»")
+            continue
+        members = set(classes.get(cls, []))
+        for missing in sorted(members - rows.keys()):
+            problems.append(f"{key}: у «{missing}» класса «{cls}» нет строки")
+        for extra in sorted(rows.keys() - members):
+            problems.append(f"{key}: «{extra}» есть в таблице, но не в классе «{cls}»")
+    for key in CLASS_KEYED_TABLES:
+        rows = flat.get(key)
+        if not isinstance(rows, dict):
+            problems.append(f"{key}: нет таблицы по классам")
+            continue
+        for word in sorted(rows.keys() - declared):
+            problems.append(f"{key}: «{word}» — не объявленный класс вещей")
+    return problems
+
+
 # ---------------------------------------------------- устойчивые ключи (D-251)
 
 #: Английский snake_case: то, что живёт в коде, в базе и в проводе после
@@ -1941,6 +1983,7 @@ def main() -> int:
     problems += check_laws(laws_doc)
     problems += check_constant_refs(constants_doc)
     problems += check_building_types(constants_doc, recipes_doc)
+    problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
     vocabulary = load_vocabulary()

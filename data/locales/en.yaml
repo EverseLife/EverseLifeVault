@@ -219,6 +219,8 @@ goods:
 
 classes:
   administration: Administration
+  fertilizer: Fertilizer
+  forge: Forge
   automaton: Automaton
   axe: Axe
   battery: Battery

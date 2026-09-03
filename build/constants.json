@@ -91,8 +91,10 @@
   "farm.soil_depletion": 8,
   "farm.monoculture_penalty": 8,
   "farm.soil_share_cap": 120,
-  "farm.compost_recovery": 10,
-  "farm.mineral_recovery": 25,
+  "farm.fertilizer_recovery": {
+    "Компост": 10,
+    "Минеральное удобрение": 25
+  },
   "farm.fertilizer_per_m2": 0.5,
   "farm.fallow_recovery": 2,
   "food.variety_window": 6,
@@ -543,8 +545,8 @@
   "chat.leak_group_free": 3,
   "chat.leak_quiet_multiplier": 0.3,
   "chat.leak_location_modifier": {
-    "кузница": 0.5,
-    "библиотека": 1.5
+    "Кузница": 0.5,
+    "Библиотека": 1.5
   },
   "chat.city_record_retention": 30,
   "market.tank_capacity": 2000,
