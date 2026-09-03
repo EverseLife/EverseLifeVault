@@ -3,7 +3,7 @@
 
 # Лендинг — ТЗ
 
-> **Статус:** описывает построенное (D-056, D-078, D-079, D-250, D-272, D-273, D-286, D-287) · **Зависит от:** [00-core/00-vision](../00-core/00-vision.md), [00-core/01-design-pillars](../00-core/01-design-pillars.md), [50-interface/07-design-brief](../50-interface/07-design-brief.md), [02-monetization](02-monetization.md), [00-onboarding](00-onboarding.md), [90-production/00-roadmap](../90-production/00-roadmap.md)
+> **Статус:** реализовано — описывает построенное (D-056, D-078, D-079, D-250, D-272, D-273, D-286, D-287) · **Зависит от:** [00-core/00-vision](../00-core/00-vision.md), [00-core/01-design-pillars](../00-core/01-design-pillars.md), [50-interface/07-design-brief](../50-interface/07-design-brief.md), [02-monetization](02-monetization.md), [00-onboarding](00-onboarding.md), [90-production/00-roadmap](../90-production/00-roadmap.md)
 
 Публичная поверхность проекта — четыре страницы на двух языках, и Discord сразу за ними. Всё, что человек узнаёт об игре до входа, он узнаёт отсюда.
 
