@@ -32,8 +32,13 @@ EMPTY_CONSTANTS = {"groups": []}
 EMPTY_WORLD: dict = {"nodes": []}
 #: Виртуальные станции существуют в любом вольте (VIRTUAL_STATIONS в сборке),
 #: и покрытие требует их объявления даже в синтетическом документе.
-BASE_VOCAB = {"virtual_stations": [{"name": name, "id": "by_hand"}
-                                   for name in sorted(build.VIRTUAL_STATIONS)]}
+#: Место диких семян (WILD_SEED_PLACE, D-254) -- второе такое слово: сборка
+#: требует его от любого мира, так что и синтетический словарь его объявляет.
+BASE_VOCAB = {
+    "virtual_stations": [{"name": name, "id": "by_hand"}
+                         for name in sorted(build.VIRTUAL_STATIONS)],
+    "node_properties": [{"name": build.WILD_SEED_PLACE, "id": "meadow"}],
+}
 
 
 def problems(recipes_doc, vocabulary=None) -> list[str]:

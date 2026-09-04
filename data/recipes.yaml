@@ -141,6 +141,10 @@ meta:
     # окно открывается по классу, а не по имени станции
     - {name: Кухня, id: kitchen, note: "поведение: котёл по ролям (D-119); окно кухни у клиента"}
     - {name: Монетный двор, id: mint, note: "поведение: чеканка монеты (D-086); окно чеканки у клиента"}
+    # Звук места (D-043, D-291): утечка разговора зависит от того, что стоит
+    # в узле, и таблица chat.leak_location_modifier ключуется классом.
+    # Библиотека — тихое место — уже класс выше; кузница — шумное
+    - {name: Кузница, id: forge, note: "поведение: шумное место — глушит утечку разговора (D-043, D-291)"}
     # Расходники и материалы с собственным поведением
     - {name: Крепь, id: mine_support, note: "поведение: держит свод забоя (D-143)"}
     - {name: Корабельное топливо, id: ship_fuel, note: "поведение: списывается рейсом (D-202)"}
@@ -148,6 +152,7 @@ meta:
     - {name: Полотно, id: roadbed, note: "поведение: укладка дороги (D-158)"}
     - {name: Носитель, id: carrier, note: "поведение: предмет с записанным рецептом (D-209)"}
     - {name: Болванка, id: blank, note: "поведение: то, чем становится стёртый носитель (D-209)"}
+    - {name: Удобрение, id: fertilizer, note: "поведение: вносится в пар или вспаханное одной нормой farm.fertilizer_per_m2; сила — строка farm.fertilizer_recovery по вещи (D-264, D-291)"}
     # Транспорт: таблицы transport.speed_k и transport.capacity ключуются классом
     - {name: Тачка, id: wheelbarrow, note: "поведение: лёгкий транспорт"}
     - {name: Повозка, id: cart, note: "поведение: тяжёлый транспорт"}
@@ -410,7 +415,7 @@ levels:
     title: Кузница и металл
     short: кузница и металл
     recipes:
-      - {name: Кузница, id: forge, kind: station, hours: 3, inputs: [Камень, Глина, Дерево], amounts: {Камень: 20, Глина: 10, Дерево: 6}, station: Верстак}
+      - {name: Кузница, id: forge, kind: station, class: Кузница, hours: 3, inputs: [Камень, Глина, Дерево], amounts: {Камень: 20, Глина: 10, Дерево: 6}, station: Верстак}
       - {name: Меха, id: bellows, kind: material, inputs: [Ткань, Дерево, Гвозди], station: Верстак}
       - {name: Сталь, id: steel, kind: material, mix: true, inputs: [Слиток железа, Уголь, Известняк], station: Кузница}
       # Бронза — спрос на олово (D-223): четвёртая порода D-151 до этого
@@ -439,8 +444,8 @@ levels:
     short: земледелие и еда
     recipes:
       - {name: Селекционный питомник, id: breeding_nursery, kind: station, class: Питомник, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 2}, station: Верстак}
-      - {name: Компост, id: compost, kind: consumable, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
-      - {name: Минеральное удобрение, id: mineral_fertilizer, kind: consumable, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
+      - {name: Компост, id: compost, kind: consumable, class: Удобрение, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
+      - {name: Минеральное удобрение, id: mineral_fertilizer, kind: consumable, class: Удобрение, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
       - {name: Мельница, id: mill, kind: station, hours: 4, inputs: [Камень, Дерево, Гвозди], amounts: {Камень: 20, Дерево: 10, Гвозди: 4}, station: Верстак}
       - {name: Мука, id: flour, kind: material, bulk: true, edible: true, inputs: [Зерно], station: Мельница}
       - {name: Хлеб, id: bread, kind: consumable, roles: true, food: true, mass: 0.5, inputs: [Мука, Вода], station: Очаг}
