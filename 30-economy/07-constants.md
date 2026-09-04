@@ -42,6 +42,8 @@
 | `energy.windmill_rate` | 0–40 в час | Зависит от погоды |
 | `energy.coal_plant_rate` | 200 в час | При расходе 4 угля в час |
 | `energy.coal_plant_fuel_draw` | 4 угля/час |  |
+| `energy.solar_rate` | 10 в час | «Солнечная панель». Топлива не требует; хватает автомату (auto.energy_per_hour = 6) с запасом на зарядку (D-288) |
+| `energy.isotope_rate` | 40 в час | «Изотопный генератор» — пироксисовый тир, без топлива. Малый корабль живёт на одном (D-288) |
 | `energy.battery_capacity` | 500 энергии |  |
 | `energy.battery_mass` | 15 кг |  |
 | `energy.battery_selfdischarge` | 2% в сутки |  |
