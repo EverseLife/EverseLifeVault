@@ -1217,7 +1217,8 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
     труда (И2). Значит культура за цикл должна дать ровно столько, сколько
     даёт `harvest.rates` её продукта за потраченные на неё часы:
 
-        действий за цикл = цикл / суток_в_полосе + подкормок
+        действий за цикл = цикл / суток_в_полосе + цикл / суток_до_сорняка
+                         + прореживание + подкормок
         часы за цикл     = (накладные + уход × площадь)/60 × действий + вспашка × площадь/60
         урожай с м²      = harvest.rates[продукт] × часы ÷ площадь
 
@@ -1265,7 +1266,19 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
         band = bands[need]
         leave_days = math.log(band["max"] / band["min"]) / (dry_rate * float(drink[need]))
         waterings = p["cycle"] / leave_days
-        hours = action * (waterings + len(p.get("feeding") or [])) + plow
+        # Прополок за цикл (D-295): сорняк доходит до порога видимости за
+        # weed_seen / (weed_per_day × плодородие нормы / 100) суток — на земле,
+        # какую культура просит. Прореживание — одно, и только там, где оно
+        # окупается: risk/5 × crowd_penalty > thin_loss
+        weed_days = flat["farm.weed_seen"] / (
+            flat["farm.weed_per_day"] * max(req["fertility"], 1) / 100
+        )
+        weedings = p["cycle"] / weed_days
+        thinnings = (
+            1 if tr["density_risk"] / 5 * flat["farm.crowd_penalty"] > flat["farm.thin_loss"] else 0
+        )
+        actions = waterings + weedings + thinnings + len(p.get("feeding") or [])
+        hours = action * actions + plow
         total = rate * hours
 
         # Щедрость культуры: чем выше, тем меньше она требует и больше прощает.
@@ -1301,6 +1314,9 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
             "byproduct": p.get("byproduct"), "cycle_days": p["cycle"],
             "yield_per_m2": round(total / area, 3),
             "waterings_per_cycle": round(waterings, 1),
+            "weedings_per_cycle": round(weedings, 1),
+            "thinnings_per_cycle": thinnings,
+            "actions_per_cycle": round(actions, 1),
             "yield_per_cycle": round(total, 1),
             "requires": req, "traits": tr,
             "restores_fertility": p.get("restores", 0),
@@ -1312,7 +1328,7 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
 
 
 def render_plants(plants: list[dict]) -> str:
-    rows = ["| Культура | Даёт | Цикл | Поливов за цикл | Урожай с м² | Температура | Вода | Плодородие | Свет |",
+    rows = ["| Культура | Даёт | Цикл | Действий за цикл | Урожай с м² | Температура | Вода | Плодородие | Свет |",
             "|---|---|---|---|---|---|---|---|---|"]
     water = {1: "мало", 2: "средне", 3: "много"}
     light = {1: "терпит тень", 2: "среднее", 3: "любит свет"}
@@ -1321,7 +1337,7 @@ def render_plants(plants: list[dict]) -> str:
         extra = f" + {p['byproduct']}" if p["byproduct"] else ""
         rows.append(
             f"| **{p['name']}** | {p['gives']}{extra} | {p['cycle_days']} сут | "
-            f"{p['waterings_per_cycle']:g} | {p['yield_per_m2']:g} | {r['temp']['min']}…{r['temp']['max']} °C | "
+            f"{p['actions_per_cycle']:g} | {p['yield_per_m2']:g} | {r['temp']['min']}…{r['temp']['max']} °C | "
             f"{water[r['water']]} | {r['fertility']} | {light[r['light']]} |")
     return "\n".join(rows)
 

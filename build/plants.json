@@ -8,9 +8,12 @@
       "seed": "Семена полбы",
       "byproduct": "Солома",
       "cycle_days": 6,
-      "yield_per_m2": 0.589,
+      "yield_per_m2": 0.703,
       "waterings_per_cycle": 3.7,
-      "yield_per_cycle": 58.9,
+      "weedings_per_cycle": 0.7,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 7.4,
+      "yield_per_cycle": 70.3,
       "requires": {
         "temp": {
           "min": 4,
@@ -52,9 +55,12 @@
       "seed": "Семена репы",
       "byproduct": null,
       "cycle_days": 4,
-      "yield_per_m2": 0.743,
+      "yield_per_m2": 0.858,
       "waterings_per_cycle": 5.2,
-      "yield_per_cycle": 74.3,
+      "weedings_per_cycle": 0.4,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 7.6,
+      "yield_per_cycle": 85.8,
       "requires": {
         "temp": {
           "min": 2,
@@ -91,9 +97,12 @@
       "seed": "Семена бобов",
       "byproduct": null,
       "cycle_days": 7,
-      "yield_per_m2": 0.496,
+      "yield_per_m2": 0.587,
       "waterings_per_cycle": 4.3,
-      "yield_per_cycle": 49.6,
+      "weedings_per_cycle": 0.6,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 6.9,
+      "yield_per_cycle": 58.7,
       "requires": {
         "temp": {
           "min": 12,
@@ -130,9 +139,12 @@
       "seed": "Семена льна",
       "byproduct": null,
       "cycle_days": 11,
-      "yield_per_m2": 1.547,
+      "yield_per_m2": 1.756,
       "waterings_per_cycle": 14.2,
-      "yield_per_cycle": 154.7,
+      "weedings_per_cycle": 1.6,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 18.8,
+      "yield_per_cycle": 175.6,
       "requires": {
         "temp": {
           "min": 3,
@@ -174,9 +186,12 @@
       "seed": "Семена рыжика",
       "byproduct": null,
       "cycle_days": 8,
-      "yield_per_m2": 0.317,
+      "yield_per_m2": 0.386,
       "waterings_per_cycle": 1.5,
-      "yield_per_cycle": 31.7,
+      "weedings_per_cycle": 0.4,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 4.9,
+      "yield_per_cycle": 38.6,
       "requires": {
         "temp": {
           "min": 6,
@@ -218,9 +233,12 @@
       "seed": "Семена сахарника",
       "byproduct": null,
       "cycle_days": 10,
-      "yield_per_m2": 1.016,
+      "yield_per_m2": 1.176,
       "waterings_per_cycle": 12.9,
-      "yield_per_cycle": 101.6,
+      "weedings_per_cycle": 2.0,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 18.9,
+      "yield_per_cycle": 117.6,
       "requires": {
         "temp": {
           "min": 14,
@@ -267,9 +285,12 @@
       "seed": "Семена зверобоя",
       "byproduct": null,
       "cycle_days": 9,
-      "yield_per_m2": 0.102,
+      "yield_per_m2": 0.131,
       "waterings_per_cycle": 1.7,
-      "yield_per_cycle": 10.2,
+      "weedings_per_cycle": 0.4,
+      "thinnings_per_cycle": 1,
+      "actions_per_cycle": 3.0,
+      "yield_per_cycle": 13.1,
       "requires": {
         "temp": {
           "min": 5,
@@ -300,9 +321,12 @@
       "seed": "Семена костреца",
       "byproduct": null,
       "cycle_days": 5,
-      "yield_per_m2": 0.751,
+      "yield_per_m2": 0.764,
       "waterings_per_cycle": 0.9,
-      "yield_per_cycle": 75.1,
+      "weedings_per_cycle": 0.1,
+      "thinnings_per_cycle": 0,
+      "actions_per_cycle": 5.1,
+      "yield_per_cycle": 76.4,
       "requires": {
         "temp": {
           "min": -2,
