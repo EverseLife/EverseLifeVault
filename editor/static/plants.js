@@ -10,10 +10,20 @@
 
 import { h } from './ui.js';
 
+//: Что вывела последняя сборка: щедрость культуры и её потолок (D-057).
+//: Правило «хорошей во всём не бывает» меряется этим числом, и без него
+//: доска показывала бы, чем культуры отличаются, но не тем, кто перебрал.
+const DERIVED = [
+  { id: 'yield', title: 'с м²', hint: 'выведено сборкой из часов ухода (D-136)', of: (d) => d.yield_per_m2 },
+  { id: 'generosity', title: 'щедрость', hint: 'сумма достоинств культуры (D-057)', of: (d) => d.generosity },
+  { id: 'cap', title: 'потолок', hint: 'сколько щедрости культуре позволено: выше — сборка откажет', of: (d) => d.generosity_cap },
+];
+
 /** The columns of the board: what a culture asks and what it forgives. */
 export const COLUMNS = [
   { id: 'cycle', title: 'цикл', hint: 'суток здорового растения без подкормки', of: (p) => p.cycle },
-  { id: 'temp', title: '°C', hint: 'полоса температуры', of: (p) => `${p.requires?.temp?.min}…${p.requires?.temp?.max}` },
+  { id: 'temp', title: '°C', hint: 'полоса температуры',
+    of: (p) => (p.requires?.temp ? `${p.requires.temp.min}…${p.requires.temp.max}` : '') },
   { id: 'water', title: 'вода', hint: 'потребность в воде, 1–3', of: (p) => p.requires?.water },
   { id: 'fertility', title: 'земля', hint: 'требуемое плодородие', of: (p) => p.requires?.fertility },
   { id: 'light', title: 'свет', hint: 'светолюбивость, 1–3', of: (p) => p.requires?.light },
@@ -31,7 +41,8 @@ function matches(plant, needle) {
     .filter(Boolean)
     .join(' ')
     .toLowerCase();
-  return said.includes(needle) || (plant.feeding || []).some((row) => row.fertilizer.includes(needle));
+  return said.includes(needle)
+    || (plant.feeding || []).some((row) => String(row?.fertilizer || '').includes(needle));
 }
 
 export function renderList(root, plants, { selected, query, onSelect }) {
@@ -51,12 +62,14 @@ export function renderList(root, plants, { selected, query, onSelect }) {
   root.replaceChildren(...out);
 }
 
-export function renderBoard(root, plants, { selected, query, onSelect }) {
+export function renderBoard(root, plants, { selected, query, onSelect, derived = {} }) {
   const needle = (query || '').trim().toLowerCase();
   const shown = plants.filter((plant) => matches(plant, needle));
+  const number = (value) => (typeof value === 'number' ? String(Math.round(value * 100) / 100) : '');
   const header = h('tr', {},
     h('th', { text: 'культура' }),
     ...COLUMNS.map((column) => h('th', { class: 'num', title: column.hint, text: column.title })),
+    ...DERIVED.map((column) => h('th', { class: 'num dim', title: column.hint, text: column.title })),
     h('th', { text: 'даёт' }),
   );
   const body = shown.map((plant) => h('tr', {
@@ -66,13 +79,18 @@ export function renderBoard(root, plants, { selected, query, onSelect }) {
   },
   h('td', {}, h('span', { text: plant.name }), h('span', { class: 'tag mono', text: plant.id })),
   ...COLUMNS.map((column) => h('td', { class: 'num mono', text: String(column.of(plant) ?? '') })),
+  ...DERIVED.map((column) => h('td', {
+    class: 'num mono dim',
+    text: number(column.of(derived[plant.id] || {})),
+  })),
   h('td', { class: 'dim', text: plant.gives }),
   ));
   root.replaceChildren(
     h('div', { class: 'board-bar' },
       h('span', {
         class: 'note-line',
-        text: `${shown.length} культур · урожайность не задаётся: её выводит сборка из часов ухода (D-136)`,
+        text: `${shown.length} культур · три правых столбца выведены сборкой и не правятся: `
+          + 'урожайность считается из часов ухода (D-136), щедрость против потолка — правило D-057',
       }),
     ),
     h('table', { class: 'board' }, h('thead', {}, header), h('tbody', {}, ...body)),

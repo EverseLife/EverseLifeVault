@@ -37,21 +37,17 @@ import yaml
 import store
 from blockfile import (
     Block,
-    Edit as _Edit,
-    Entry,
-    edit_entries,
     edit_fields,
     number_of as _number,
     render_flow,
     round_trip as _round_trip,
     scalar as _scalar,
     scan_blocks,
-    scan_fields as _scan_node_fields,
     scan_sections as _scan_sections,
     text_of as _text,
     trim as _trim,
 )
-from vaultfile import VaultError, _comparable
+from vaultfile import VaultError
 
 #: The sections of the file, in the order they lie in it.
 SECTIONS = ("external", "nodes", "edges", "pockets")
@@ -96,8 +92,6 @@ SURFACES = ("trail", "road", "paved")
 #: The edge length that means "by the node's distance" (D-180).
 BY_REACH = "reach"
 
-#: Where a section begins: a key at the left margin.
-_SECTION = re.compile(r"^(\w+):\s*$")
 #: Where a node begins inside `nodes:`.
 _NODE_HEAD = re.compile(r"^  - key:\s*(.+?)\s*$")
 #: One line of `edges:`.

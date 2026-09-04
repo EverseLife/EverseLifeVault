@@ -384,7 +384,11 @@ document.addEventListener('keydown', (event) => {
   }
   if (event.key === 's' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
-    if (app.tab === 'constants') tabs.constants.save();
+    //: Форма справа принадлежит вкладке, а не панели лестницы: вкладка,
+    //: у которой есть своё сохранение, сохраняет своё. Иначе Ctrl+S над
+    //: культурой записал бы рецепт, открытый до переключения.
+    const own = current().save;
+    if (own) own();
     else panel.save();
   }
   //: Ctrl+Z в поле ввода — отмена набора, как везде; вне поля — откат правки.

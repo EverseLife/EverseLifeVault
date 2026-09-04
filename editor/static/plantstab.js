@@ -104,6 +104,7 @@ export function createPlantsTab(ctx) {
     plants.renderBoard(dom.board, app.plants.plants || [], {
       selected: app.plantPick,
       query: app.query,
+      derived: app.plants.derived || {},
       onSelect: (id) => select(id),
     });
   }
@@ -124,18 +125,21 @@ export function createPlantsTab(ctx) {
       return;
     }
     if (isNumber(app.plantPick)) {
+      app.plantForm = null;
       app.constForm = constantForm(host, app.plantNumbers, app.plantPick, numberTools);
       return;
     }
     app.constForm = null;
-    plantForm(host, app.plants, app.plantPick, tools);
+    app.plantForm = plantForm(host, app.plants, app.plantPick, tools);
   }
 
   function openNew() {
     app.plantPick = null;
     renderList();
     app.constForm = null;
-    plantForm(document.getElementById('panel'), app.plants, null, tools, { fresh: true });
+    app.plantForm = plantForm(
+      document.getElementById('panel'), app.plants, null, tools, { fresh: true },
+    );
   }
 
   const tools = {
@@ -174,6 +178,8 @@ export function createPlantsTab(ctx) {
 
   return {
     meta, load, renderFilters, renderList, renderLegend, draw, select, openForm, openNew,
-    enter: load, reopen: load, save: () => app.constForm?.save(),
+    //: Ctrl+S сохраняет ту форму, которая открыта: число — формой констант,
+    //: культуру — своей.
+    enter: load, reopen: load, save: () => (app.constForm || app.plantForm)?.save(),
   };
 }

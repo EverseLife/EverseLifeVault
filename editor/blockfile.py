@@ -322,7 +322,10 @@ def edit_fields(
                     was.get(key) or [],
                     now[key],
                     rank,
-                    order=(entry_orders or {}).get(key, ()),
+                    #: A list without an order would render every entry as an
+                    #: empty mapping -- the data gone without a word. Named
+                    #: here rather than defaulted, so the mistake is a refusal.
+                    order=_order_of(entry_orders, key),
                     names=entry_names,
                 )
             )
@@ -342,6 +345,13 @@ def edit_fields(
 
 
 # ----------------------------------------------------------------- rendering
+
+
+def _order_of(orders: dict[str, tuple[str, ...]] | None, key: str) -> tuple[str, ...]:
+    order = (orders or {}).get(key)
+    if not order:
+        raise VaultError(f"список «{key}»: не задан порядок ключей записи")
+    return order
 
 
 def render_flow(data: dict, order: tuple[str, ...], *, indent: str) -> str:
@@ -406,14 +416,30 @@ def text_of(value: Any, what: str) -> str:
     return said
 
 
-def number_of(value: Any, what: str, *, above: float | None, below: float | None = None) -> float:
-    """A number the form sent, checked against the bounds the vault keeps."""
+def number_of(
+    value: Any,
+    what: str,
+    *,
+    above: float | None = None,
+    at_least: float | None = None,
+    below: float | None = None,
+) -> float:
+    """A number the form sent, checked against the bounds the vault keeps.
+
+    Two lower bounds because two things are meant and the difference bites:
+    `above` is **strictly** greater -- a road of nought seconds and a vein of
+    nought ore are not small, they are nonsense -- while `at_least` admits its
+    own value, which is what a scale of one to five is. One parameter for both
+    would make every caller's meaning a guess.
+    """
     try:
         number = float(value)
     except (TypeError, ValueError) as error:
         raise VaultError(f"{what}: нужно число, а не «{value}»") from error
-    if above is not None and number < above:
-        raise VaultError(f"{what}: не меньше {above:g}")
+    if above is not None and number <= above:
+        raise VaultError(f"{what}: больше {above:g}")
+    if at_least is not None and number < at_least:
+        raise VaultError(f"{what}: не меньше {at_least:g}")
     if below is not None and number > below:
         raise VaultError(f"{what}: не больше {below:g}")
     return int(number) if number.is_integer() else number

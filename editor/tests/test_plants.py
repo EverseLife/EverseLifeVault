@@ -19,6 +19,7 @@ from __future__ import annotations
 import copy
 from pathlib import Path
 
+import api_plants as api
 import plantsfile as crops
 import pytest
 import vaultfile as vault
@@ -224,3 +225,128 @@ def test_a_file_that_moved_on_disk_is_not_overwritten(plants: Path) -> None:
     save(file, file.put_plant(dict(file.plant("spelt"), cycle=7)))
     with pytest.raises(vault.VaultError):
         save(other, other.put_plant(dict(other.plant("turnip"), cycle=3)))
+
+
+# --- the handlers: the file and the names move together (D-251) ---------------
+
+
+def read(path: Path) -> dict:
+    return yaml.safe_load(path.read_text(encoding="utf-8"))
+
+
+def test_the_api_writes_the_name_of_the_culture_and_of_its_ancestor(session, plants: Path) -> None:
+    """A culture is not made until every language knows it and its wild
+    ancestor: the build refuses the rest, so the form asks for both (D-260)."""
+    answer = api.plants(session, {}, {})
+    turnip = next(one for one in answer["plants"] if one["id"] == "turnip")
+    api.plant_put(
+        session,
+        {"was": ["turnip"]},
+        {"data": turnip, "names": {"en": "Garden turnip"}, "wild": {"en": "Wild turnip"}},
+    )
+    english = read(session.locales_dir / "en.yaml")["plants"]
+    assert english["turnip"] == "Garden turnip"
+    assert english["turnip_wild"] == "Wild turnip"
+    #: And the cultures' own file did not move for a name-only change.
+    assert read(plants)["plants"] == read(session.plants)["plants"]
+
+
+def test_the_form_does_not_rename_a_culture(session) -> None:
+    """An id is what the engine, the base and the wire know a culture by: a form
+    that renamed it would leave two cultures and one name."""
+    answer = api.plants(session, {}, {})
+    spelt = next(one for one in answer["plants"] if one["id"] == "spelt")
+    with pytest.raises(vault.VaultError, match="не переименовывается"):
+        api.plant_put(session, {"was": ["spelt"]}, {"data": {**spelt, "id": "spelt2"}})
+    assert [one["id"] for one in api.plants(session, {}, {})["plants"]].count("spelt") == 1
+
+
+def test_a_culture_deleted_loses_its_names_too(session) -> None:
+    api.plant_delete(session, {"id": ["camelina"]}, {})
+    english = read(session.locales_dir / "en.yaml")["plants"]
+    assert "camelina" not in english and "camelina_wild" not in english
+    assert "camelina" not in [one["id"] for one in api.plants(session, {}, {})["plants"]]
+
+
+def test_the_stages_come_from_the_vault_not_from_the_editor(session) -> None:
+    """A stage added to `farm.stage_bounds` is feedable the same day: the build
+    reads the stages from there, and so does the form."""
+    answer = api.plants(session, {}, {})
+    assert answer["stages"][0] == crops.SPROUT
+    bounds = session.open_constants().value("farm.stage_bounds")
+    assert answer["stages"] == [crops.SPROUT, *bounds]
+
+
+def test_the_palette_offers_the_fertilizer_class_by_its_key(session) -> None:
+    """The feeding table names things by their stable ids (D-251), and the class
+    is found by its own key rather than by its Russian name (D-215)."""
+    palette = api.plants(session, {}, {})["palette"]
+    assert "compost" in palette["fertilizers"]
+    assert all(one.islower() and " " not in one for one in palette["fertilizers"])
+
+
+def test_a_field_the_form_does_not_know_is_named(session) -> None:
+    """Not dropped silently, and not left to the document check to refuse with
+    a puzzle for a message."""
+    answer = api.plants(session, {}, {})
+    spelt = next(one for one in answer["plants"] if one["id"] == "spelt")
+    with pytest.raises(vault.VaultError, match="«ripens_in»"):
+        api.plant_put(session, {"was": ["spelt"]}, {"data": {**spelt, "ripens_in": 3}})
+
+
+def test_a_scale_admits_its_own_ends(session) -> None:
+    """One and five are on the five-point scale, and one and three on the other:
+    an `above` where the vault means `at_least` would refuse the brome."""
+    answer = api.plants(session, {}, {})
+    brome = next(one for one in answer["plants"] if one["id"] == "brome")
+    assert brome["traits"]["density_risk"] == 1 and brome["requires"]["water"] == 1
+    api.plant_put(session, {"was": ["brome"]}, {"data": brome})
+
+
+def test_a_new_culture_leaves_the_vault_buildable(session, plants: Path) -> None:
+    """The whole point of the tab: what it writes, the build accepts. Three names
+    are owed -- the culture's, its ancestor's and its seed's (D-251, D-260) --
+    and all three land in one write per file rather than over each other."""
+    api.plant_put(
+        session,
+        {"fresh": ["1"]},
+        {
+            "data": {
+                "id": "millet",
+                "wild_name": "Дикое просо",
+                "seed": "Семена проса",
+                "name": "Просо",
+                "gives": "Зерно",
+                "cycle": 5,
+                "requires": {"temp": {"min": 8, "max": 32}, "water": 1, "fertility": 25, "light": 3},
+                "traits": {"hardiness": 4, "disease_risk": 2, "density_risk": 2, "spoilage_k": 0.4},
+                "feeding": [{"stage": "leaf", "fertilizer": "compost", "growth": 50}],
+                "note": "Засухоустойчивое зерно",
+            },
+            "names": {"en": "Millet"},
+            "wild": {"en": "Wild millet"},
+            "seed": {"en": "Millet seeds"},
+        },
+    )
+    english = read(session.locales_dir / "en.yaml")
+    assert english["plants"]["millet"] == "Millet"
+    assert english["plants"]["millet_wild"] == "Wild millet"
+    assert english["goods"]["millet_seeds"] == "Millet seeds", "семя — тоже товар (seed_ids)"
+    assert "millet" in [one["id"] for one in read(session.plants)["plants"]]
+
+
+def test_a_produce_without_an_hour_of_labour_is_refused(session) -> None:
+    """A culture whose produce is not in `harvest.rates` has no yield to derive
+    (D-136), and the build would refuse the whole file for it."""
+    answer = api.plants(session, {}, {})
+    spelt = next(one for one in answer["plants"] if one["id"] == "spelt")
+    with pytest.raises(vault.VaultError, match="harvest.rates"):
+        api.plant_put(session, {"was": ["spelt"]}, {"data": {**spelt, "gives": "Сталь"}})
+
+
+def test_a_feeding_of_something_that_is_not_a_fertilizer_is_refused(session) -> None:
+    answer = api.plants(session, {}, {})
+    spelt = next(one for one in answer["plants"] if one["id"] == "spelt")
+    broken = {**spelt, "feeding": [{"stage": "leaf", "fertilizer": "steel", "growth": 50}]}
+    with pytest.raises(vault.VaultError, match="Удобрение"):
+        api.plant_put(session, {"was": ["spelt"]}, {"data": broken})

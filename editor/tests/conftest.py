@@ -83,8 +83,8 @@ def locales_dir(tmp_path: Path, source: Path) -> Path:
 
 @pytest.fixture
 def session(
-    recipes: Path, constants: Path, world: Path, vocabulary: Path, locales_dir: Path,
-    source: Path, monkeypatch,
+    recipes: Path, constants: Path, world: Path, plants: Path, vocabulary: Path,
+    locales_dir: Path, source: Path, monkeypatch,
 ) -> server.Session:
     """A session editing the copies, reading derived numbers from the real vault.
 
@@ -95,6 +95,7 @@ def session(
     made.source = recipes
     made.constants = constants
     made.world = world
+    made.plants = plants
     made.vocabulary = vocabulary
     made.locales_dir = locales_dir
     monkeypatch.setattr(server.Session, "check", lambda _self: None)

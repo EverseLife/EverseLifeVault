@@ -40,6 +40,7 @@ function draftOf(plant, names) {
     note: plant.note || '',
     names: { ...(names?.name || {}) },
     wild: { ...(names?.wild || {}) },
+    seed_names: { ...(names?.seed || {}) },
   };
 }
 
@@ -135,7 +136,13 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
       h('div', { class: 'form' },
         field('идентификатор', h('input', {
           class: 'mono', value: draft.id, placeholder: 'spelt', autofocus: isNew,
-          title: 'устойчивый ключ D-251: движок, база и провод знают культуру по нему',
+          //: У заведённой культуры ключ не меняется: на него ссылаются семена,
+          //: сорта и сохранённые делянки (D-251). Переименование — отдельный
+          //: осознанный шаг, и форма его не делает.
+          disabled: !isNew,
+          title: isNew
+            ? 'устойчивый ключ D-251: движок, база и провод знают культуру по нему'
+            : 'ключ не меняется: на него ссылаются семена, сорта и делянки (D-251)',
           oninput: (event) => { draft.id = event.target.value; touch(host); },
         })),
         textField('название', 'name', { placeholder: 'Полба', title: 'по-русски: язык вольта' }),
@@ -145,8 +152,17 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
           title: 'отдельный сорт и второй родитель при скрещивании (D-260)',
         }),
         ...namesBlock('дикий предок', draft.wild, null),
-        textField('семена', 'seed', { placeholder: 'Семена полбы', list: 'plant-goods' }),
-        textField('даёт', 'gives', { placeholder: 'Зерно', list: 'plant-goods' }),
+        textField('семена', 'seed', {
+          placeholder: 'Семена полбы',
+          title: 'новая вещь, а не выбор из существующих: ключ семени сборка выводит '
+            + 'из ключа культуры — spelt -> spelt_seeds (D-251)',
+        }),
+        ...namesBlock('семена', draft.seed_names, 'семя — тоже товар, и его имя тоже спрашивает сборка'),
+        textField('даёт', 'gives', {
+          placeholder: 'Зерно',
+          list: 'plant-reaped',
+          title: 'только то, у чего есть час труда в harvest.rates: иначе урожайность не вывести (D-136)',
+        }),
         textField('побочно', 'byproduct', { placeholder: 'Солома', list: 'plant-goods', hint: 'если есть' }),
         numberField('цикл, суток', () => draft.cycle, (value) => { draft.cycle = value; },
           { min: 1, title: 'номинал здорового растения без подкормки (D-296): не расписание' }),
@@ -185,12 +201,15 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
         feedingBlock(),
 
         field('заметка', h('textarea', {
-          rows: 2, value: draft.note,
+          rows: 2,
           oninput: (event) => { draft.note = event.target.value; touch(host); },
-        }), { hint: 'строка каталога: чем культура держится в игре' }),
+        }, draft.note), { hint: 'строка каталога: чем культура держится в игре' }),
 
         h('datalist', { id: 'plant-goods' },
           ...(payload.palette?.goods || []).map((one) => h('option', { value: one })),
+        ),
+        h('datalist', { id: 'plant-reaped' },
+          ...(payload.palette?.reaped || []).map((one) => h('option', { value: one })),
         ),
         errorLine(),
         actions(isNew ? 'Завести' : 'Сохранить', save, () => render()),
@@ -213,7 +232,7 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
       note: draft.note.trim(),
     };
     if (draft.restores !== '' && draft.restores !== null) data.restores = draft.restores;
-    return { data, names: draft.names, wild: draft.wild };
+    return { data, names: draft.names, wild: draft.wild, seed: draft.seed_names };
   }
 
   async function save() {
@@ -227,8 +246,9 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
   async function remove() {
     const yes = await ask({
       title: `Удалить «${draft.name}»?`,
-      body: 'Культура уйдёт из файла вместе с именами на всех языках. '
-        + 'Семена и урожай в рецептах останутся: их убирают отдельно.',
+      body: 'Культура уйдёт из файла вместе с именами на всех языках — своим, '
+        + 'дикого предка и семени. Урожай и то, что из него делают, останутся: '
+        + 'их убирают отдельно.',
       ok: 'Удалить',
     });
     if (!yes) return;

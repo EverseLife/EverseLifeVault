@@ -73,9 +73,14 @@ TEMP_ORDER = ("min", "max")
 #: The fields of `traits`, on one line.
 TRAITS_ORDER = ("hardiness", "disease_risk", "density_risk", "spoilage_k")
 
-#: The stages a growing bed can be fed in (D-296). Ripeness is not one of them:
-#: what is ripe is reaped, not fed.
+#: The stages a growing bed can be fed in (D-296), when nobody says otherwise.
+#: The truth is the vault's -- sprouting plus the bounds of `farm.stage_bounds`,
+#: exactly as `tools/build.py` reads them -- and `stages_of` finds it there; this
+#: is what the reading falls back to when the constant is missing. Ripeness is
+#: not among them: what is ripe is reaped, not fed.
 STAGES = ("sprout", "leaf", "bloom", "fill")
+#: The first stage: it has no lower bound, so the constant does not name it.
+SPROUT = "sprout"
 #: The five-point scales the traits are given on (D-261).
 TRAIT_SCALE = 5
 #: What `requires.water` and `requires.light` are given on.
@@ -109,7 +114,9 @@ class PlantsFile:
 
     # -- editing -----------------------------------------------------------
 
-    def put_plant(self, data: dict, *, fresh: bool = False) -> tuple[list[str], dict]:
+    def put_plant(
+        self, data: dict, *, fresh: bool = False, stages: tuple[str, ...] = STAGES
+    ) -> tuple[list[str], dict]:
         """Add or replace one culture. Returns the new lines and the intended document.
 
         An existing culture is edited **field by field**: its block carries the
@@ -120,7 +127,7 @@ class PlantsFile:
         `fresh` is the "+ культура" button rather than the form of one already
         open: an id that is taken is a refusal, not a silent overwrite.
         """
-        data = clean_plant(data)
+        data = clean_plant(data, stages=stages)
         plant_id = data["id"]
         rendered = render_plant(data)
         round_trip(rendered, data, f"культура «{plant_id}»")
@@ -132,7 +139,7 @@ class PlantsFile:
         if found is not None and fresh:
             raise VaultError(f"культура «{plant_id}» уже есть: откройте её слева, чтобы поправить")
         if found is not None:
-            lines = _edit_plant(lines, found, self.plant(plant_id), data)
+            lines = _edit_plant(lines, found, self.plant(plant_id), data, stages)
             for index, one in enumerate(plants):
                 if one.get("id") == plant_id:
                     plants[index] = data
@@ -165,14 +172,16 @@ class PlantsFile:
         return store.save_doc(self.path, lines, expect_doc, self.mtime, self.newline)
 
 
-def _edit_plant(lines: list[str], block: Block, was: dict, now: dict) -> list[str]:
+def _edit_plant(
+    lines: list[str], block: Block, was: dict, now: dict, stages: tuple[str, ...] = STAGES
+) -> list[str]:
     """One culture's changes, line by line.
 
     The feeding table is edited row by row only when there are rows on both
     sides: a table that was `[]` -- or is becoming `[]` -- needs its header
     line rewritten too, and that is a field edit, not an entry edit.
     """
-    was, now = clean_plant(was), clean_plant(now)
+    was, now = clean_plant(was, stages=stages), clean_plant(now, stages=stages)
     entry_wise = bool(was.get("feeding")) and bool(now.get("feeding"))
     return edit_fields(
         lines,
@@ -236,7 +245,19 @@ def _render_field(key: str, value: Any, *, head: bool) -> list[str]:
 _ID = re.compile(r"^[a-z][a-z0-9_]*$")
 
 
-def clean_plant(data: dict) -> dict:
+def stages_of(bounds: Any) -> tuple[str, ...]:
+    """The stages of growth from `farm.stage_bounds`, the build's own reading.
+
+    A stage added to the constant must be feedable the same day: a second list
+    here would refuse what the build accepts, and the refusal would name stages
+    that no longer exist.
+    """
+    if not isinstance(bounds, dict) or not bounds:
+        return STAGES
+    return (SPROUT, *(str(one) for one in bounds))
+
+
+def clean_plant(data: dict, *, stages: tuple[str, ...] = STAGES) -> dict:
     """The authored fields of a culture, checked and without the empty ones.
 
     Checked here rather than at the build: the build refuses the whole file,
@@ -244,6 +265,15 @@ def clean_plant(data: dict) -> dict:
     looking at it. What the build alone can judge -- that a culture good at
     everything must not exist (D-057) -- stays the build's.
     """
+    unknown = sorted(set(data) - set(PLANT_KEY_ORDER))
+    if unknown:
+        #: A field the form does not know would be dropped silently, and the
+        #: document check would then refuse the save with a puzzle for a
+        #: message. Named here instead, while the person is at the field.
+        raise VaultError(
+            f"поле «{unknown[0]}» форма не знает: правьте его в файле culture, "
+            "иначе оно потеряется"
+        )
     plant_id = text_of(data.get("id"), "идентификатор культуры")
     if not _ID.fullmatch(plant_id):
         raise VaultError(
@@ -258,12 +288,12 @@ def clean_plant(data: dict) -> dict:
     }
     if str(data.get("byproduct") or "").strip():
         out["byproduct"] = str(data["byproduct"]).strip()
-    out["cycle"] = number_of(data.get("cycle"), "длина цикла", above=1)
+    out["cycle"] = number_of(data.get("cycle"), "длина цикла", at_least=1)
     out["requires"] = _clean_requires(data.get("requires") or {})
     out["traits"] = _clean_traits(data.get("traits") or {})
     if data.get("restores") not in (None, "", 0):
         out["restores"] = number_of(data["restores"], "возврат плодородия", above=0, below=100)
-    out["feeding"] = _clean_feeding(data.get("feeding") or [])
+    out["feeding"] = _clean_feeding(data.get("feeding") or [], stages)
     if str(data.get("note") or "").strip():
         out["note"] = str(data["note"]).strip()
     return out
@@ -271,15 +301,17 @@ def clean_plant(data: dict) -> dict:
 
 def _clean_requires(data: dict) -> dict:
     temp = data.get("temp") or {}
-    low = number_of(temp.get("min"), "нижняя температура", above=-100, below=100)
-    high = number_of(temp.get("max"), "верхняя температура", above=-100, below=100)
+    low = number_of(temp.get("min"), "нижняя температура", at_least=-100, below=100)
+    high = number_of(temp.get("max"), "верхняя температура", at_least=-100, below=100)
     if low >= high:
         raise VaultError("температура: нижняя граница должна быть ниже верхней")
     return {
         "temp": {"min": low, "max": high},
-        "water": int(number_of(data.get("water"), "потребность в воде", above=1, below=NEED_SCALE)),
-        "fertility": number_of(data.get("fertility"), "требуемое плодородие", above=0, below=100),
-        "light": int(number_of(data.get("light"), "светолюбивость", above=1, below=NEED_SCALE)),
+        "water": int(
+            number_of(data.get("water"), "потребность в воде", at_least=1, below=NEED_SCALE)
+        ),
+        "fertility": number_of(data.get("fertility"), "требуемое плодородие", at_least=0, below=100),
+        "light": int(number_of(data.get("light"), "светолюбивость", at_least=1, below=NEED_SCALE)),
     }
 
 
@@ -290,12 +322,12 @@ def _clean_traits(data: dict) -> dict:
         ("disease_risk", "боязнь напастей"),
         ("density_risk", "боязнь тесноты"),
     ):
-        out[key] = int(number_of(data.get(key), what, above=1, below=TRAIT_SCALE))
+        out[key] = int(number_of(data.get(key), what, at_least=1, below=TRAIT_SCALE))
     out["spoilage_k"] = number_of(data.get("spoilage_k"), "множитель порчи", above=0, below=10)
     return out
 
 
-def _clean_feeding(rows: list) -> list[dict]:
+def _clean_feeding(rows: list, stages: tuple[str, ...]) -> list[dict]:
     """The feeding table (D-296): a stage, a fertilizer and what it quickens.
 
     Two rows for one pair are refused: the engine reads the first match, and a
@@ -305,8 +337,8 @@ def _clean_feeding(rows: list) -> list[dict]:
     seen: set[tuple[str, str]] = set()
     for row in rows:
         stage = str((row or {}).get("stage") or "").strip()
-        if stage not in STAGES:
-            raise VaultError(f"фаза «{stage}»: бывают только {', '.join(STAGES)}")
+        if stage not in stages:
+            raise VaultError(f"фаза «{stage}»: бывают только {', '.join(stages)}")
         fertilizer = text_of((row or {}).get("fertilizer"), "чем кормят")
         pair = (stage, fertilizer)
         if pair in seen:
@@ -316,7 +348,7 @@ def _clean_feeding(rows: list) -> list[dict]:
             {
                 "stage": stage,
                 "fertilizer": fertilizer,
-                "growth": number_of(row.get("growth"), "ускорение роста", above=1, below=500),
+                "growth": number_of(row.get("growth"), "ускорение роста", at_least=1, below=500),
             }
         )
     return out

@@ -127,26 +127,50 @@ def name_writes(
     key the thing had before, when the key itself changed -- the name moves
     with it, because it hangs on the key (D-251).
     """
+    return names_writes(session, [(domain, entry_id, names, gone, was_id)])
+
+
+def names_writes(
+    session: Session,
+    rows: list[tuple[str, str | None, dict[str, str] | None, bool, str | None]],
+) -> list[store.Write]:
+    """The same for **several** names at once: one write per file, not one per name.
+
+    A culture owes three of them and they all lie in the same file: its own and
+    its wild ancestor's among the plants (D-260), its seed's among the goods --
+    the build derives `<id>_seeds` and then refuses a vault where that has no
+    name. Written as three separate writes, each would be computed from the file
+    as it lies on disk, and the last would land on top of the others: one name
+    saved, two silently lost. Folded here instead, so each sees what the one
+    before it did.
+
+    A row is `(domain, id, names, gone, was_id)` and each part means what the
+    argument of the same name means above.
+    """
     writes: list[store.Write] = []
-    if not entry_id and not was_id:
+    rows = [row for row in rows if row[1] or row[4]]
+    if not rows:
         return writes
     for file in session.open_locales():
         lines = list(file.lines)
         expect = file.doc
         step = file
-        if was_id and was_id != entry_id and step.name(domain, was_id) is not None:
-            lines = step.drop(domain, was_id)
-            expect = step.expect(domain, was_id, None)
-            step = words.LocaleFile(file.path, text="\n".join(lines), newline=file.newline)
-        if gone:
-            if entry_id and step.name(domain, entry_id) is not None:
-                lines = step.drop(domain, entry_id)
-                expect = step.expect(domain, entry_id, None)
-        elif names is not None and entry_id:
-            name = names.get(file.lang)
-            if name and name != step.name(domain, entry_id):
-                lines = step.put(domain, entry_id, name)
-                expect = step.expect(domain, entry_id, name)
+        for domain, entry_id, names, gone, was_id in rows:
+            if was_id and was_id != entry_id and step.name(domain, was_id) is not None:
+                lines = step.drop(domain, was_id)
+                expect = step.expect(domain, was_id, None)
+                step = words.LocaleFile(file.path, text="\n".join(lines), newline=file.newline)
+            if gone:
+                if entry_id and step.name(domain, entry_id) is not None:
+                    lines = step.drop(domain, entry_id)
+                    expect = step.expect(domain, entry_id, None)
+                    step = words.LocaleFile(file.path, text="\n".join(lines), newline=file.newline)
+            elif names is not None and entry_id:
+                name = names.get(file.lang)
+                if name and name != step.name(domain, entry_id):
+                    lines = step.put(domain, entry_id, name)
+                    expect = step.expect(domain, entry_id, name)
+                    step = words.LocaleFile(file.path, text="\n".join(lines), newline=file.newline)
         if lines != file.lines:
             writes.append(store.prepare_doc(file.path, lines, expect, file.mtime, file.newline))
     return writes
