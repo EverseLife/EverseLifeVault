@@ -290,6 +290,13 @@ operations:
   mining: Mining
   tin_smelting: Tin smelting
 
+
+# Написанный абзац культуры (D-311): говорит характером, не числами.
+plant_care:
+  spelt: "The bread of this world: spelt is milled into flour, and every household starts with it. It is sown to eat — the grain feeds the house while the holding finds its feet. Spelt is what one learns to keep a plot on."
+  turnip: "Food for the first days: the turnip is sown when the sack is empty. What is not eaten at once is dried for the winter, and that is what one lives on until the first bread. Feed it warily: what the turnip does not ask for burns it."
+  flax: "Flax is sown for thread, not for food: cloth comes of it, and of cloth everything worn and everything slept under. A plot of flax is an investment in the workshop rather than in the table, and it asks for attention: flax is walked to, not looked in on."
+  brome: "Insurance against a failed harvest: brome is cut for hay. It is no food for people — a plot of it waits for the day the household keeps cattle. In return it asks little of a place."
 plants:
   beans: Beans
   beans_wild: Wild beans

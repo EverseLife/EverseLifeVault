@@ -33,6 +33,9 @@ from vaultfile import VaultError
 #: that has no name in some language (`seed_ids`, `check_locales`).
 PLANTS = "plants"
 GOODS = "goods"
+#: The written paragraph of D-311: its own domain, keyed by the culture, and
+#: required in every language only for a culture that has one.
+PLANT_CARE = "plant_care"
 WILD = "_wild"
 SEEDS = "_seeds"
 #: The class whose members may be fed to a growing bed (D-296, D-291), by the
@@ -81,6 +84,7 @@ def plants(session: Session, _query: dict, _body: dict) -> dict:
                 "name": spoken_names(session, PLANTS, str(one.get("id"))),
                 "wild": spoken_names(session, PLANTS, wild_id(str(one.get("id")))),
                 "seed": spoken_names(session, GOODS, seed_id(str(one.get("id")))),
+                "care": spoken_names(session, PLANT_CARE, str(one.get("id"))),
             }
             for one in rows
         },
@@ -193,6 +197,15 @@ def plant_put(session: Session, query: dict, body: dict) -> dict:
     names = _named(body.get("names"), languages, data["name"], fresh)
     wild = _named(body.get("wild"), languages, data["wild_name"], fresh)
     seed = _named(body.get("seed"), languages, data["seed"], fresh)
+    #: The paragraph is optional, and its languages go with it: a culture
+    #: that has none must have none anywhere, or the build refuses a name
+    #: for something that does not exist (D-311, `check_locales`).
+    lore = data.get("care_note")
+    care = (
+        words.clean_names(body.get("care"), languages, lore)
+        if lore and (body.get("care") is not None or fresh)
+        else None
+    )
     with session.lock:
         file = session.open_plants()
         lines, doc = file.put_plant(data, fresh=fresh, stages=_stages(session))
@@ -206,6 +219,7 @@ def plant_put(session: Session, query: dict, body: dict) -> dict:
                     (PLANTS, data["id"], names, False, None),
                     (PLANTS, wild_id(data["id"]), wild, False, None),
                     (GOODS, seed_id(data["id"]), seed, False, None),
+                    (PLANT_CARE, data["id"], care, not lore, None),
                 ],
             ),
         ]
@@ -233,6 +247,7 @@ def plant_delete(session: Session, query: dict, _body: dict) -> dict:
                     (PLANTS, plant_id, None, True, None),
                     (PLANTS, wild_id(plant_id), None, True, None),
                     (GOODS, seed_id(plant_id), None, True, None),
+                    (PLANT_CARE, plant_id, None, True, None),
                 ],
             ),
         ]

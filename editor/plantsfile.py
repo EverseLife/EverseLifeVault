@@ -59,7 +59,15 @@ PLANT_KEY_ORDER = (
     "restores",
     "feeding",
     "note",
+    "care_note",
 )
+#: The written paragraph (D-311): a folded scalar, wrapped at the width the
+#: file is written to. Folding joins its lines with a space, so wrapping the
+#: same way is what makes a save give the file back unchanged.
+FOLDED = "care_note"
+FOLD_WIDTH = 92
+FOLD_INDENT = "      "
+
 #: The one field that is a block list of flow mappings, one row per line.
 BLOCK_LISTS = ("feeding",)
 FEEDING_ORDER = ("stage", "fertilizer", "growth")
@@ -227,6 +235,8 @@ def _render_field(key: str, value: Any, *, head: bool) -> list[str]:
         return out
     if key == "traits":
         return [f"{indent}{key}: {render_flow(value, TRAITS_ORDER, indent='').strip()}"]
+    if key == FOLDED:
+        return [f"{indent}{key}: >-", *_folded(str(value))]
     if key == "feeding":
         if not value:
             return [f"{indent}{key}: []"]
@@ -238,6 +248,19 @@ def _render_field(key: str, value: Any, *, head: bool) -> list[str]:
     #: commas in it, and quoting those would put quotation marks around
     #: every note in the file.
     return [f"{indent}{key}: {scalar(value, flow=False)}"]
+
+
+def _folded(said: str) -> list[str]:
+    """The paragraph as the file lays it: one word per space, wrapped to width."""
+    out: list[str] = []
+    line = FOLD_INDENT
+    for word in said.split(" "):
+        if len(line) + len(word) + 1 > FOLD_WIDTH and line.strip():
+            out.append(line.rstrip())
+            line = FOLD_INDENT
+        line += word + " "
+    out.append(line.rstrip())
+    return out
 
 
 # ------------------------------------------------------------------ cleaning
@@ -296,6 +319,17 @@ def clean_plant(data: dict, *, stages: tuple[str, ...] = STAGES) -> dict:
     out["feeding"] = _clean_feeding(data.get("feeding") or [], stages)
     if str(data.get("note") or "").strip():
         out["note"] = str(data["note"]).strip()
+    said = " ".join(str(data.get("care_note") or "").split())
+    if said:
+        #: The same rule the build holds the vault to (D-311): what can be
+        #: retuned is said by the assembled half of the text, and a paragraph
+        #: carrying a number would go on teaching the old one afterwards.
+        if any(char.isdigit() for char in said):
+            raise VaultError(
+                "в написанном абзаце есть число: числа говорит собранная часть "
+                "текста, абзац говорит характером (D-311)"
+            )
+        out["care_note"] = said
     return out
 
 

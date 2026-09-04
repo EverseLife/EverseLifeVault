@@ -41,6 +41,8 @@ function draftOf(plant, names) {
     names: { ...(names?.name || {}) },
     wild: { ...(names?.wild || {}) },
     seed_names: { ...(names?.seed || {}) },
+    care_note: plant.care_note || '',
+    care: { ...(names?.care || {}) },
   };
 }
 
@@ -205,6 +207,23 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
           oninput: (event) => { draft.note = event.target.value; touch(host); },
         }, draft.note), { hint: 'строка каталога: чем культура держится в игре' }),
 
+        h('div', { class: 'block' },
+          h('div', { class: 'block-head' }, h('span', { text: 'написанный абзац (D-311)' })),
+          h('div', { class: 'note-line', text: 'открывает текст агротехники и говорит характером: '
+            + 'зачем культуру сеют, что она прощает, чем платит. Чисел, удобрений и фаз в нём нет — '
+            + 'их говорит собранная часть, и абзац с числом сборка отвергнет' }),
+          field('по-русски', h('textarea', {
+            rows: 4,
+            oninput: (event) => { draft.care_note = event.target.value; touch(host); },
+          }, draft.care_note), { hint: 'пусто — культура читается без абзаца, как прежде' }),
+          ...(draft.care_note.trim()
+            ? languages.map((lang) => field(`абзац (${lang})`, h('textarea', {
+              rows: 4,
+              oninput: (event) => { draft.care[lang] = event.target.value; touch(host); },
+            }, draft.care[lang] || '')))
+            : []),
+        ),
+
         h('datalist', { id: 'plant-goods' },
           ...(payload.palette?.goods || []).map((one) => h('option', { value: one })),
         ),
@@ -230,9 +249,10 @@ export function plantForm(host, payload, plantId, tools, { fresh = false } = {})
       traits: draft.traits,
       feeding: draft.feeding,
       note: draft.note.trim(),
+      care_note: draft.care_note.trim(),
     };
     if (draft.restores !== '' && draft.restores !== null) data.restores = draft.restores;
-    return { data, names: draft.names, wild: draft.wild, seed: draft.seed_names };
+    return { data, names: draft.names, wild: draft.wild, seed: draft.seed_names, care: draft.care };
   }
 
   async function save() {

@@ -772,6 +772,12 @@
       "deferred": "отложена",
       "open_landing": "посадка везде"
     },
+    "plant_care": {
+      "spelt": "Хлеб этого мира: из полбы мелют муку, и с неё начинают всякий двор. Сеют её, чтобы есть самому, — зерно кормит дом, пока хозяйство не встало на ноги. С полбы и учатся ходить за делянкой.",
+      "turnip": "Еда первых дней: репу сеют, когда в мешке пусто. Что не съедено сразу — сушат впрок, тем и живут до первого хлеба. Кормить её нужно с оглядкой: чего репа не просит, то её жжёт.",
+      "flax": "Лён сеют не на еду, а на нитку: из него ткань, а из ткани всё, что носят и чем укрывают. Делянка льна — вложение в мастерскую, а не в стол, и внимания она просит: за льном ходят, а не заглядывают к нему.",
+      "brome": "Страховка от неурожая: кострец косят на сено. Людям он не еда — делянка под ним ждёт того дня, когда в хозяйстве появится скот. Зато и просит он от места немногого."
+    },
     "law_units": {
       "tax_trade": "% выручки",
       "tax_land": "ТК/м² участка в сутки у центра",
@@ -1226,6 +1232,12 @@
       "aurora": "Aurora",
       "pyroxis": "Pyroxis",
       "terra": "Terra"
+    },
+    "plant_care": {
+      "spelt": "The bread of this world: spelt is milled into flour, and every household starts with it. It is sown to eat — the grain feeds the house while the holding finds its feet. Spelt is what one learns to keep a plot on.",
+      "turnip": "Food for the first days: the turnip is sown when the sack is empty. What is not eaten at once is dried for the winter, and that is what one lives on until the first bread. Feed it warily: what the turnip does not ask for burns it.",
+      "flax": "Flax is sown for thread, not for food: cloth comes of it, and of cloth everything worn and everything slept under. A plot of flax is an investment in the workshop rather than in the table, and it asks for attention: flax is walked to, not looked in on.",
+      "brome": "Insurance against a failed harvest: brome is cut for hay. It is no food for people — a plot of it waits for the day the household keeps cattle. In return it asks little of a place."
     },
     "plants": {
       "beans": "Beans",

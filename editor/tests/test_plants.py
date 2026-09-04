@@ -135,8 +135,10 @@ def test_a_new_culture_lands_at_the_end_and_reads_back(plants: Path) -> None:
     after = save(file, file.put_plant(data, fresh=True))
     assert after.ids()[-1] == "millet"
     assert after.plant("millet") == data
-    #: And the neighbour above it is untouched, comment and all.
-    assert after.text.count("Страховка от неурожая") == 1
+    #: And the neighbour above it is untouched, comment and all. The mark is
+    #: a line of the brome's own note: its written paragraph opens with the
+    #: same words, and a mark that stands twice proves nothing.
+    assert after.text.count("растёт почти везде") == 1
 
 
 def test_an_id_that_exists_is_not_quietly_overwritten(plants: Path) -> None:
@@ -350,3 +352,49 @@ def test_a_feeding_of_something_that_is_not_a_fertilizer_is_refused(session) -> 
     broken = {**spelt, "feeding": [{"stage": "leaf", "fertilizer": "steel", "growth": 50}]}
     with pytest.raises(vault.VaultError, match="Удобрение"):
         api.plant_put(session, {"was": ["spelt"]}, {"data": broken})
+
+
+# --- the written paragraph (D-311) ------------------------------------------
+
+
+def test_the_paragraph_survives_a_save_word_for_word(plants: Path) -> None:
+    """A folded scalar is joined by spaces on the way in and wrapped on the way
+    out: the wrapping has to be the file's own, or every save of a culture with
+    a paragraph would rewrap it and the diff would be the whole block."""
+    file = open_plants(plants)
+    before = file.text
+    assert file.plant("spelt").get("care_note"), "тесту нужна культура с абзацем"
+    after = save(file, file.put_plant(file.plant("spelt")))
+    assert after.text == before
+
+
+def test_a_paragraph_with_a_number_is_refused(plants: Path) -> None:
+    """The promise that lets it be written by hand at all (D-311): what can be
+    retuned is said by the assembled half."""
+    file = open_plants(plants)
+    data = dict(file.plant("brome"), care_note="Поливать до сорока, а лучше до 40")
+    with pytest.raises(vault.VaultError, match="число"):
+        file.put_plant(data)
+
+
+def test_the_paragraph_moves_with_its_languages(session) -> None:
+    """It is written in every language or in none: a culture that loses its
+    paragraph loses the translations with it, or the build refuses a name for
+    something that is not there."""
+    answer = api.plants(session, {}, {})
+    spelt = next(one for one in answer["plants"] if one["id"] == "spelt")
+    assert answer["names"]["spelt"]["care"], "у полбы есть абзац и его английский"
+
+    api.plant_put(
+        session,
+        {"was": ["spelt"]},
+        {"data": spelt, "care": {"en": "Bread of this world."}},
+    )
+    english = read(session.locales_dir / "en.yaml")
+    assert english["plant_care"]["spelt"] == "Bread of this world."
+
+    #: Taken away, and the language goes with it.
+    api.plant_put(session, {"was": ["spelt"]}, {"data": {**spelt, "care_note": ""}})
+    english = read(session.locales_dir / "en.yaml")
+    assert "spelt" not in (english.get("plant_care") or {})
+    assert not api.plants(session, {}, {})["names"]["spelt"]["care"]

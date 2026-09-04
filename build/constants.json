@@ -865,6 +865,7 @@
   "spoilage.cold_storage_multiplier": 0.2,
   "spoilage.salted_multiplier": 0.05,
   "wear.tool_per_session": 3,
+  "wear.tool_per_hour": 3,
   "wear.gear_per_day": 2,
   "wear.environment_k": {
     "Терра": 1,
