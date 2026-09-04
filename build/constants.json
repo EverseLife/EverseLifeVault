@@ -128,7 +128,7 @@
   "farm.crowd_penalty": 50,
   "farm.thin_loss": 10,
   "farm.thin_until": "leaf",
-  "farm.pest_pressure": 25,
+  "farm.pest_pressure": 75,
   "farm.pest_relief": 10,
   "farm.crowd_pest": 50,
   "farm.pest_onset": 10,
@@ -136,10 +136,10 @@
   "farm.pest_seen": 15,
   "farm.protectant_per_m2": 0.3,
   "farm.protect_days": {
-    "Серная присыпка": 6,
-    "Масляная эмульсия": 5,
-    "Травяной настой": 8,
-    "Медный раствор": 10
+    "Серная присыпка": 4,
+    "Масляная эмульсия": 3,
+    "Травяной настой": 6,
+    "Медный раствор": 9
   },
   "farm.pest_cure": {
     "fungus": "fungicide",
@@ -577,7 +577,8 @@
   "breed.wild_traits": {
     "yield_per_m2": 0.6,
     "hardiness": 1.25,
-    "density_risk": 0.8
+    "density_risk": 0.8,
+    "disease_risk": 0.8
   },
   "breed.hybrid_vigor": 20,
   "breed.generations_to_stabilize": {
