@@ -135,8 +135,10 @@ def test_a_new_culture_lands_at_the_end_and_reads_back(plants: Path) -> None:
     after = save(file, file.put_plant(data, fresh=True))
     assert after.ids()[-1] == "millet"
     assert after.plant("millet") == data
-    #: And the neighbour above it is untouched, comment and all.
-    assert after.text.count("Страховка от неурожая") == 1
+    #: And the neighbour above it is untouched, comment and all. The mark is
+    #: a line of the brome's own note: its written paragraph opens with the
+    #: same words, and a mark that stands twice proves nothing.
+    assert after.text.count("растёт почти везде") == 1
 
 
 def test_an_id_that_exists_is_not_quietly_overwritten(plants: Path) -> None:
