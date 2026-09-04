@@ -346,7 +346,7 @@ groups:
         value: 2
         unit: минуты/делянку
         note: Накладные одного действия на делянке — полива, подкормки — независимо
-          от её площади (D-293; прежде обход). Это цена дробления
+          от её площади (D-296; прежде обход). Это цена дробления
         decision: D-118
       - key: farm.care_time_per_m2
         value: 0.1
@@ -364,18 +364,18 @@ groups:
         unit: литров/м²
         note: От сухой земли до полной влаги. Полив до цели берёт долю от этого;
           река делает полив редким, а не бесплатным по труду
-        decision: D-293
+        decision: D-296
       - key: farm.water_by_need
         value: {"1": 0.5, "2": 1.0, "3": 1.5}
         unit: множитель испарения
         note: Скорость потребления влаги культурой (requires.water), множитель к
-          farm.dry_rate. Рыжик пьёт вполовину, лён — в полтора раза (D-293;
+          farm.dry_rate. Рыжик пьёт вполовину, лён — в полтора раза (D-296;
           прежде — норма полива)
-        decision: D-293
+        decision: D-296
       - key: farm.hardiness_relief
         value: 50
         unit: "%"
-        note: Насколько выносливость 5/5 гасит стресс делянки (D-293; прежде —
+        note: Насколько выносливость 5/5 гасит стресс делянки (D-296; прежде —
           штраф небрежности). Кострец прощает вдвое, лён — на пятую часть
         decision: D-261
       - key: farm.shade_built_share
@@ -400,12 +400,12 @@ groups:
         unit: влага 0–100
         note: Полоса влаги по жажде культуры (requires.water). Ниже — жажда,
           выше — перелив; и то и другое стресс
-        decision: D-293
+        decision: D-296
       - key: farm.sown_moisture
         value: 50
         unit: влага 0–100
         note: С чем земля выходит из-под сева. Первый полив — решение первых суток
-        decision: D-293
+        decision: D-296
       - key: farm.dry_rate
         value: 30
         unit: "% текущей влаги в сутки"
@@ -413,98 +413,98 @@ groups:
           остаётся e^(−0,3) ≈ 74 %. Мокрая земля сохнет быстро, сухая еле-еле.
           Множится на жажду культуры farm.water_by_need, жару, дождь
           (site.rain_water_offset) и реку (farm.river_dry_share)
-        decision: D-293
+        decision: D-296
       - key: farm.dry_temp_ref
         value: 15
         unit: °C
         note: Температура, при которой испарение равно farm.dry_rate
-        decision: D-293
+        decision: D-296
       - key: farm.dry_per_degree
         value: 3
         unit: "%/°C"
         note: На столько испарение растёт за градус жары сверх farm.dry_temp_ref
           и падает за градус холода
-        decision: D-293
+        decision: D-296
       - key: farm.river_dry_share
         value: 50
         unit: "%"
         note: Во столько река замедляет испарение. Река не отменяет полив, а
           делает его редким; вода из неё бесплатна
-        decision: D-293
+        decision: D-296
       - key: farm.stress_per_point
         value: 0.5
         unit: здоровья/сутки за пункт
         note: За каждый пункт влаги за краем полосы культуры, в сутки. Засуха и
           перелив — одна формула; выносливость сорта гасит долю farm.hardiness_relief
-        decision: D-293
+        decision: D-296
       - key: farm.heal_per_day
         value: 5
         unit: здоровья/сутки
         note: Возврат здоровья за сутки в полосе влаги. Растение прощает,
           но медленнее, чем страдает
-        decision: D-293
+        decision: D-296
       - key: farm.stage_bounds
         value: {leaf: 20, bloom: 45, fill: 70}
         unit: рост 0–100
         note: Границы фаз, общие для всех культур; всходы — от нуля, спелость —
           сто. Игрок видит фазу, а не число
-        decision: D-293
+        decision: D-296
       - key: farm.health_bands
         value: {strong: 70, weak: 40, sick: 15}
         unit: здоровье 0–100
         note: С какого здоровья делянка «стоит крепко», «слабеет», «болеет»;
           ниже последнего — «гибнет». Игрок видит слово, а не число
-        decision: D-293
+        decision: D-296
       - key: farm.feed_wrong_burn
         value: 25
         unit: здоровья
         note: Ожог за удобрение не в свою фазу или не для этой культуры —
           реакция пары задана в plants.yaml
-        decision: D-293
+        decision: D-296
       - key: farm.overfeed_yield_penalty
         value: 20
         unit: "% урожая"
         note: За каждое повторное кормление в одной фазе — жирование в ботву
           вместо плода
-        decision: D-293
+        decision: D-296
       - key: farm.weed_per_day
         value: 8
         unit: засорённости/сутки
         note: Сорняк растёт от посева, вдвое быстрее на земле вдвое плодороднее
           (× плодородие/100). Богатая почва кормит и его — плата за плодородие
-        decision: D-295
+        decision: D-297
       - key: farm.weed_drag
         value: 50
         unit: "% темпа роста"
         note: Столько роста отнимает сплошной сорняк; доля — по засорённости
-        decision: D-295
+        decision: D-297
       - key: farm.weed_thirst
         value: 50
         unit: "% испарения"
         note: На столько сплошной сорняк ускоряет уход влаги — он пьёт вместе с культурой
-        decision: D-295
+        decision: D-297
       - key: farm.weed_seen
         value: 30
         unit: засорённости
         note: С этого порога сорняк виден как симптом. Норма прополки — в тексте агротехники
-        decision: D-295
+        decision: D-297
       - key: farm.crowd_penalty
         value: 50
         unit: "% урожая"
         note: Столько теряет непрореженная делянка при боязни тесноты 5/5;
           доля — по density_risk культуры
-        decision: D-295
+        decision: D-297
       - key: farm.thin_loss
         value: 10
         unit: "% урожая"
-        note: Цена прореживания — выдернутые всходы не вернуть. Кострецу невыгодно,
-          льну необходимо
-        decision: D-295
+        note: Цена прореживания — выдернутые всходы не вернуть, ни урожаем, ни семенами.
+          Кострецу не окупается, льну необходимо
+        decision: D-297
       - key: farm.thin_until
         value: leaf
         unit: фаза
         note: Последняя фаза, в которую прореживание ещё действует; позже — отказ
-        decision: D-295
+        decision: D-297
       - key: farm.soil_depletion
         value: 8
         unit: "% плодородия"
@@ -1668,10 +1668,10 @@ groups:
           с запасом и не привязан к дрейфу наследования
         decision: D-260
       - key: breed.wild_traits
-        value: {yield_per_m2: 0.6, hardiness: 1.25}
+        value: {yield_per_m2: 0.6, hardiness: 1.25, density_risk: 0.8}
         unit: множители к базовому сорту
         note: Признаки дикого предка от базовых. Урожай ниже, выносливость
-          выше — второй родитель для скрещивания
+          выше, тесноты боится меньше (D-297) — второй родитель для скрещивания
         decision: D-260
       - key: breed.hybrid_vigor
         value: 20
@@ -2009,7 +2009,7 @@ groups:
       - key: site.rain_water_offset
         value: 60
         unit: "%"
-        note: Столько испарения закрывает дождь при максимуме осадков (D-293;
+        note: Столько испарения закрывает дождь при максимуме осадков (D-296;
           прежде — долю полива). Сухое место поливают руками
         decision: D-126
       - key: planet.temp_swing

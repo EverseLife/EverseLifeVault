@@ -1228,7 +1228,7 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
     flat = flatten_constants(constants)
     rates = flat.get("harvest.rates", {})
     area = doc["meta"].get("reference_area", 100)
-    # Одно действие на опорном хозяйстве — три делянки на сотню метров (D-293)
+    # Одно действие на опорном хозяйстве — три делянки на сотню метров (D-296)
     action = (3 * flat["farm.plot_overhead"] + flat["farm.care_time_per_m2"] * area) / 60
     plow = flat["farm.plow_time_per_m2"] * area / 60
     dry_rate = flat["farm.dry_rate"] / 100
@@ -1258,7 +1258,7 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
                             "не описан в `harvest.rates` — урожайность не вывести")
             continue
         req, tr = p["requires"], p["traits"]
-        # Действий за цикл — из самой модели ухода (D-293): поливов столько,
+        # Действий за цикл — из самой модели ухода (D-296): поливов столько,
         # сколько раз влага уйдёт из полосы при опорном климате (без реки и
         # дождя, farm.dry_temp_ref) — экспонента с жаждой культуры; подкормок —
         # по строкам таблицы. Суточной нормы нет: сколько просит земля
@@ -1266,7 +1266,7 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
         band = bands[need]
         leave_days = math.log(band["max"] / band["min"]) / (dry_rate * float(drink[need]))
         waterings = p["cycle"] / leave_days
-        # Прополок за цикл (D-295): сорняк доходит до порога видимости за
+        # Прополок за цикл (D-297): сорняк доходит до порога видимости за
         # weed_seen / (weed_per_day × плодородие нормы / 100) суток — на земле,
         # какую культура просит. Прореживание — одно, и только там, где оно
         # окупается: risk/5 × crowd_penalty > thin_loss
@@ -1320,7 +1320,7 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
             "yield_per_cycle": round(total, 1),
             "requires": req, "traits": tr,
             "restores_fertility": p.get("restores", 0),
-            # подкормка растущего по фазам — знание, скрытое от игрока (D-293)
+            # подкормка растущего по фазам — знание, скрытое от игрока (D-296)
             "feeding": p.get("feeding") or [],
             "generosity": score, "generosity_cap": allowed, "used_in_recipes": uses,
         })
@@ -1354,7 +1354,7 @@ def render_plant_traits(plants: list[dict]) -> str:
     return "\n".join(rows)
 
 
-#: Фазы роста (D-293): всходы — от нуля, границы остальных — `farm.stage_bounds`.
+#: Фазы роста (D-296): всходы — от нуля, границы остальных — `farm.stage_bounds`.
 STAGE_WORDS = {"sprout": "всходы", "leaf": "лист", "bloom": "цветение", "fill": "налив"}
 
 
@@ -1367,7 +1367,7 @@ def fertilizer_names(recipes_doc: dict) -> dict[str, str]:
 
 
 def check_feeding(doc: dict, constants: dict, recipes_doc: dict) -> list[str]:
-    """Подкормка по фазам (D-293): фаза из закрытого списка, удобрение — вещь
+    """Подкормка по фазам (D-296): фаза из закрытого списка, удобрение — вещь
     класса «Удобрение», ускорение — положительное число."""
     flat = flatten_constants(constants)
     stages = ("sprout", *(flat.get("farm.stage_bounds") or {}).keys())
