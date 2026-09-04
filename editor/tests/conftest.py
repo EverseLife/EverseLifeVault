@@ -55,6 +55,13 @@ def world(tmp_path: Path, source: Path) -> Path:
     shutil.copy2(source.parent / "world.yaml", target)
     return target
 
+@pytest.fixture
+def plants(tmp_path: Path, source: Path) -> Path:
+    """A copy of the real cultures file: the eight of Terra (D-057, D-136)."""
+    target = tmp_path / "plants.yaml"
+    shutil.copy2(source.parent / "plants.yaml", target)
+    return target
+
 
 @pytest.fixture
 def vocabulary(tmp_path: Path, source: Path) -> Path:
@@ -76,8 +83,8 @@ def locales_dir(tmp_path: Path, source: Path) -> Path:
 
 @pytest.fixture
 def session(
-    recipes: Path, constants: Path, world: Path, vocabulary: Path, locales_dir: Path,
-    source: Path, monkeypatch,
+    recipes: Path, constants: Path, world: Path, plants: Path, vocabulary: Path,
+    locales_dir: Path, source: Path, monkeypatch,
 ) -> server.Session:
     """A session editing the copies, reading derived numbers from the real vault.
 
@@ -88,6 +95,7 @@ def session(
     made.source = recipes
     made.constants = constants
     made.world = world
+    made.plants = plants
     made.vocabulary = vocabulary
     made.locales_dir = locales_dir
     monkeypatch.setattr(server.Session, "check", lambda _self: None)

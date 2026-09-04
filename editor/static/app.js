@@ -16,6 +16,7 @@ import { api } from './api.js';
 import { createBuildingsTab } from './buildingstab.js';
 import { createConstantsTab } from './constantstab.js';
 import { createFoodTab } from './foodtab.js';
+import { createPlantsTab } from './plantstab.js';
 import { createGraph } from './graphview.js';
 import { createPanel } from './panel.js';
 import { createRecipesTab } from './recipestab.js';
@@ -81,7 +82,7 @@ const dom = {
 //: Every «+ …» button of the header; a tab names the ones it shows.
 const NEW_BUTTONS = [
   'act-new', 'act-new-dish', 'act-new-material', 'act-new-class',
-  'act-new-building', 'act-new-constant', 'act-new-node',
+  'act-new-building', 'act-new-constant', 'act-new-node', 'act-new-plant',
 ];
 
 const graph = createGraph(document.getElementById('graph'), {
@@ -134,6 +135,7 @@ const tabs = {
   food: createFoodTab(ctx),
   stations: createStationsTab(ctx),
   buildings: createBuildingsTab(ctx),
+  plants: createPlantsTab(ctx),
   constants: createConstantsTab(ctx),
   world: createWorldTab(ctx),
 };
@@ -354,6 +356,7 @@ document.getElementById('act-new-dish').addEventListener('click', () => tabs.foo
 document.getElementById('act-new-node').addEventListener('click', () => tabs.world.openNew());
 document.getElementById('act-new-building').addEventListener('click', () => tabs.buildings.openNew());
 document.getElementById('act-new-constant').addEventListener('click', () => tabs.constants.openNew());
+document.getElementById('act-new-plant').addEventListener('click', () => tabs.plants.openNew());
 
 document.getElementById('act-masses').addEventListener('click', (event) => {
   run('расчёт масс', api.masses, event.target);
@@ -381,7 +384,11 @@ document.addEventListener('keydown', (event) => {
   }
   if (event.key === 's' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault();
-    if (app.tab === 'constants') tabs.constants.save();
+    //: Форма справа принадлежит вкладке, а не панели лестницы: вкладка,
+    //: у которой есть своё сохранение, сохраняет своё. Иначе Ctrl+S над
+    //: культурой записал бы рецепт, открытый до переключения.
+    const own = current().save;
+    if (own) own();
     else panel.save();
   }
   //: Ctrl+Z в поле ввода — отмена набора, как везде; вне поля — откат правки.

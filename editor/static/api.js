@@ -54,6 +54,13 @@ export const api = {
   createConstant: (body) => req('POST', '/api/constant', null, body),
   updateConstant: (key, body) => req('PUT', '/api/constant', { key }, body),
   removeConstant: (key) => req('DELETE', '/api/constant', { key }, { with_comment: true }),
+  // Культуры Терры (D-057, D-136): свой файл вольта и свои имена на языках —
+  // культуры, дикого предка и семени.
+  plants: () => req('GET', '/api/plants'),
+  putPlant: (body, { fresh = false, was = null } = {}) =>
+    req('PUT', '/api/plant', { fresh: fresh ? '1' : null, was }, body),
+  dropPlant: (id) => req('DELETE', '/api/plant', { id }),
+
   // Раскладка стартового мира (D-243): узлы, дороги и карманы живут в
   // data/world.yaml, и правятся картой, а не формой рецепта.
   world: () => req('GET', '/api/world'),

@@ -374,3 +374,18 @@ def test_the_document_is_what_the_engine_will_read(world: Path) -> None:
     assert market["items"] == [
         {"name": "Уголь", "amount": 5, "quality": 50, "origin": "проба"}
     ]
+
+
+def test_a_number_that_must_be_positive_is_not_nought(world: Path) -> None:
+    """The bounds the form refuses by: a strip of no area, a vein of no ore and
+    a road of no seconds are not small, they are nonsense. Pinned because these
+    live in shared code now (`blockfile.number_of`), and a lower bound that
+    quietly began admitting its own value would let all three through."""
+    file = open_world(world)
+    node = copy.deepcopy(file.node("terra.capital"))
+    with pytest.raises(vault.VaultError, match="площадь"):
+        layout.clean_node({**node, "area_m2": 0})
+    with pytest.raises(vault.VaultError, match="запас жилы"):
+        layout.clean_node({**node, "veins": [{"resource": "Железная руда", "richness": 50, "remaining": 0}]})
+    with pytest.raises(vault.VaultError, match="секунды"):
+        layout.clean_edge({"a": "terra.capital", "b": "terra.capital.mine", "seconds": 0})
