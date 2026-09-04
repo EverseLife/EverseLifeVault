@@ -1641,12 +1641,10 @@ groups:
         value: 200
         unit: ТК
         note: Без залога при чистой истории
-      - key: coin.gold_per_coin
-        value: 1
-        unit: г
-      - key: coin.silver_per_coin
-        value: 5
-        unit: г
+      # Веса монет здесь не живут: масса вещи — поле её рецепта
+      # (`data/recipes.yaml`, D-228), и второй экземпляр числа разошёлся бы
+      # с ним при первой же правке. Золотая монета — 1 г, серебряная — 5 г,
+      # и это сказано там же, где сказан её состав
       - key: coin.default_fineness
         value: 900
         note: >-
