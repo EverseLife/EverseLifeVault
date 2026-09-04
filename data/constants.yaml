@@ -491,7 +491,7 @@ groups:
       - key: farm.crowd_penalty
         value: 50
         unit: "% урожая"
-        note: Столько теряет непрореженная делянка при боязни загущения 5/5;
+        note: Столько теряет непрореженная делянка при боязни тесноты 5/5;
           доля — по density_risk культуры
         decision: D-295
       - key: farm.thin_loss
