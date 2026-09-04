@@ -468,7 +468,6 @@
   "orbit.park_radius": 1.5,
   "orbit.step_minutes": 1,
   "orbit.plan_step_minutes": 60,
-  "orbit.correct_minutes": 30,
   "orbit.capture_radius": 3,
   "orbit.capture_speed": 2,
   "orbit.system_radius": 800,
