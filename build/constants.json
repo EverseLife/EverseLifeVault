@@ -44,11 +44,13 @@
   "mine.roof_timber_cap": 80,
   "mine.pace_k": 1.5,
   "mine.sign_bands": {
-    "свод сухой": 70,
-    "сыплется пыль": 45,
-    "свод потрескивает": 20,
-    "трещит": 0
+    "roof_dry": 70,
+    "roof_dust": 45,
+    "roof_creaks": 20,
+    "roof_cracking": 0
   },
+  "mine.roof_spread": 8,
+  "mine.rubble_swings": 6,
   "mine.sign_noise": 8,
   "mine.collapse_wear": 15,
   "mine.collapses_survived": 1,
