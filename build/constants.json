@@ -51,7 +51,7 @@
   },
   "mine.sign_noise": 8,
   "mine.collapse_wear": 15,
-  "mine.collapse_death_chance": 5,
+  "mine.collapses_survived": 1,
   "mine.collapse_wound_chance": 25,
   "wound.recovery_hours": {
     "min": 6,
