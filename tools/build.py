@@ -1638,7 +1638,18 @@ def check_building_types(constants_doc: dict, recipes_doc: dict) -> list[str]:
 #: класса есть строка, у каждой строки — член. Поведение у класса, число — у
 #: вещи; расхождение между ними движок заметил бы только на команде игрока
 CLASS_ROW_TABLES = (
-    ("farm.fertilizer_recovery", "Удобрение"),
+    ("farm.fertilizer_recovery", ("Удобрение",)),
+    #: Длина защиты — по вещи, а классов у неё четыре (D-299): строка
+    #: обязана быть у каждого средства любого из них, и каждая строка —
+    #: стоять за средством, иначе таблица разойдётся с рецептами молча
+    ("farm.protect_days", ("Фунгицид", "Акарицид", "Инсектицид", "Бактерицид")),
+)
+
+#: Таблицы, чьи ЗНАЧЕНИЯ — идентификаторы классов вещей (D-299): связка
+#: «напасть → чем гасят» живёт в данных, и класс, которого нет, оставил бы
+#: напасть без средства — движок узнал бы об этом на команде игрока
+CLASS_VALUE_TABLES = (
+    "farm.pest_cure",
 )
 
 #: Таблицы, ключуемые классами вещей (D-215, D-291): ключ, которого нет среди
@@ -1656,16 +1667,25 @@ def check_class_tables(constants_doc: dict, recipes_doc: dict) -> list[str]:
     classes: dict[str, list[str]] = recipes_doc["meta"].get("classes_map") or {}
     declared = {c.get("name") for c in recipes_doc["meta"].get("classes", [])}
     problems: list[str] = []
-    for key, cls in CLASS_ROW_TABLES:
+    ids = {c.get("id") for c in recipes_doc["meta"].get("classes", [])}
+    for key, group in CLASS_ROW_TABLES:
+        rows = flat.get(key)
+        named = "», «".join(group)
+        if not isinstance(rows, dict):
+            problems.append(f"{key}: нет таблицы по вещам класса «{named}»")
+            continue
+        members = {thing for cls in group for thing in classes.get(cls, [])}
+        for missing in sorted(members - rows.keys()):
+            problems.append(f"{key}: у «{missing}» класса «{named}» нет строки")
+        for extra in sorted(rows.keys() - members):
+            problems.append(f"{key}: «{extra}» есть в таблице, но не в классе «{named}»")
+    for key in CLASS_VALUE_TABLES:
         rows = flat.get(key)
         if not isinstance(rows, dict):
-            problems.append(f"{key}: нет таблицы по вещам класса «{cls}»")
+            problems.append(f"{key}: нет таблицы со значениями-классами")
             continue
-        members = set(classes.get(cls, []))
-        for missing in sorted(members - rows.keys()):
-            problems.append(f"{key}: у «{missing}» класса «{cls}» нет строки")
-        for extra in sorted(rows.keys() - members):
-            problems.append(f"{key}: «{extra}» есть в таблице, но не в классе «{cls}»")
+        for word in sorted(set(map(str, rows.values())) - ids):
+            problems.append(f"{key}: «{word}» — не объявленный класс вещей")
     for key in CLASS_KEYED_TABLES:
         rows = flat.get(key)
         if not isinstance(rows, dict):

@@ -58,6 +58,7 @@ goods:
   compost: Compost
   copper_foil: Copper foil
   copper_ingot: Copper ingot
+  copper_solution: Copper solution
   copper_ore: Copper ore
   crude_oil: Crude oil
   crushed_stone: Crushed stone
@@ -91,6 +92,7 @@ goods:
   hay: Hay
   healing_herbs: Healing herbs
   hearth: Hearth
+  herbal_infusion: Herbal infusion
   heat_plant: Heat plant
   heat_shield_tiles: Heat shield tiles
   heater: Heater
@@ -123,6 +125,7 @@ goods:
   mineral_fertilizer: Mineral fertilizer
   mortar: Mortar
   nails: Nails
+  oil_emulsion: Oil emulsion
   naphtha: Naphtha
   nickel: Nickel
   oil: Oil
@@ -191,6 +194,7 @@ goods:
   stone: Stone
   stone_axe: Stone axe
   stone_block: Stone block
+  sulfur_dust: Sulfur dust
   stone_chips: Stone chippings
   stone_pickaxe: Stone pickaxe
   straw: Straw
@@ -222,6 +226,10 @@ goods:
 classes:
   administration: Administration
   fertilizer: Fertilizer
+  fungicide: Fungicide
+  acaricide: Acaricide
+  insecticide: Insecticide
+  bactericide: Bactericide
   forge: Forge
   automaton: Automaton
   axe: Axe

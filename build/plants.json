@@ -309,8 +309,8 @@
       "restores_fertility": 0,
       "feeding": [],
       "generosity": 4.33,
-      "generosity_cap": 5.83,
-      "used_in_recipes": 1,
+      "generosity_cap": 4.67,
+      "used_in_recipes": 2,
       "seed_id": "stjohnswort_seeds"
     },
     {
