@@ -1305,6 +1305,15 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
                 f"хороша во всём сразу ({top}) при сбыте в {uses} рецептах. "
                 "Правило D-057 нарушено")
 
+        #: Абзац говорит характером, а не числами (D-311): всё, что можно
+        #: перенастроить, говорит собранная часть, и абзац с величиной внутри
+        #: пережил бы перенастройку ложью. Цифра — простой и полный признак.
+        said = p.get("care_note") or ""
+        if any(ch.isdigit() for ch in said):
+            problems.append(
+                f"культура «{p['name']}»: в написанном абзаце есть число — "
+                "числа говорит собранная часть текста, абзац говорит характером (D-311)")
+
         out.append({
             "id": p["id"], "name": p["name"], "gives": p["gives"],
             # дикий предок — отдельный сорт со своим именем (D-260)
@@ -1322,6 +1331,9 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
             "restores_fertility": p.get("restores", 0),
             # подкормка растущего по фазам — знание, скрытое от игрока (D-296)
             "feeding": p.get("feeding") or [],
+            # написанный абзац, если он есть (D-311): движку нужен сам факт —
+            # слово он берёт по ключу на языке читателя, как всякое имя вольта
+            "care_note": p.get("care_note"),
             "generosity": score, "generosity_cap": allowed, "used_in_recipes": uses,
         })
     return out, problems
@@ -1984,6 +1996,14 @@ def build_renames(
     #: схлопнула бы одинаковые значения («ТК» стоит единицей у трёх законов).
     #: Закон без единицы в домен не попадает — и второго языка с него не
     #: требуют.
+    #: Написанный абзац культуры (D-311): не имя, а текст, и потому — только в
+    #: именах, как пояснение код-закона. Культура без абзаца в домен не
+    #: попадает, и второго языка с неё не требуют.
+    out["names_ru"]["plant_care"] = {
+        plant["id"]: plant["care_note"]
+        for plant in plants
+        if plant.get("id") and plant.get("care_note")
+    }
     out["names_ru"]["law_units"] = {
         law["id"]: law["unit"] for law in code_laws if law.get("id") and law.get("unit")
     }
