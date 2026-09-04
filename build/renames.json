@@ -773,10 +773,10 @@
       "open_landing": "посадка везде"
     },
     "plant_care": {
-      "spelt": "Хлеб этого мира и первое, что сеет всякий, кто поставил ограду. Полба прощает небрежность: пропущенный полив она переживёт там, где другая ляжет. Земля ей нужна средняя, вода умеренная, а солома идёт на подстилку и в корм — делянка кормит и стол, и скот. С неё и начинают: наказывает мягче всех, а учит быстрее.",
-      "turnip": "Еда того, у кого мешок пуст уже сегодня. Репа скорая: поспевает раньше всех и даёт много веса с малой делянки. Платят за это жаждой — сохнет быстро и пересушки не терпит — и хранением: снятая, она лежит хуже всякой другой, её едят или солят не откладывая. Кормить с оглядкой: лишнее уходит в ботву, а не в корень.",
-      "flax": "Культура для того, кто ходит на делянку часто. Лён жаден и до воды, и до земли, долго стоит в поле и ошибок не прощает: он слабее прочих, и то, что полба переживёт, его подкосит. Всходит густо и тесноты боится сильнее всех — прореженная делянка отдаёт больше, чем оставленная как есть. Зато на нём держится всякая ткань в доме.",
-      "brome": "Страховка от голода, а не еда. Кострец встаёт там, где остальные не встают: на выпаханной земле, в тени, на сухом. Он крепче всех, почти не болеет и тесноты не замечает — прореживать его значит выбросить часть укоса даром. Ест что дадут и когда дадут. Но людям он не еда: кострец идёт скоту, и делянка под ним кормит стадо, а не стол."
+      "spelt": "Хлеб этого мира: из полбы мелют муку, и с неё начинают всякий двор. Сеют её, чтобы есть самому, — зерно кормит дом, пока хозяйство не встало на ноги. С полбы и учатся ходить за делянкой.",
+      "turnip": "Еда первых дней: репу сеют, когда в мешке пусто. Что не съедено сразу — сушат впрок, тем и живут до первого хлеба. Кормить её нужно с оглядкой: чего репа не просит, то её жжёт.",
+      "flax": "Лён сеют не на еду, а на нитку: из него ткань, а из ткани всё, что носят и чем укрывают. Делянка льна — вложение в мастерскую, а не в стол, и внимания она просит: за льном ходят, а не заглядывают к нему.",
+      "brome": "Страховка от неурожая: кострец косят на сено. Людям он не еда — делянка под ним ждёт того дня, когда в хозяйстве появится скот. Зато и просит он от места немногого."
     },
     "law_units": {
       "tax_trade": "% выручки",
@@ -1234,10 +1234,10 @@
       "terra": "Terra"
     },
     "plant_care": {
-      "spelt": "The bread of this world and the first thing anybody sows once the fence is up. Spelt forgives neglect: a watering missed it lives through where another crop would go down. It asks middling soil and middling water, and its straw goes to the bedding and the trough, so one bed feeds the table and the cattle both. Begin with it: it punishes the most gently and teaches the fastest.",
-      "turnip": "Food for whoever has an empty sack today. The turnip is quick: it ripens before anything else and gives a great deal of weight off a small bed. That is paid for in thirst -- it dries fast and will not be dried out -- and in keeping: pulled, it lies worse than any other crop and is eaten or salted without delay. Feed it warily: what it cannot use runs to leaf instead of root.",
-      "flax": "A crop for somebody who walks to the bed often. Flax is greedy for water and for soil, stands in the field a long time and forgives nothing: it is the weakest of them, and what spelt lives through will lay it down. It comes up thick and fears a crowd more than any other -- a thinned bed gives more than one left as it is. And on it stands every cloth in the house.",
-      "brome": "Insurance against hunger rather than food. Brome stands where the others will not: on worked-out soil, in shade, on dry ground. It is the toughest of them, hardly falls ill and does not notice a crowd -- thinning it throws part of the cut away for nothing. It eats what it is given, whenever it is given. But brome is no food for people: it goes to the cattle, and a bed of it feeds the herd, not the table."
+      "spelt": "The bread of this world: spelt is milled into flour, and every household starts with it. It is sown to eat — the grain feeds the house while the holding finds its feet. Spelt is what one learns to keep a plot on.",
+      "turnip": "Food for the first days: the turnip is sown when the sack is empty. What is not eaten at once is dried for the winter, and that is what one lives on until the first bread. Feed it warily: what the turnip does not ask for burns it.",
+      "flax": "Flax is sown for thread, not for food: cloth comes of it, and of cloth everything worn and everything slept under. A plot of flax is an investment in the workshop rather than in the table, and it asks for attention: flax is walked to, not looked in on.",
+      "brome": "Insurance against a failed harvest: brome is cut for hay. It is no food for people — a plot of it waits for the day the household keeps cattle. In return it asks little of a place."
     },
     "plants": {
       "beans": "Beans",

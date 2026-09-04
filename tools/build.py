@@ -1305,14 +1305,10 @@ def compute_plants(doc: dict, constants: dict, recipes_doc: dict) -> tuple[list[
                 f"хороша во всём сразу ({top}) при сбыте в {uses} рецептах. "
                 "Правило D-057 нарушено")
 
-        #: Абзац говорит характером, а не числами (D-311): всё, что можно
+        #: Абзац говорит характером, а не величинами (D-311): всё, что можно
         #: перенастроить, говорит собранная часть, и абзац с величиной внутри
-        #: пережил бы перенастройку ложью. Цифра — простой и полный признак.
-        said = p.get("care_note") or ""
-        if any(ch.isdigit() for ch in said):
-            problems.append(
-                f"культура «{p['name']}»: в написанном абзаце есть число — "
-                "числа говорит собранная часть текста, абзац говорит характером (D-311)")
+        #: пережил бы перенастройку ложью.
+        problems.extend(check_care_note(p["name"], p.get("care_note") or ""))
 
         out.append({
             "id": p["id"], "name": p["name"], "gives": p["gives"],
@@ -1351,6 +1347,21 @@ def render_plants(plants: list[dict]) -> str:
             f"| **{p['name']}** | {p['gives']}{extra} | {p['cycle_days']} сут | "
             f"{p['actions_per_cycle']:g} | {p['yield_per_m2']:g} | {r['temp']['min']}…{r['temp']['max']} °C | "
             f"{water[r['water']]} | {r['fertility']} | {light[r['light']]} |")
+    return "\n".join(rows)
+
+
+def render_plant_care(plants: list[dict]) -> str:
+    """Написанные абзацы (D-311) — на той же странице, что и числа.
+
+    Кто крутит выносливость и цикл, видит рядом прозу, которую эта правка
+    может состарить: проверка ловит цифру и сравнение, а всё прочее ловит
+    только глаз, и ему надо на что смотреть.
+    """
+    said = [p for p in plants if p.get("care_note")]
+    if not said:
+        return "_ни у одной культуры пока не написан_"
+    rows = ["| Культура | Абзац |", "|---|---|"]
+    rows.extend(f"| **{p['name']}** | {p['care_note']} |" for p in said)
     return "\n".join(rows)
 
 
@@ -1413,6 +1424,35 @@ def render_plant_feeding(plants: list[dict], recipes_doc: dict) -> str:
     return "\n".join(rows)
 
 
+#: Слова, которыми абзац сравнивает культуру с остальными. Это те же
+#: перенастраиваемые величины, только незаметные проверке на цифру: «мягче
+#: всех» переживёт правку выносливости ложью ровно так же, как «выносливость 4»,
+#: и вдобавок проверить его нечем — сравнение верно или нет только вместе со
+#: всей таблицей. Абзац рассказывает про свою культуру и ни с кем её не мерит.
+CARE_COMPARISONS = (
+    "всех", "прочих", "прочими", "остальных", "любой другой", "всякой другой",
+    "всякого другого", "than any", "than the", "than another", "of them all",
+    "most gently", "the most",
+)
+
+
+def check_care_note(name: str, said: str) -> list[str]:
+    """Написанный абзац культуры на любом языке (D-311)."""
+    problems: list[str] = []
+    if any(ch.isdigit() for ch in said):
+        problems.append(
+            f"культура «{name}»: в написанном абзаце есть число — "
+            "числа говорит собранная часть текста, абзац говорит характером (D-311)")
+    low = said.lower()
+    for word in CARE_COMPARISONS:
+        if word in low:
+            problems.append(
+                f"культура «{name}»: в написанном абзаце сравнение «{word}» — "
+                "абзац говорит про свою культуру и ни с кем её не мерит (D-311)")
+            break
+    return problems
+
+
 def build_plants(constants: dict, recipes_doc: dict) -> tuple[str, list[dict], list[str]]:
     doc = yaml.safe_load((DATA / "plants.yaml").read_text(encoding="utf-8"))
     plants, problems = compute_plants(doc, constants, recipes_doc)
@@ -1424,6 +1464,8 @@ def build_plants(constants: dict, recipes_doc: dict) -> tuple[str, list[dict], l
             return render_plants(plants)
         if what == "traits":
             return render_plant_traits(plants)
+        if what == "care":
+            return render_plant_care(plants)
         if what == "feeding":
             return render_plant_feeding(plants, recipes_doc)
         if what == "count":
@@ -1806,6 +1848,13 @@ def check_locales(renames: dict, locales: dict[str, dict]) -> list[str]:
     problems: list[str] = []
     known = {domain: set(table) for domain, table in renames["names_ru"].items()}
     for lang, overlay in sorted(locales.items()):
+        #: Написанный абзац проверяется на каждом языке (D-311): по-английски
+        #: «the most gently» врёт ровно так же, как «мягче всех».
+        for key, said in sorted((overlay.get("plant_care") or {}).items()):
+            problems.extend(
+                problem.replace("культура", f"культура ({lang})")
+                for problem in check_care_note(key, str(said))
+            )
         for domain, ids in sorted(known.items()):
             said = set(overlay.get(domain, {}))
             for key in sorted(ids - said):
