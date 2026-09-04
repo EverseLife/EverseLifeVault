@@ -56,6 +56,11 @@ export const api = {
   removeConstant: (key) => req('DELETE', '/api/constant', { key }, { with_comment: true }),
   // Раскладка стартового мира (D-243): узлы, дороги и карманы живут в
   // data/world.yaml, и правятся картой, а не формой рецепта.
+  plants: () => req('GET', '/api/plants'),
+  putPlant: (body, { fresh = false, was = null } = {}) =>
+    req('PUT', '/api/plant', { fresh: fresh ? '1' : null, was }, body),
+  dropPlant: (id) => req('DELETE', '/api/plant', { id }),
+
   world: () => req('GET', '/api/world'),
   putNode: (data, after, fresh) => req('PUT', '/api/world/node', { after, fresh: fresh ? '1' : null }, data),
   dropNode: (key) => req('DELETE', '/api/world/node', { key }),

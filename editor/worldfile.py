@@ -35,6 +35,22 @@ from typing import Any
 import yaml
 
 import store
+from blockfile import (
+    Block,
+    Edit as _Edit,
+    Entry,
+    edit_entries,
+    edit_fields,
+    number_of as _number,
+    render_flow,
+    round_trip as _round_trip,
+    scalar as _scalar,
+    scan_blocks,
+    scan_fields as _scan_node_fields,
+    scan_sections as _scan_sections,
+    text_of as _text,
+    trim as _trim,
+)
 from vaultfile import VaultError, _comparable
 
 #: The sections of the file, in the order they lie in it.
@@ -66,6 +82,14 @@ EDGE_KEY_ORDER = ("a", "b", "seconds", "surface")
 STOCK_KEY_ORDER = ("name", "amount", "quality", "ensure", "origin")
 MACHINE_KEY_ORDER = ("name", "class", "quality")
 VEIN_KEY_ORDER = ("resource", "richness", "remaining")
+#: Which order each block list is written in, and what makes an entry of
+#: one itself: the name it is recognised by across an edit.
+ENTRY_ORDERS = {
+    "machines": MACHINE_KEY_ORDER,
+    "veins": VEIN_KEY_ORDER,
+    "items": STOCK_KEY_ORDER,
+}
+ENTRY_NAMES = ("name", "class", "resource")
 
 LAYERS = ("planet", "city", "location")
 SURFACES = ("trail", "road", "paved")
@@ -82,14 +106,6 @@ _EDGE_LINE = re.compile(r"^  - \{")
 _POCKET_HEAD = re.compile(r"^  (\S.*?):\s*$")
 
 
-@dataclass(frozen=True, slots=True)
-class Block:
-    """Where something lies in the file: the half-open line span `[start, end)`."""
-
-    start: int
-    end: int
-
-
 class WorldFile:
     """`data/world.yaml` as text, as a document and as a map of source blocks."""
 
@@ -102,7 +118,7 @@ class WorldFile:
         self.lines = self.text.split("\n")
         self.doc = yaml.safe_load(self.text) or {}
         self.sections = _scan_sections(self.lines)
-        self.nodes = _scan_nodes(self.lines, self.sections.get("nodes"))
+        self.nodes = scan_blocks(self.lines, self.sections.get("nodes"), _NODE_HEAD)
         self.edges = _scan_edges(self.lines, self.sections.get("edges"))
         self.pockets = _scan_pockets(self.lines, self.sections.get("pockets"))
 
@@ -300,279 +316,32 @@ class WorldFile:
 # ------------------------------------------------------------------ scanning
 
 
-def _trim(lines: list[str], start: int, stop: int) -> int:
-    """Where a span really ends: past its own last line of substance.
-
-    Blank lines and the comments below them introduce what comes next, not what
-    came before -- the comment explaining the floodplain stands under the mine's
-    last vein, and a span that swallowed it would take the blank line with it
-    every time that vein was edited.
-    """
-    while stop > start + 1 and (
-        not lines[stop - 1].strip() or lines[stop - 1].lstrip().startswith("#")
-    ):
-        stop -= 1
-    return stop
-
-
-def _scan_sections(lines: list[str]) -> dict[str, Block]:
-    """Where each top-level section lies. `end` is past its last non-blank line."""
-    heads: list[tuple[str, int]] = [
-        (found.group(1), number)
-        for number, line in enumerate(lines)
-        if (found := _SECTION.match(line))
-    ]
-    found_sections: dict[str, Block] = {}
-    for index, (name, start) in enumerate(heads):
-        stop = heads[index + 1][1] if index + 1 < len(heads) else len(lines)
-        #: Blank lines and the next section's comments belong to what follows.
-        found_sections[name] = Block(start + 1, _trim(lines, start + 1, stop))
-    return found_sections
-
-
-def _scan_nodes(lines: list[str], section: Block | None) -> dict[str, Block]:
-    """Node key -> the span of its block, comments above it excluded.
-
-    A node's own comments stay put on an edit: the block starts at `- key:`,
-    so whatever explains the node above it is never rewritten.
-    """
-    if section is None:
-        return {}
-    heads = [
-        (found.group(1).strip(), number)
-        for number in range(section.start, section.end)
-        if (found := _NODE_HEAD.match(lines[number]))
-    ]
-    blocks: dict[str, Block] = {}
-    for index, (key, start) in enumerate(heads):
-        stop = heads[index + 1][1] if index + 1 < len(heads) else section.end
-        #: Back off the blank lines and the next node's comments.
-        blocks[key] = Block(start, _trim(lines, start, stop))
-    return blocks
-
-
-def _scan_node_fields(lines: list[str], block: Block) -> dict[str, Block]:
-    """Field name -> the span of its lines inside one node's block.
-
-    A block-list field (`machines`, `items`, `veins`) spans its header and
-    every entry under it, comments between the entries included: those lines
-    belong to the list, and the entry-wise edit below keeps them.
-    """
-    heads: list[tuple[str, int]] = []
-    for number in range(block.start, block.end):
-        line = lines[number]
-        if number == block.start:
-            body = line.removeprefix("  - ")
-        elif line.startswith("    ") and not line.startswith("     "):
-            #: A field of the node sits at four spaces exactly: deeper than
-            #: that is an entry of a list, and it is not a field of its own.
-            body = line[4:]
-        else:
-            continue
-        if body.lstrip().startswith("#"):
-            continue
-        name, sep, _ = body.partition(":")
-        if sep and name and not name.startswith(" "):
-            heads.append((name.strip(), number))
-    fields: dict[str, Entry] = {}
-    floor = block.start + 1
-    for index, (name, start) in enumerate(heads):
-        stop = heads[index + 1][1] if index + 1 < len(heads) else block.end
-        #: The comment block directly above introduces **this** field, and goes
-        #: with it if it goes: left behind it would stand over the next field
-        #: and explain something else -- «лес и каменистая земля у шахты» over
-        #: the mine's veins. The same rule an entry of a list lives by, and for
-        #: the same reason.
-        lead = start
-        while lead > floor and lines[lead - 1].lstrip().startswith("#"):
-            lead -= 1
-        end = _trim(lines, start, stop)
-        fields[name] = Entry(lead, start, end)
-        floor = end
-    return fields
-
-
-@dataclass(frozen=True, slots=True)
-class Entry:
-    """One entry of a block list, with the comment that introduces it.
-
-    Two spans, and the difference is what keeps the file readable. `lead` is
-    where the comment above the entry begins; `start` is the entry's own line.
-    **Replacing** an entry touches `[start, end)` and leaves the comment above
-    it standing; **removing** one takes `[lead, end)`, because a comment left
-    behind would then explain the machine below it, which it does not.
-    """
-
-    lead: int
-    start: int
-    end: int
-
-
-def _scan_entries(lines: list[str], block: Block) -> list[Entry]:
-    """Every entry of a block list, and where its introducing comment starts."""
-    heads = [
-        number
-        for number in range(block.start + 1, block.end)
-        if lines[number].startswith("      - ")
-    ]
-    entries: list[Entry] = []
-    for index, start in enumerate(heads):
-        stop = heads[index + 1] if index + 1 < len(heads) else block.end
-        #: The comment block directly above, back to the previous entry.
-        floor = entries[-1].end if entries else block.start + 1
-        lead = start
-        while lead > floor and lines[lead - 1].lstrip().startswith("#"):
-            lead -= 1
-        entries.append(Entry(lead, start, _trim(lines, start, stop)))
-    return entries
-
-
-#: One edit of the file: what to replace, with what, and which field it belongs
-#: to. The rank settles the order of two edits that start on the same line.
-_Edit = tuple[Block, list[str], int]
-
-
 def _edit_node(lines: list[str], block: Block, was: dict, now: dict) -> list[str]:
     """Apply a node's changes line by line, leaving everything else untouched.
 
-    Edits are applied **from the bottom up**, so an insertion never shifts a
-    span below it. Two edits can start on the same line -- a field inserted
-    right before the field that follows it -- and then the order matters twice
-    over, which is what the sort key is for:
-
-    * a **replacement** goes before an **insertion** at the same line (`end`
-      decides): applied the other way round, the insertion would be written
-      over by the replacement that follows it;
-    * of two **insertions** at the same line, the later field goes first
-      (`rank` decides), so the earlier one ends up above it and the block comes
-      out in the canonical order rather than backwards.
+    The world's own part of the job: what a node's fields are called, in which
+    order they lie and which of them are lists. How a line is found and moved
+    without disturbing the comment above it is `blockfile`'s (D-243).
     """
-    was, now = clean_node(was), clean_node(now)
-    fields = _scan_node_fields(lines, block)
-    edits: list[_Edit] = []
-    #: Where a field that is new to this node goes: after the last field that
-    #: precedes it in the canonical order and is already in the file.
-    seat = block.start + 1
-    for rank, key in enumerate(NODE_KEY_ORDER):
-        span = fields.get(key)
-        if key in now and _comparable(now.get(key)) == _comparable(was.get(key)):
-            if span is not None:
-                seat = span.end
-            continue
-        if key not in now:
-            if span is not None:
-                #: From `lead`, so the field's own comment leaves with it.
-                edits.append((Block(span.lead, span.end), [], rank))
-            continue
-        if span is None:
-            edits.append((Block(seat, seat), _render_field(key, now[key], head=(key == "key")), rank))
-            continue
-        made = _render_field(key, now[key], head=(key == "key"))
-        if key in NODE_BLOCK_LISTS:
-            edits.extend(
-                _edit_entries(lines, Block(span.start, span.end), key, was.get(key) or [], now[key], rank)
-            )
-        else:
-            #: From `start`, not `lead`: the field stays, and so does what
-            #: explains it.
-            edits.append((Block(span.start, span.end), made, rank))
-        seat = span.end
-    out = list(lines)
-    for span, made, _ in sorted(
-        edits, key=lambda one: (one[0].start, one[0].end, one[2]), reverse=True
-    ):
-        out[span.start : span.end] = made
-    return out
-
-
-def _identity(entry: dict) -> str:
-    """What makes an entry itself: the thing it names.
-
-    Entries are matched by this rather than by position, so removing the second
-    machine of seven does not shift the other six onto each other's comments --
-    the survivors are recognised and left exactly where they lie.
-    """
-    for key in ("name", "class", "resource"):
-        if entry.get(key):
-            return f"{key}:{entry[key]}"
-    return ""
-
-
-def _pair(was: list, now: list) -> list[int | None]:
-    """For each entry of `now`, which entry of `was` it is -- or None if it is new.
-
-    Identity first, position second. Identity alone would treat a **renamed**
-    machine as a removal and an addition, which loses its place in the list and
-    the comment above it; position alone is what put those comments on the
-    wrong machines to begin with. So the named survivors are pinned first, and
-    whatever is left over on both sides is paired in order -- which is exactly
-    the rename case.
-    """
-    taken: set[int] = set()
-    found: list[int | None] = [None] * len(now)
-    by_identity: dict[str, list[int]] = {}
-    for index, entry in enumerate(was):
-        by_identity.setdefault(_identity(entry), []).append(index)
-    for index, entry in enumerate(now):
-        queue = by_identity.get(_identity(entry)) or []
-        while queue:
-            candidate = queue.pop(0)
-            if candidate not in taken:
-                taken.add(candidate)
-                found[index] = candidate
-                break
-    spare = [index for index in range(len(was)) if index not in taken]
-    for index, at in enumerate(found):
-        if at is None and spare:
-            found[index] = spare.pop(0)
-    return found
-
-
-def _edit_entries(
-    lines: list[str], span: Block, key: str, was: list, now: list, rank: int
-) -> list[_Edit]:
-    """The changes to one block list, entry by entry."""
-    order = {"machines": MACHINE_KEY_ORDER, "veins": VEIN_KEY_ORDER}.get(key, STOCK_KEY_ORDER)
-    entries = _scan_entries(lines, span)
-    #: A list the scan cannot see entry by entry -- one folded into block
-    #: mappings by hand, say -- is **refused**, not rewritten whole. Rewriting
-    #: it would drop every comment inside it silently, and this module exists
-    #: to keep those. A refusal costs one hand edit; a silent loss costs the
-    #: reason the file was written the way it was.
-    if len(entries) != len(was):
-        raise VaultError(
-            f"список «{key}» записан не по одной записи в строку — "
-            "правьте его в файле, иначе комментарии внутри пропадут"
-        )
-
-    paired = _pair(was, now)
-    edits: list[_Edit] = []
-    for index, at in enumerate(paired):
-        if at is None:
-            continue
-        if _comparable(was[at]) != _comparable(now[index]):
-            entry = entries[at]
-            made = [render_flow(now[index], order, indent="      - ")]
-            edits.append((Block(entry.start, entry.end), made, rank))
-    for index, entry in enumerate(entries):
-        if index not in {at for at in paired if at is not None}:
-            #: Gone, and its comment with it: left behind, it would stand over
-            #: the next entry and explain something else entirely.
-            edits.append((Block(entry.lead, entry.end), [], rank))
-    fresh = [now[index] for index, at in enumerate(paired) if at is None]
-    if fresh:
-        at = entries[-1].end if entries else span.end
-        edits.append(
-            (Block(at, at), [render_flow(one, order, indent="      - ") for one in fresh], rank)
-        )
-    return edits
+    return edit_fields(
+        lines,
+        block,
+        clean_node(was),
+        clean_node(now),
+        order=NODE_KEY_ORDER,
+        head_key="key",
+        render=_render_field,
+        block_lists=NODE_BLOCK_LISTS,
+        entry_orders=ENTRY_ORDERS,
+        entry_names=ENTRY_NAMES,
+    )
 
 
 def _render_field(key: str, value: Any, *, head: bool) -> list[str]:
     """One field of a node as the lines it takes in the file."""
     indent = "  - " if head else "    "
     if key in NODE_BLOCK_LISTS:
-        order = {"machines": MACHINE_KEY_ORDER, "veins": VEIN_KEY_ORDER}.get(key, STOCK_KEY_ORDER)
+        order = ENTRY_ORDERS[key]
         return [
             f"{indent}{key}:",
             *(render_flow(one, order, indent="      - ") for one in value),
@@ -619,58 +388,6 @@ def render_node(data: dict) -> list[str]:
             continue
         lines.extend(_render_field(key, data[key], head=not lines))
     return lines
-
-
-def render_flow(data: dict, order: tuple[str, ...], *, indent: str) -> str:
-    """One entry as a flow mapping on a single line."""
-    body = ", ".join(f"{key}: {_scalar(data[key])}" for key in order if key in data)
-    return f"{indent}{{{body}}}"
-
-
-def _mapping(value: dict) -> str:
-    return "{" + ", ".join(f"{_key(k)}: {_scalar(v)}" for k, v in value.items()) + "}"
-
-
-def _key(name: Any) -> str:
-    return str(name)
-
-
-#: Words YAML reads as something other than a string, and so must be quoted.
-_RESERVED = {"true", "false", "null", "yes", "no", "on", "off", "~", ""}
-#: Characters that end a scalar inside a flow mapping, or start a special one.
-_NEEDS_QUOTES = re.compile(r"^[-?:,\[\]{}#&*!|>'\"%@`]|[:,\[\]{}]|^\s|\s$")
-
-
-def _scalar(value: Any) -> str:
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    if isinstance(value, (int, float)):
-        return f"{value:g}" if isinstance(value, float) else str(value)
-    if isinstance(value, dict):
-        return _mapping(value)
-    if isinstance(value, list):
-        return "[" + ", ".join(_scalar(one) for one in value) + "]"
-    text = str(value)
-    numeric = re.fullmatch(r"[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?", text)
-    if text.lower() in _RESERVED or numeric or _NEEDS_QUOTES.search(text):
-        return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
-    return text
-
-
-def _round_trip(rendered: list[str], data: Any, what: str) -> None:
-    """The rendered lines must read back as exactly what they were made from."""
-    body = "\n".join(line[2:] if line.startswith("  ") else line for line in rendered)
-    try:
-        read = yaml.safe_load(body)
-    except yaml.YAMLError as error:
-        raise VaultError(f"{what} не читается обратно: {error}") from error
-    if isinstance(read, list) and len(read) == 1 and not isinstance(data, list):
-        read = read[0]
-    if _comparable(read) != _comparable(data):
-        raise VaultError(f"{what} записался бы не тем, чем задуман: {read} != {data}")
-
-
-# ------------------------------------------------------------------ cleaning
 
 
 def clean_node(data: dict) -> dict:
@@ -769,25 +486,6 @@ def clean_edge(data: dict) -> dict:
         raise VaultError(f"покрытие «{surface}» не из {', '.join(SURFACES)}")
     out["surface"] = surface
     return out
-
-
-def _text(value: Any, what: str) -> str:
-    text = str(value or "").strip()
-    if not text:
-        raise VaultError(f"не задано: {what}")
-    return text
-
-
-def _number(value: Any, what: str, *, above: float | None, below: float | None = None) -> float:
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        raise VaultError(f"«{what}» — это число, а не «{value}»") from None
-    if above is not None and number <= above:
-        raise VaultError(f"«{what}» должно быть больше {above:g}")
-    if below is not None and number > below:
-        raise VaultError(f"«{what}» должно быть не больше {below:g}")
-    return int(number) if float(number).is_integer() else number
 
 
 def _copy(doc: dict) -> dict:

@@ -3,10 +3,10 @@
 
 """What every request handler needs: the files of the vault, one lock, the vault's own check.
 
-The editor writes five files of `data/` now -- recipes, constants (D-218), the
-world (D-243), the small dictionaries and the locales (D-251) -- and a handler
-that touches two of them must write both or neither. The session knows where
-they lie; `store.commit` writes them under one stamp.
+The editor writes six files of `data/` now -- recipes, constants (D-218), the
+world (D-243), the cultures (D-057), the small dictionaries and the locales
+(D-251) -- and a handler that touches two of them must write both or neither.
+The session knows where they lie; `store.commit` writes them under one stamp.
 """
 
 from __future__ import annotations
@@ -20,6 +20,7 @@ from pathlib import Path
 import constantsfile as consts
 import ladder as model
 import localefile as words
+import plantsfile as plants_source
 import store
 import vaultfile as vault
 import worldfile as worldsource
@@ -39,6 +40,9 @@ class Session:
         #: The layout of the starting world (D-243): the third file the editor
         #: writes, and the only one that is not a ladder but a map.
         self.world = self.data / "world.yaml"
+        #: The eight cultures (D-057, D-136): the fourth file that is a list
+        #: of blocks, and the one the plant catalogue is generated from.
+        self.plants = self.data / "plants.yaml"
         #: The small dictionaries and the names in the other languages (D-251):
         #: a thing is not made until it has its key and its name in each language.
         self.vocabulary = self.data / "vocabulary.yaml"
@@ -57,6 +61,9 @@ class Session:
 
     def open_world(self, text: str | None = None) -> worldsource.WorldFile:
         return worldsource.WorldFile(self.world, text=text)
+
+    def open_plants(self, text: str | None = None) -> plants_source.PlantsFile:
+        return plants_source.PlantsFile(self.plants, text=text)
 
     def open_vocabulary(self) -> words.VocabularyFile:
         return words.VocabularyFile(self.vocabulary)

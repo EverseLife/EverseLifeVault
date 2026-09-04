@@ -29,6 +29,7 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 import api_buildings
+import api_plants
 import api_world
 import store
 import vaultfile as vault
@@ -158,6 +159,7 @@ ROUTES = {
     ("DELETE", "/api/class"): drop_class,
     ("PUT", "/api/classes"): membership,
     **api_buildings.ROUTES,
+    **api_plants.ROUTES,
     **api_world.ROUTES,
     ("POST", "/api/masses"): masses,
     ("POST", "/api/check"): check,
