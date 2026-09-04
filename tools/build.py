@@ -1540,6 +1540,56 @@ def check_laws(doc: dict) -> list[str]:
 CONST_REF = re.compile(r"`([a-z_]+\.[a-z_0-9]+)`")
 # `recipes.json` и `plants.yaml` — имена файлов, а не константы
 FILE_SUFFIXES = ("json", "yaml", "yml", "md", "py", "tmpl")
+#: Реестр ключей сокета: команд и событий. Он и так исключён из проверки —
+#: документ целиком состоит из таких имён, — и потому годится в источник:
+#: что названо здесь, то ключ, а не величина.
+SOCKET_KEYS_DOC = "90-production/08-session-protocol.md"
+
+
+def socket_keys(protocol: str) -> set[str]:
+    """Имена, которые протокол сессии называет ключами сокета (D-226).
+
+    Точка в них разделяет не пространство и величину, а команду или вид
+    события: `ship.orbit` — приказ рулевому, `mining.swing` — взмах в забое.
+    Пространства у них общие с реестром величин — «ship», «bank», «market», —
+    и без этого списка проверка объявляла бы пропавшей константой каждое
+    названное действие. Список не пишется руками: он читается из самого
+    протокола, и новая команда попадает в него вместе со своей записью там.
+    """
+    return set(CONST_REF.findall(protocol))
+
+
+def named_socket_keys() -> set[str]:
+    """То же, прочитанное из протокола на диске."""
+    doc = ROOT / SOCKET_KEYS_DOC
+    if not doc.exists():  # pragma: no cover -- документ на месте с D-226
+        return set()
+    return socket_keys(doc.read_text(encoding="utf-8"))
+
+
+def missing_constant(
+    key: str, known: set[str], namespaces: set[str], keys_of_socket: set[str]
+) -> bool:
+    """Обещает ли эта ссылка величину, которой в реестре нет.
+
+    Три имени с точкой из четырёх — не величина, и каждое отсеивается своим
+    признаком:
+
+    * **имя файла**: `recipes.json`, `plants.yaml` — по расширению;
+    * **чужое пространство**: `everse.life` — домен, а не величина. Имя
+      проверяется, только если его пространство есть в реестре, и опечатка
+      внутри живого пространства (`craft.time_per_unitt`) ловится по-прежнему;
+    * **ключ сокета**: `ship.orbit` — приказ рулевому. Он живёт в протоколе
+      сессии, а не в реестре констант, и назвать его в реестре действий или в
+      словаре законно.
+    """
+    if key.rsplit(".", 1)[-1] in FILE_SUFFIXES:
+        return False
+    if key.split(".", 1)[0] not in namespaces:
+        return False
+    if key in keys_of_socket:
+        return False
+    return key not in known
 
 
 def check_constant_refs(constants_doc: dict) -> list[str]:
@@ -1549,6 +1599,7 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
     """
     known = set(flatten_constants(constants_doc))
     namespaces = {key.split(".", 1)[0] for key in known}
+    keys_of_socket = named_socket_keys()
     problems: list[str] = []
     for path, rel in documents():
         # Журнал решений — архив: замороженные и пересмотренные записи законно
@@ -1565,21 +1616,19 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
         # `market.reserve`, `bank.view` — методы, поля и команды сокета, а
         # пространства у них общие с реестром величин. Переписать два десятка
         # ссылок ради проверки значило бы испортить сам документ.
+        #
+        # Пятого исключения-документа нет и не будет: реестр действий и словарь
+        # называют и величины, и команды вперемешку, и вычеркнуть их целиком
+        # значило бы перестать проверять сорок настоящих ссылок ради двух
+        # ненастоящих. Там работает `socket_keys` — исключение по имени, а не
+        # по документу.
         if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in (
                 "90-production/02-decision-log.md", "90-production/04-simulation.md",
                 "90-production/08-session-protocol.md",
                 "90-production/09-code-review-2026-08-23.md"):
             continue
         for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
-            if key.rsplit(".", 1)[-1] in FILE_SUFFIXES:
-                continue
-            #: Точка между словами ещё не делает имя константой: `everse.life`
-            #: — домен, а не величина. Отсюда правило: имя проверяется, только
-            #: если его пространство есть в реестре. Опечатка внутри живого
-            #: пространства (`craft.time_per_unitt`) при этом ловится по-прежнему.
-            if key.split(".", 1)[0] not in namespaces:
-                continue
-            if key not in known:
+            if missing_constant(key, known, namespaces, keys_of_socket):
                 problems.append(f"{rel}: ссылается на константу «{key}», которой нет в реестре")
     return problems
 

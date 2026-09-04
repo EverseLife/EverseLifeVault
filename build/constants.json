@@ -538,8 +538,6 @@
     "max": 8
   },
   "bank.unsecured_limit": 200,
-  "coin.gold_per_coin": 1,
-  "coin.silver_per_coin": 5,
   "coin.default_fineness": 900,
   "bank.price_index_window": 10,
   "bank.rate_floor": 1,
