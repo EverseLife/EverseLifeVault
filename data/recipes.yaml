@@ -153,6 +153,13 @@ meta:
     - {name: Носитель, id: carrier, note: "поведение: предмет с записанным рецептом (D-209)"}
     - {name: Болванка, id: blank, note: "поведение: то, чем становится стёртый носитель (D-209)"}
     - {name: Удобрение, id: fertilizer, note: "поведение: вносится в пар или вспаханное одной нормой farm.fertilizer_per_m2; сила — строка farm.fertilizer_recovery по вещи (D-264, D-291)"}
+    # Средства защиты (D-299): класс отвечает напасти — связка в
+    # farm.pest_cure, длина защиты — строка farm.protect_days по вещи.
+    # Пятое средство — рецепт с классом и строка, без правки кода
+    - {name: Фунгицид, id: fungicide, note: "поведение: обработка делянки нормой farm.protectant_per_m2; гасит грибок (D-299)"}
+    - {name: Акарицид, id: acaricide, note: "поведение: обработка делянки нормой farm.protectant_per_m2; гасит клеща (D-299)"}
+    - {name: Инсектицид, id: insecticide, note: "поведение: обработка делянки нормой farm.protectant_per_m2; гасит насекомых (D-299)"}
+    - {name: Бактерицид, id: bactericide, note: "поведение: обработка делянки нормой farm.protectant_per_m2; гасит бактериоз (D-299)"}
     # Транспорт: таблицы transport.speed_k и transport.capacity ключуются классом
     - {name: Тачка, id: wheelbarrow, note: "поведение: лёгкий транспорт"}
     - {name: Повозка, id: cart, note: "поведение: тяжёлый транспорт"}
@@ -446,6 +453,12 @@ levels:
       - {name: Селекционный питомник, id: breeding_nursery, kind: station, class: Питомник, hours: 4, inputs: [Дерево, Стекло, Ткань], amounts: {Дерево: 10, Стекло: 4, Ткань: 2}, station: Верстак}
       - {name: Компост, id: compost, kind: consumable, class: Удобрение, bulk: true, mix: true, inputs: [Органические отходы, Вода], station: Верстак}
       - {name: Минеральное удобрение, id: mineral_fertilizer, kind: consumable, class: Удобрение, bulk: true, mix: true, inputs: [Селитра, Известь], station: Мастерская, highlight: [Селитра]}
+      # Средства защиты (D-299): четыре напасти — четыре класса. Сера и
+      # масло лежат под рукой, спирт тянет сахарник, медь — рудник и кислоту
+      - {name: Серная присыпка, id: sulfur_dust, kind: consumable, class: Фунгицид, bulk: true, mix: true, inputs: [Сера, Известь], station: Верстак}
+      - {name: Масляная эмульсия, id: oil_emulsion, kind: consumable, class: Акарицид, bulk: true, mix: true, inputs: [Масло, Вода], station: Верстак}
+      - {name: Травяной настой, id: herbal_infusion, kind: consumable, class: Инсектицид, bulk: true, mix: true, inputs: [Целебные травы, Спирт], station: Верстак}
+      - {name: Медный раствор, id: copper_solution, kind: consumable, class: Бактерицид, bulk: true, mix: true, inputs: [Медный слиток, Серная кислота, Вода], station: Мастерская, highlight: [Медный слиток]}
       - {name: Мельница, id: mill, kind: station, hours: 4, inputs: [Камень, Дерево, Гвозди], amounts: {Камень: 20, Дерево: 10, Гвозди: 4}, station: Верстак}
       - {name: Мука, id: flour, kind: material, bulk: true, edible: true, inputs: [Зерно], station: Мельница}
       - {name: Хлеб, id: bread, kind: consumable, roles: true, food: true, mass: 0.5, inputs: [Мука, Вода], station: Очаг}

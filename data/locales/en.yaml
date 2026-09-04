@@ -56,6 +56,7 @@ goods:
   coin_station: Coin station
   combustion_chamber: Combustion chamber
   compost: Compost
+  copper_solution: Copper solution
   copper_foil: Copper foil
   copper_ingot: Copper ingot
   copper_ore: Copper ore
@@ -122,6 +123,7 @@ goods:
   mill: Mill
   mineral_fertilizer: Mineral fertilizer
   mortar: Mortar
+  oil_emulsion: Oil emulsion
   nails: Nails
   naphtha: Naphtha
   nickel: Nickel
@@ -222,6 +224,10 @@ goods:
 classes:
   administration: Administration
   fertilizer: Fertilizer
+  fungicide: Fungicide
+  acaricide: Acaricide
+  insecticide: Insecticide
+  bactericide: Bactericide
   forge: Forge
   automaton: Automaton
   axe: Axe
