@@ -2284,6 +2284,11 @@ groups:
   - id: ruins
     title: Разведка Предтеч
     constants:
+      - key: ruins.lost_cities
+        value: {aurora: 4}
+        unit: городов
+        note: Сколько городов Предтеч сверх трёх посевных лежит подо льдом с рождения мира (D-319), все помещения открыты, реакторы мертвы
+        decision: D-319
       - key: ruins.city_rooms
         value: 24
         unit: помещений
@@ -2652,6 +2657,21 @@ groups:
         value: 120
         unit: мест
         note: С D-319 — скрытых мест на планете, раскладываемых при рождении мира. Правится под фактический онлайн, а не обсуждается (D-065)
+      - key: map.nodes_aurora
+        value: 24
+        unit: мест
+        note: Дикие узлы Авроры при рождении мира (D-319) — лёд между городами Предтеч; сами города считаются в `ruins.lost_cities`
+        decision: D-319
+      - key: map.nodes_pyroxis
+        value: 0
+        unit: мест
+        note: Пироксис — плато и чёрные поля из сида, диких узлов сверх них нет (D-233); число на будущее
+        decision: D-319
+      - key: map.nodes_aquatica
+        value: 0
+        unit: мест
+        note: "Акватика нарисована, но не играется (D-104): поверхность не закладывается"
+        decision: D-319
       - key: map.nodes_space
         value: 18
         unit: узлов

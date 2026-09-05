@@ -700,6 +700,9 @@
     "min": 8000,
     "max": 60000
   },
+  "ruins.lost_cities": {
+    "aurora": 4
+  },
   "ruins.city_rooms": 24,
   "ruins.room_types": {
     "столица": {
@@ -880,6 +883,9 @@
   },
   "terrain.lapse_c": 12,
   "map.nodes_terra": 120,
+  "map.nodes_aurora": 24,
+  "map.nodes_pyroxis": 0,
+  "map.nodes_aquatica": 0,
   "map.nodes_space": 18,
   "map.shrink_threshold": 20,
   "mining.gold_per_hour": 4,
