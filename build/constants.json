@@ -417,17 +417,17 @@
   "transport.upkeep_per_leg": 2,
   "transport.crew_ship": 2,
   "transport.stamina_k": 0,
-  "planet.gravity": {
+  "planet.mass": {
     "terra": 1.0,
     "pyroxis": 1.3,
     "aurora": 0.8,
     "aquatica": 1.1
   },
   "planet.radius": {
-    "terra": 0.5,
-    "pyroxis": 0.35,
-    "aurora": 0.45,
-    "aquatica": 0.6
+    "terra": 1.0,
+    "pyroxis": 1.0,
+    "aurora": 1.13,
+    "aquatica": 1.09
   },
   "ship.node_mass": 2000,
   "ship.node_area": 40,
@@ -460,14 +460,16 @@
     "Ракетное топливо": 1,
     "Керосиновое топливо": 1.25
   },
-  "orbit.thrust_scale": 1600,
+  "orbit.thrust_scale": 5400,
   "orbit.burn_share": 0.5,
   "orbit.corona_radius": 35,
-  "orbit.longest_days": 45,
+  "orbit.longest_days": 12,
   "orbit.planet_mu": 150,
+  "orbit.body_radius": 0.5,
   "orbit.park_radius": 1.5,
   "orbit.step_minutes": 1,
   "orbit.plan_step_minutes": 60,
+  "orbit.eject_window": 0.15,
   "orbit.capture_radius": 3,
   "orbit.capture_speed": 2,
   "orbit.system_radius": 800,
