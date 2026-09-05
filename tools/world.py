@@ -39,9 +39,6 @@ WORLD_LAYERS = ("planet", "location")
 WORLD_SURFACES = ("wild", "trail", "road", "paved")
 #: Ключ узла космического слоя — это и есть планета (build/world.json).
 WORLD_PLANETS = ("terra", "aquatica", "pyroxis", "aurora")
-#: Свойство узла, на которое опирается проверка: удалённость за стенами
-#: (D-180). Слово — данные мира, движок знает то же.
-WORLD_REACH = "даль"
 #: Типы рецептов, которые ставятся в узел как «станок» (D-106).
 WORLD_STANDING_KINDS = {"station", "furniture"}
 #: Узлы, которые движок зовёт по имени: `src/seed.py` печатает в ядре первое
@@ -403,11 +400,7 @@ def _check_world_edges(doc: dict, nodes: dict[str, dict]) -> list[str]:
         if surface not in WORLD_SURFACES:
             problems.append(f"мир: у ребра {a} — {b} покрытие «{surface}» не из {WORLD_SURFACES}")
         seconds = edge.get("seconds")
-        if seconds == "reach":
-            reaches = [(nodes[end].get("properties") or {}).get(WORLD_REACH, 0) for end in (a, b)]
-            if not any(isinstance(r, (int, float)) and r > 0 for r in reaches):
-                problems.append(f"мир: у ребра {a} — {b} длина «по дали», а дали нет ни у конца")
-        elif seconds is not None and (not isinstance(seconds, (int, float)) or seconds <= 0):
+        if seconds is not None and (not isinstance(seconds, (int, float)) or seconds <= 0):
             problems.append(f"мир: у ребра {a} — {b} секунды не больше нуля")
         walkable.setdefault(a, set()).add(b)
         walkable.setdefault(b, set()).add(a)
@@ -428,22 +421,23 @@ def _check_world_edges(doc: dict, nodes: dict[str, dict]) -> list[str]:
             continue
         problems.append(f"мир: до «{key}» не ведёт ни одна дорога — туда не попасть")
 
-    #: Прибитые места (D-237): узел не двигается, поэтому два узла в одной
-    #: точке останутся друг на друге навсегда. Сравниваются внутри группы —
-    #: у двух планет общей земли нет, и одинаковые координаты там ничего не
-    #: значат.
+    #: Прибитые места (D-237, D-319): узел не двигается, поэтому два узла в
+    #: одной точке останутся друг на друге навсегда. Место — либо градусы
+    #: {lat, lon} на шаре, либо метры {x, y} к востоку и северу от якоря (или
+    #: родителя). Сравниваются внутри группы — у двух планет общей земли нет.
     places: dict[tuple, str] = {}
     for key, node in nodes.items():
         place = node.get("place")
         if place is None:
             continue
+        axes = ("lat", "lon") if isinstance(place, dict) and "lat" in place else ("x", "y")
         if not isinstance(place, dict) or not all(
-            isinstance(place.get(axis), (int, float)) for axis in ("x", "y")
+            isinstance(place.get(axis), (int, float)) for axis in axes
         ):
-            problems.append(f"мир: у «{key}» место на карте — не пара чисел x, y")
+            problems.append(f"мир: у «{key}» место на карте — не пара чисел lat, lon или x, y")
             continue
-        x, y = float(place["x"]), float(place["y"])
-        spot = (node.get("parent"), x, y)
+        x, y = float(place[axes[0]]), float(place[axes[1]])
+        spot = (node.get("anchor") or node.get("parent"), axes[0], x, y)
         if spot in places:
             problems.append(
                 f"мир: «{key}» стоит на карте там же, где «{places[spot]}» — точка ({x:g}, {y:g})"

@@ -29,7 +29,7 @@
 #   place       {x, y} — прибитое место на карте своей группы; без него место
 #               раздаёт движок рядом с якорем
 #   city        true — здесь основывается институциональный город (D-154)
-#   properties  свойства места: лес, вода, плодородие, даль, выход, глубина...
+#   properties  свойства места: лес, вода, плодородие, глубина...
 #               Кольца у узла нет: сколько узлов до биопринтера, движок меряет
 #               сам, обходя рёбра (D-089, D-220) — по ним город и ходят.
 #   machines    станции и мебель: {name | class, quality}. Класс — «любая вещь
@@ -60,6 +60,7 @@ nodes:
     parent: terra
     area_m2: 1
     city: true
+    place: {lat: 41.0, lon: 24.0}
 
   # Ядро: каждый умерший приходит к биопринтеру, с него город и начинается.
   # Свойство «предтечи» — не украшение: по нему движок узнаёт вечную машину,
@@ -75,7 +76,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 251, y: -5}
+    place: {x: 50, y: 1}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -84,7 +85,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 93, y: 99}
+    place: {x: 19, y: -20}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -97,7 +98,7 @@ nodes:
     parent: terra.capital
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 125, y: -139}
+    place: {x: 25, y: 28}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -106,7 +107,7 @@ nodes:
     parent: terra.capital
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 93, y: 259}
+    place: {x: 19, y: -52}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -143,7 +144,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -431, y: 234}
+    place: {x: -86, y: -47}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -155,14 +156,14 @@ nodes:
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -230, y: 65}
+    place: {x: -46, y: -13}
 
   - key: terra.capital.port
     name: Космодром
     parent: terra.capital
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: -92, y: -124}
+    place: {x: -18, y: 25}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -175,7 +176,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -538, y: 1}
+    place: {x: -108, y: 0}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -196,7 +197,7 @@ nodes:
     parent: terra.capital
     area_m2: 96
     anchor: terra.capital.forge
-    place: {x: 242, y: 104}
+    place: {x: 48, y: -21}
     properties: {участок: true, плодородие: 40, вода: нет}
 
   - key: terra.capital.lot2
@@ -204,7 +205,7 @@ nodes:
     parent: terra.capital
     area_m2: 121
     anchor: terra.capital.forge
-    place: {x: 29, y: 408}
+    place: {x: 6, y: -82}
     properties: {участок: true, плодородие: 30, вода: нет}
 
   - key: terra.capital.lot3
@@ -212,10 +213,10 @@ nodes:
     parent: terra.capital
     area_m2: 74
     anchor: terra.capital.forge
-    place: {x: 253, y: 297}
+    place: {x: 51, y: -59}
     properties: {участок: true, плодородие: 55, вода: нет}
 
-  # Первое кольцо за стенами: даль 1 (D-180) — двадцать секунд ходьбы, не
+  # Первое кольцо за стенами (D-319): время — метры до узла шагом хода, не
   # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
   - key: terra.coal
     name: Угольная шахта
@@ -225,7 +226,7 @@ nodes:
     anchor: terra.capital.gate
     # Лес и каменистая земля у шахты: первый топор делается здесь, голыми
     # руками и без чьей-либо помощи (D-196).
-    properties: {лес: true, камни: true, вода: нет, даль: 1}
+    properties: {лес: true, камни: true, вода: нет}
     veins:
       - {resource: Уголь, richness: 48, remaining: 30000}
       - {resource: Медная руда, richness: 41, remaining: 18000}
@@ -238,14 +239,14 @@ nodes:
     area_m2: 400
     anchor: terra.capital.gate
     # Луг у воды: здесь растёт дикий лён, и волокно начинается с него (D-196).
-    properties: {вода: река, плодородие: 55, луг: true, даль: 1}
+    properties: {вода: река, плодородие: 55, луг: true}
     machines:
       # Кухня новичка: готовке не нужны ни земля, ни капитал (D-119).
       - {name: Очаг, quality: 70}
       # Питомник у поймы: скрещиванию нужно место, как всякой работе (D-057).
       - {name: Селекционный питомник, quality: 60}
 
-  # Нефтяное поле (D-252): жидкая жила второго кольца — даль 2, вдвое
+  # Нефтяное поле (D-252): жидкая жила второго кольца — вдвое
   # дальше угля. Кирка нефть не берёт: сюда везут буровую (D-115), и добытое
   # сливают в тару (D-230). Дорога сюда — тропа: дорогу к скважине город
   # построит сам, из её же битума.
@@ -255,7 +256,7 @@ nodes:
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
-    properties: {вода: нет, даль: 2}
+    properties: {вода: нет}
     veins:
       - {resource: Нефть, richness: 55, remaining: 40000}
 
@@ -278,6 +279,7 @@ nodes:
     name: Мерид
     layer: planet
     parent: aurora
+    place: {lat: -8.0, lon: 112.0}
     area_m2: 1
     properties: {предтечи: true, город: столица}
 
@@ -301,6 +303,7 @@ nodes:
     name: Кальдар
     layer: planet
     parent: aurora
+    place: {lat: -20.5, lon: 118.5}
     area_m2: 1
     properties: {предтечи: true, город: цех}
 
@@ -323,6 +326,7 @@ nodes:
     name: Вейр
     layer: planet
     parent: aurora
+    place: {lat: 3.0, lon: 131.0}
     area_m2: 1
     properties: {предтечи: true, город: улей}
 
@@ -355,15 +359,15 @@ edges:
   - {a: terra.capital.forge, b: terra.capital.lot3, surface: paved}
   # За стены ведёт дорога, не бездорожье: уголь и хлеб возят по ней, и город
   # сам построил себе эти дороги. Длина — по дали узла (D-180).
-  - {a: terra.capital.gate, b: terra.coal, seconds: reach, surface: road}
-  - {a: terra.capital.gate, b: terra.floodplain, seconds: reach, surface: road}
+  - {a: terra.capital.gate, b: terra.coal, surface: road}
+  - {a: terra.capital.gate, b: terra.floodplain, surface: road}
   # К скважине дороги ещё нет: тропа по дали узла (D-180, D-252)
-  - {a: terra.capital.gate, b: terra.oilfield, seconds: reach, surface: trail}
+  - {a: terra.capital.gate, b: terra.oilfield, surface: trail}
   # От зала до причала — переход через одну площадь: порт обязан стоять внутри
   # тепла станции, и в этом вся причина, почему у города горит маяк (D-231).
-  - {a: aurora.merid.hall, b: aurora.merid.port, seconds: 30, surface: paved}
-  - {a: aurora.caldar.hall, b: aurora.caldar.port, seconds: 30, surface: paved}
-  - {a: aurora.veyr.hall, b: aurora.veyr.port, seconds: 30, surface: paved}
+  - {a: aurora.merid.hall, b: aurora.merid.port, surface: paved}
+  - {a: aurora.caldar.hall, b: aurora.caldar.port, surface: paved}
+  - {a: aurora.veyr.hall, b: aurora.veyr.port, surface: paved}
   - {a: terra.capital.core, b: terra.capital.port, surface: paved}
   - {a: terra.capital.gate, b: terra.capital.jail, surface: paved}
   - {a: terra.capital.pit, b: terra.capital.gate, surface: paved}

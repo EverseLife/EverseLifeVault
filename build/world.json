@@ -8,7 +8,10 @@
       "parent": "terra",
       "anchor": null,
       "area_m2": 1,
-      "place": null,
+      "place": {
+        "lat": 41.0,
+        "lon": 24.0
+      },
       "city": true,
       "properties": {},
       "machines": [],
@@ -44,8 +47,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 251,
-        "y": -5
+        "x": 50,
+        "y": 1
       },
       "city": false,
       "properties": {},
@@ -69,8 +72,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 93,
-        "y": 99
+        "x": 19,
+        "y": -20
       },
       "city": false,
       "properties": {},
@@ -99,8 +102,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 180,
       "place": {
-        "x": 125,
-        "y": -139
+        "x": 25,
+        "y": 28
       },
       "city": false,
       "properties": {},
@@ -124,8 +127,8 @@
       "anchor": "terra.capital.market",
       "area_m2": 260,
       "place": {
-        "x": 93,
-        "y": 259
+        "x": 19,
+        "y": -52
       },
       "city": false,
       "properties": {},
@@ -244,8 +247,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -431,
-        "y": 234
+        "x": -86,
+        "y": -47
       },
       "city": false,
       "properties": {},
@@ -269,8 +272,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 80,
       "place": {
-        "x": -230,
-        "y": 65
+        "x": -46,
+        "y": -13
       },
       "city": false,
       "properties": {},
@@ -288,8 +291,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 240,
       "place": {
-        "x": -92,
-        "y": -124
+        "x": -18,
+        "y": 25
       },
       "city": false,
       "properties": {},
@@ -318,8 +321,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 120,
       "place": {
-        "x": -538,
-        "y": 1
+        "x": -108,
+        "y": 0
       },
       "city": false,
       "properties": {},
@@ -359,8 +362,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 96,
       "place": {
-        "x": 242,
-        "y": 104
+        "x": 48,
+        "y": -21
       },
       "city": false,
       "properties": {
@@ -382,8 +385,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 121,
       "place": {
-        "x": 29,
-        "y": 408
+        "x": 6,
+        "y": -82
       },
       "city": false,
       "properties": {
@@ -405,8 +408,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 74,
       "place": {
-        "x": 253,
-        "y": 297
+        "x": 51,
+        "y": -59
       },
       "city": false,
       "properties": {
@@ -432,8 +435,7 @@
       "properties": {
         "лес": true,
         "камни": true,
-        "вода": "нет",
-        "даль": 1
+        "вода": "нет"
       },
       "machines": [],
       "relics": [],
@@ -464,8 +466,7 @@
       "properties": {
         "вода": "река",
         "плодородие": 55,
-        "луг": true,
-        "даль": 1
+        "луг": true
       },
       "machines": [
         {
@@ -494,8 +495,7 @@
       "place": null,
       "city": false,
       "properties": {
-        "вода": "нет",
-        "даль": 2
+        "вода": "нет"
       },
       "machines": [],
       "relics": [],
@@ -516,7 +516,10 @@
       "parent": "aurora",
       "anchor": null,
       "area_m2": 1,
-      "place": null,
+      "place": {
+        "lat": -8.0,
+        "lon": 112.0
+      },
       "city": false,
       "properties": {
         "предтечи": true,
@@ -578,7 +581,10 @@
       "parent": "aurora",
       "anchor": null,
       "area_m2": 1,
-      "place": null,
+      "place": {
+        "lat": -20.5,
+        "lon": 118.5
+      },
       "city": false,
       "properties": {
         "предтечи": true,
@@ -640,7 +646,10 @@
       "parent": "aurora",
       "anchor": null,
       "area_m2": 1,
-      "place": null,
+      "place": {
+        "lat": 3.0,
+        "lon": 131.0
+      },
       "city": false,
       "properties": {
         "предтечи": true,
@@ -759,37 +768,37 @@
     {
       "a": "terra.capital.gate",
       "b": "terra.coal",
-      "seconds": "reach",
+      "seconds": null,
       "surface": "road"
     },
     {
       "a": "terra.capital.gate",
       "b": "terra.floodplain",
-      "seconds": "reach",
+      "seconds": null,
       "surface": "road"
     },
     {
       "a": "terra.capital.gate",
       "b": "terra.oilfield",
-      "seconds": "reach",
+      "seconds": null,
       "surface": "trail"
     },
     {
       "a": "aurora.merid.hall",
       "b": "aurora.merid.port",
-      "seconds": 30,
+      "seconds": null,
       "surface": "paved"
     },
     {
       "a": "aurora.caldar.hall",
       "b": "aurora.caldar.port",
-      "seconds": 30,
+      "seconds": null,
       "surface": "paved"
     },
     {
       "a": "aurora.veyr.hall",
       "b": "aurora.veyr.port",
-      "seconds": 30,
+      "seconds": null,
       "surface": "paved"
     },
     {

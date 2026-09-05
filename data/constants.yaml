@@ -2089,27 +2089,6 @@ groups:
       - key: time.day_aurora
         value: 33
         unit: ч
-      - key: travel.city_step
-        value: {min: 4, max: 10}
-        unit: секунд
-        note: Один шаг между соседними локациями города. С D-319 — следствие `map.city_step_m` и `travel.walk_speed_kmh`; уходит волной 1 вместе с кодом
-        decision: D-089
-      - key: travel.intra_city
-        value: {min: 20, max: 60}
-        unit: секунд
-        note: Центр и окраина города — три-пять шагов. С D-319 — следствие геометрии; уходит волной 1 вместе с кодом
-      # Первое кольцо за стенами: ближняя шахта в двадцати секундах, а не в
-      # двадцати минутах. Дальше каждое кольцо дороже предыдущего (D-180)
-      - key: travel.frontier_step
-        value: 20
-        unit: секунд
-        note: Переход к узлу дали 1 — первому за стенами города
-        decision: D-180
-      - key: travel.frontier_growth
-        value: 1.8
-        unit: раз
-        note: Во столько раз длиннее переход к каждому следующему кольцу дали
-        decision: D-180
       - key: travel.interplanetary
         value: {min: 2, max: 8}
         unit: суток

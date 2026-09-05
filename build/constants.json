@@ -640,16 +640,6 @@
   "time.day_aquatica": 14,
   "time.day_pyroxis": 46,
   "time.day_aurora": 33,
-  "travel.city_step": {
-    "min": 4,
-    "max": 10
-  },
-  "travel.intra_city": {
-    "min": 20,
-    "max": 60
-  },
-  "travel.frontier_step": 20,
-  "travel.frontier_growth": 1.8,
   "travel.interplanetary": {
     "min": 2,
     "max": 8
