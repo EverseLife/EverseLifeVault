@@ -700,6 +700,10 @@
     "min": 8000,
     "max": 60000
   },
+  "ruins.room_area": {
+    "min": 120,
+    "max": 600
+  },
   "ruins.city_rooms": 24,
   "ruins.room_types": {
     "столица": {
@@ -859,7 +863,6 @@
   "map.sight_km": 5,
   "travel.walk_speed_kmh": 4,
   "terrain.river_reach_km": 1,
-  "terrain.mountain_vein_k": 2,
   "terrain.rain_noise_share": 0.6,
   "road.wild_multiplier": 4,
   "path.wear_threshold": 20,
@@ -1036,13 +1039,13 @@
     "cinder": 1.5
   },
   "biome.bounds": {
-    "cold_c": -5,
+    "cold_c": -2,
     "cool_c": 5,
     "dry": 30,
-    "wet": 70,
+    "wet": 38,
     "desert_lat": 35,
     "coast_km": 3,
-    "hills_relief": 0.5,
+    "hills_relief": 0.25,
     "marsh_relief": 0.15
   },
   "complex.chance": {
