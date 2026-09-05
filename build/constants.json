@@ -864,6 +864,21 @@
   "path.wear_threshold": 20,
   "path.fade_threshold": 8,
   "path.fade_per_day": 1,
+  "terrain.seed": 20260905,
+  "terrain.sea_share": {
+    "terra": 0.6,
+    "aquatica": 0.9,
+    "pyroxis": 0.0,
+    "aurora": 0.0
+  },
+  "terrain.mountain_share": 0.15,
+  "terrain.rivers": {
+    "terra": 24,
+    "aquatica": 12,
+    "pyroxis": 0,
+    "aurora": 6
+  },
+  "terrain.lapse_c": 12,
   "map.nodes_terra": 120,
   "map.nodes_space": 18,
   "map.shrink_threshold": 20,
