@@ -35,13 +35,12 @@ DATA = ROOT / "data"
 
 #: Слои, на которых сид раскладывает узлы (D-045). Космос не отсюда: планеты
 #: и орбиты — правила движка, а не раскладка (10-world/06).
-WORLD_LAYERS = ("planet", "city", "location")
-WORLD_SURFACES = ("trail", "road", "paved")
+WORLD_LAYERS = ("planet", "location")
+WORLD_SURFACES = ("wild", "trail", "road", "paved")
 #: Ключ узла космического слоя — это и есть планета (build/world.json).
 WORLD_PLANETS = ("terra", "aquatica", "pyroxis", "aurora")
-#: Свойства узла, на которые опираются проверки: дверь города (D-206) и
-#: удалённость за стенами (D-180). Слова — данные мира, движок знает те же.
-WORLD_EXIT = "выход"
+#: Свойство узла, на которое опирается проверка: удалённость за стенами
+#: (D-180). Слово — данные мира, движок знает то же.
 WORLD_REACH = "даль"
 #: Типы рецептов, которые ставятся в узел как «станок» (D-106).
 WORLD_STANDING_KINDS = {"station", "furniture"}
@@ -266,7 +265,7 @@ def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:
         anchor = node.get("anchor")
         if anchor is not None and anchor not in nodes:
             problems.append(f"мир: у «{key}» якорь «{anchor}» не объявлен выше")
-        layer = node.get("layer", "city")
+        layer = node.get("layer", "planet")
         if layer not in WORLD_LAYERS:
             problems.append(f"мир: у «{key}» слой «{layer}» — не из {WORLD_LAYERS}")
         area = node.get("area_m2")
@@ -412,16 +411,6 @@ def _check_world_edges(doc: dict, nodes: dict[str, dict]) -> list[str]:
             problems.append(f"мир: у ребра {a} — {b} секунды не больше нуля")
         walkable.setdefault(a, set()).add(b)
         walkable.setdefault(b, set()).add(a)
-        #: Дорога за стены начинается у двери города (D-206): ребро из
-        #: городской застройки наружу — только от узла с «выход».
-        for end, other in ((a, b), (b, a)):
-            end_node, other_node = nodes[end], nodes[other]
-            if end_node["layer"] != "city" or other_node.get("parent") == end_node.get("parent"):
-                continue
-            if not (end_node.get("properties") or {}).get(WORLD_EXIT):
-                problems.append(
-                    f"мир: дорога {end} — {other} выходит из застройки не через ворота (D-206)"
-                )
 
     #: Тупик ловится здесь, а не игроком: до листа должна вести хоть одна
     #: дорога. Хоть одна, а не «весь мир одной компонентой» — **связность
@@ -472,7 +461,7 @@ def build_world(doc: dict) -> dict:
             {
                 "key": node["key"],
                 "name": node["name"],
-                "layer": node.get("layer", "city"),
+                "layer": node.get("layer", "planet"),
                 "planet": planet_of(node["key"], by_key),
                 "parent": node.get("parent"),
                 "anchor": node.get("anchor"),

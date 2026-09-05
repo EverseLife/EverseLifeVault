@@ -19,7 +19,7 @@
     {
       "key": "terra.capital.core",
       "name": "Ядро: Принтер Предтеч",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": null,
@@ -38,7 +38,7 @@
     {
       "key": "terra.capital.library",
       "name": "Библиотека",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.core",
@@ -63,7 +63,7 @@
     {
       "key": "terra.capital.market",
       "name": "Рынок",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.core",
@@ -93,7 +93,7 @@
     {
       "key": "terra.capital.hall",
       "name": "Администрация",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.core",
@@ -118,7 +118,7 @@
     {
       "key": "terra.capital.forge",
       "name": "Мастерская",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.market",
@@ -238,7 +238,7 @@
     {
       "key": "terra.capital.pit",
       "name": "Забой у стены",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.forge",
@@ -263,7 +263,7 @@
     {
       "key": "terra.capital.gate",
       "name": "Выход из города",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.core",
@@ -273,9 +273,7 @@
         "y": 65
       },
       "city": false,
-      "properties": {
-        "выход": true
-      },
+      "properties": {},
       "machines": [],
       "relics": [],
       "veins": [],
@@ -284,7 +282,7 @@
     {
       "key": "terra.capital.port",
       "name": "Космодром",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.gate",
@@ -314,7 +312,7 @@
     {
       "key": "terra.capital.jail",
       "name": "Каторжный забой",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.gate",
@@ -355,7 +353,7 @@
     {
       "key": "terra.capital.lot1",
       "name": "Свободный участок",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.forge",
@@ -378,7 +376,7 @@
     {
       "key": "terra.capital.lot2",
       "name": "Свободный участок",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.forge",
@@ -401,7 +399,7 @@
     {
       "key": "terra.capital.lot3",
       "name": "Свободный участок",
-      "layer": "city",
+      "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
       "anchor": "terra.capital.forge",
@@ -532,7 +530,7 @@
     {
       "key": "aurora.merid.hall",
       "name": "Купольный зал",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.merid",
       "anchor": null,
@@ -554,7 +552,7 @@
     {
       "key": "aurora.merid.port",
       "name": "Космодром Мерида",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.merid",
       "anchor": "aurora.merid.hall",
@@ -594,7 +592,7 @@
     {
       "key": "aurora.caldar.hall",
       "name": "Литейный двор",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.caldar",
       "anchor": null,
@@ -616,7 +614,7 @@
     {
       "key": "aurora.caldar.port",
       "name": "Космодром Кальдара",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.caldar",
       "anchor": "aurora.caldar.hall",
@@ -656,7 +654,7 @@
     {
       "key": "aurora.veyr.hall",
       "name": "Нулевой ярус",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.veyr",
       "anchor": null,
@@ -678,7 +676,7 @@
     {
       "key": "aurora.veyr.port",
       "name": "Космодром Вейра",
-      "layer": "city",
+      "layer": "planet",
       "planet": "aurora",
       "parent": "aurora.veyr",
       "anchor": "aurora.veyr.hall",
