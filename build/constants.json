@@ -689,8 +689,8 @@
   "explore.stones_share": 30,
   "explore.meadow_share": 40,
   "explore.node_area": {
-    "min": 120,
-    "max": 600
+    "min": 60,
+    "max": 240
   },
   "explore.vein_richness": {
     "min": 20,
@@ -699,9 +699,6 @@
   "explore.vein_stock": {
     "min": 8000,
     "max": 60000
-  },
-  "ruins.lost_cities": {
-    "aurora": 4
   },
   "ruins.city_rooms": 24,
   "ruins.room_types": {
@@ -856,8 +853,6 @@
   "map.approach_km": 50000,
   "map.city_step_m": 30,
   "map.min_gap_m": 20,
-  "map.region_km": 20,
-  "map.spacing_share": 0.6,
   "map.city_lat_max": 60,
   "map.memory_places": 400,
   "map.public_delay_days": 3,
@@ -885,10 +880,288 @@
     "aurora": 6
   },
   "terrain.lapse_c": 12,
-  "map.nodes_terra": 120,
-  "map.nodes_aurora": 24,
-  "map.nodes_pyroxis": 0,
-  "map.nodes_aquatica": 0,
+  "map.lattice_m": 5,
+  "biome.names": {
+    "coast": "Берег",
+    "floodplain": "Пойма",
+    "forest": "Лес",
+    "steppe": "Степь",
+    "desert": "Пустыня",
+    "taiga": "Тайга",
+    "tundra": "Тундра",
+    "marsh": "Болото",
+    "foothills": "Предгорье",
+    "alpine": "Горный склон",
+    "ice": "Ледяное поле",
+    "cinder": "Чёрное поле"
+  },
+  "biome.reach_m": {
+    "coast": {
+      "min": 5,
+      "max": 20
+    },
+    "floodplain": {
+      "min": 5,
+      "max": 20
+    },
+    "forest": {
+      "min": 5,
+      "max": 20
+    },
+    "steppe": {
+      "min": 10,
+      "max": 30
+    },
+    "desert": {
+      "min": 20,
+      "max": 80
+    },
+    "taiga": {
+      "min": 10,
+      "max": 30
+    },
+    "tundra": {
+      "min": 20,
+      "max": 80
+    },
+    "marsh": {
+      "min": 5,
+      "max": 20
+    },
+    "foothills": {
+      "min": 10,
+      "max": 50
+    },
+    "alpine": {
+      "min": 20,
+      "max": 100
+    },
+    "ice": {
+      "min": 20,
+      "max": 80
+    },
+    "cinder": {
+      "min": 10,
+      "max": 60
+    }
+  },
+  "biome.swing_c": {
+    "coast": 4,
+    "floodplain": 6,
+    "forest": 6,
+    "steppe": 10,
+    "desert": 20,
+    "taiga": 8,
+    "tundra": 8,
+    "marsh": 5,
+    "foothills": 9,
+    "alpine": 12,
+    "ice": 6,
+    "cinder": 15
+  },
+  "biome.marks": {
+    "coast": {
+      "woods": 20,
+      "stones": 40,
+      "meadow": 30
+    },
+    "floodplain": {
+      "woods": 30,
+      "stones": 5,
+      "meadow": 60
+    },
+    "forest": {
+      "woods": 90,
+      "stones": 10,
+      "meadow": 10
+    },
+    "steppe": {
+      "woods": 5,
+      "stones": 15,
+      "meadow": 80
+    },
+    "desert": {
+      "woods": 0,
+      "stones": 40,
+      "meadow": 0
+    },
+    "taiga": {
+      "woods": 85,
+      "stones": 20,
+      "meadow": 5
+    },
+    "tundra": {
+      "woods": 0,
+      "stones": 50,
+      "meadow": 20
+    },
+    "marsh": {
+      "woods": 20,
+      "stones": 0,
+      "meadow": 40
+    },
+    "foothills": {
+      "woods": 40,
+      "stones": 60,
+      "meadow": 20
+    },
+    "alpine": {
+      "woods": 0,
+      "stones": 100,
+      "meadow": 0
+    },
+    "ice": {
+      "woods": 0,
+      "stones": 30,
+      "meadow": 0
+    },
+    "cinder": {
+      "woods": 0,
+      "stones": 80,
+      "meadow": 0
+    }
+  },
+  "biome.vein_k": {
+    "coast": 0.5,
+    "floodplain": 0.3,
+    "forest": 0.8,
+    "steppe": 0.8,
+    "desert": 1.0,
+    "taiga": 0.8,
+    "tundra": 1.0,
+    "marsh": 0.2,
+    "foothills": 1.5,
+    "alpine": 2.0,
+    "ice": 1.5,
+    "cinder": 1.5
+  },
+  "biome.bounds": {
+    "cold_c": -5,
+    "cool_c": 5,
+    "dry": 30,
+    "wet": 70,
+    "desert_lat": 35,
+    "coast_km": 3,
+    "hills_relief": 0.5,
+    "marsh_relief": 0.15
+  },
+  "complex.chance": {
+    "aurora": {
+      "ice": 20
+    },
+    "terra": {
+      "floodplain": 15,
+      "alpine": 15,
+      "desert": 10
+    }
+  },
+  "complex.schemes": {
+    "forerunner_mine": {
+      "planet": "aurora",
+      "biome": "ice",
+      "weight": 6,
+      "nodes": [
+        {
+          "role": "shaft",
+          "name": "Ствол шахты",
+          "vein": true
+        },
+        {
+          "role": "store",
+          "name": "Склад руды",
+          "finds": "склад"
+        },
+        {
+          "role": "store",
+          "name": "Склад руды",
+          "finds": "склад"
+        },
+        {
+          "role": "hall",
+          "name": "Зал",
+          "finds": "архив"
+        }
+      ]
+    },
+    "forerunner_outpost": {
+      "planet": "aurora",
+      "biome": "ice",
+      "weight": 3,
+      "nodes": [
+        {
+          "role": "hall",
+          "name": "Зал",
+          "finds": "архив"
+        },
+        {
+          "role": "quarters",
+          "name": "Квартира",
+          "finds": "квартира"
+        },
+        {
+          "role": "quarters",
+          "name": "Квартира",
+          "finds": "квартира"
+        }
+      ]
+    },
+    "lost_city": {
+      "planet": "aurora",
+      "biome": "ice",
+      "weight": 1,
+      "city": true
+    },
+    "river_bend": {
+      "planet": "terra",
+      "biome": "floodplain",
+      "weight": 1,
+      "nodes": [
+        {
+          "role": "ford",
+          "name": "Брод",
+          "ford": true
+        },
+        {
+          "role": "fishing",
+          "name": "Рыбное место",
+          "water": "river"
+        }
+      ]
+    },
+    "mountain_pass": {
+      "planet": "terra",
+      "biome": "alpine",
+      "weight": 1,
+      "nodes": [
+        {
+          "role": "saddle",
+          "name": "Седловина"
+        },
+        {
+          "role": "slope",
+          "name": "Склон",
+          "vein": true
+        }
+      ]
+    },
+    "oasis": {
+      "planet": "terra",
+      "biome": "desert",
+      "weight": 1,
+      "nodes": [
+        {
+          "role": "spring",
+          "name": "Источник",
+          "water": "river"
+        },
+        {
+          "role": "grove",
+          "name": "Пальмовая роща",
+          "woods": true
+        }
+      ]
+    }
+  },
   "map.nodes_space": 18,
   "map.shrink_threshold": 20,
   "mining.gold_per_hour": 4,
