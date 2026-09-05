@@ -42,9 +42,9 @@
 #               Кладётся при создании узла; ensure: true — докладывается
 #               догоном, если вещи не осталось
 #
-# Ребро: {a, b, seconds, surface}. Без seconds — шаг города (travel.city_step,
-# бросок движка); seconds: reach — длина по удалённости узла (D-180);
-# число — ровно столько секунд. surface: trail | road | paved (по умолчанию road).
+# Ребро: {a, b, seconds, surface}. Без seconds — время из расстояния между
+# местами (D-319); число — ровно столько секунд.
+# surface: wild | trail | road | paved (по умолчанию road).
 #
 # Карманы стартовых персонажей — в `pockets`, по имени личности; сами личности
 # (почта, пароль, роли) остаются у движка (D-187).
@@ -361,8 +361,8 @@ edges:
   # сам построил себе эти дороги. Длина — по дали узла (D-180).
   - {a: terra.capital.gate, b: terra.coal, surface: road}
   - {a: terra.capital.gate, b: terra.floodplain, surface: road}
-  # К скважине дороги ещё нет: тропа по дали узла (D-180, D-252)
-  - {a: terra.capital.gate, b: terra.oilfield, surface: trail}
+  # К скважине дороги ещё нет: бездорожье, пока ноги не протопчут тропинку (D-319)
+  - {a: terra.capital.gate, b: terra.oilfield, surface: wild}
   # От зала до причала — переход через одну площадь: порт обязан стоять внутри
   # тепла станции, и в этом вся причина, почему у города горит маяк (D-231).
   - {a: aurora.merid.hall, b: aurora.merid.port, surface: paved}
