@@ -460,10 +460,10 @@
     "Ракетное топливо": 1,
     "Керосиновое топливо": 1.25
   },
-  "orbit.thrust_scale": 1600,
+  "orbit.thrust_scale": 5400,
   "orbit.burn_share": 0.5,
   "orbit.corona_radius": 35,
-  "orbit.longest_days": 45,
+  "orbit.longest_days": 12,
   "orbit.planet_mu": 150,
   "orbit.park_radius": 1.5,
   "orbit.step_minutes": 1,
