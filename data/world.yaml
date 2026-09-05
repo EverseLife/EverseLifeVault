@@ -152,7 +152,7 @@ nodes:
   # с D-319 ворот нет — ребро наружу законно из любого узла, а космодром
   # остаётся единственной дверью для кораблей.
   - key: terra.capital.gate
-    name: Выход из города
+    name: Окраина
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core

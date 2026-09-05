@@ -265,7 +265,7 @@
     },
     {
       "key": "terra.capital.gate",
-      "name": "Выход из города",
+      "name": "Окраина",
       "layer": "planet",
       "planet": "terra",
       "parent": "terra.capital",
