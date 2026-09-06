@@ -880,7 +880,7 @@
   },
   "terrain.mountain_share": 0.15,
   "terrain.detail_km": 3,
-  "terrain.detail_seed": 18,
+  "terrain.detail_seed": 94,
   "terrain.detail_amplitude": 0.4,
   "terrain.peak_share": 0.08,
   "terrain.basin_share": 0.03,
