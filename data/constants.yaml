@@ -2667,7 +2667,7 @@ groups:
       - key: terrain.mountain_share
         value: 0.15
         unit: доля суши
-        note: Столько суши выше горной черты. В горах узел чаще несёт жилу (`terrain.mountain_vein_k`), а лес до черты не доходит
+        note: Столько суши выше горной черты. В горах узел чаще несёт жилу (`biome.vein_k` горного биома, D-321), а лес до черты не доходит
         decision: D-319
       - key: terrain.detail_km
         value: 3
