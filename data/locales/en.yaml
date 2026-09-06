@@ -58,8 +58,8 @@ goods:
   compost: Compost
   copper_foil: Copper foil
   copper_ingot: Copper ingot
-  copper_solution: Copper solution
   copper_ore: Copper ore
+  copper_solution: Copper solution
   crude_oil: Crude oil
   crushed_stone: Crushed stone
   decoction: Decoction
@@ -92,12 +92,12 @@ goods:
   hay: Hay
   healing_herbs: Healing herbs
   hearth: Hearth
-  herbal_infusion: Herbal infusion
   heat_plant: Heat plant
   heat_shield_tiles: Heat shield tiles
   heater: Heater
   heatproof_suit: Heatproof suit
   heavy_exoskeleton: Heavy exoskeleton
+  herbal_infusion: Herbal infusion
   high_pressure_tank: High-pressure cylinder
   hull: Hull
   hydroponic_unit: Hydroponic unit
@@ -118,6 +118,7 @@ goods:
   limestone: Limestone
   lubricant: Lubricant
   magnet: Magnet
+  map_sheet: Map sheet
   market_terminal: Market terminal
   meat: Meat
   microchip: Microchip
@@ -125,10 +126,10 @@ goods:
   mineral_fertilizer: Mineral fertilizer
   mortar: Mortar
   nails: Nails
-  oil_emulsion: Oil emulsion
   naphtha: Naphtha
   nickel: Nickel
   oil: Oil
+  oil_emulsion: Oil emulsion
   oil_seeds: Oil seeds
   organic_waste: Organic waste
   oxidizer: Oxidizer
@@ -194,7 +195,6 @@ goods:
   stone: Stone
   stone_axe: Stone axe
   stone_block: Stone block
-  sulfur_dust: Sulfur dust
   stone_chips: Stone chippings
   stone_pickaxe: Stone pickaxe
   straw: Straw
@@ -203,6 +203,7 @@ goods:
   sugar_cane: Sugar cane
   sugarcane_seeds: Sugarcane seeds
   sulfur: Sulfur
+  sulfur_dust: Sulfur dust
   sulfuric_acid: Sulfuric acid
   textolite: Textolite
   tin: Tin

@@ -860,6 +860,7 @@
   "map.city_step_m": 30,
   "map.min_gap_m": 20,
   "map.city_lat_max": 60,
+  "map.draw_stamina": 1,
   "map.memory_places": 400,
   "map.public_delay_days": 3,
   "map.sight_km": 5,
