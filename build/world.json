@@ -51,7 +51,7 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 8,
+        "x": 10,
         "y": 1
       },
       "city": false,
@@ -76,8 +76,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 4,
-        "y": -7
+        "x": 3,
+        "y": -6
       },
       "city": false,
       "properties": {},
@@ -106,8 +106,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 180,
       "place": {
-        "x": 4,
-        "y": 7
+        "x": 2,
+        "y": 6
       },
       "city": false,
       "properties": {},
@@ -131,8 +131,8 @@
       "anchor": "terra.capital.market",
       "area_m2": 260,
       "place": {
-        "x": 2,
-        "y": -7
+        "x": 3,
+        "y": -10
       },
       "city": false,
       "properties": {},
@@ -251,8 +251,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -20,
-        "y": 6
+        "x": -17,
+        "y": 9
       },
       "city": false,
       "properties": {},
@@ -276,7 +276,7 @@
       "anchor": "terra.capital.core",
       "area_m2": 80,
       "place": {
-        "x": -8,
+        "x": -6,
         "y": -2
       },
       "city": false,
@@ -295,8 +295,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 240,
       "place": {
-        "x": 5,
-        "y": 10
+        "x": 4,
+        "y": 9
       },
       "city": false,
       "properties": {},
@@ -325,8 +325,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 120,
       "place": {
-        "x": -8,
-        "y": 2
+        "x": -10,
+        "y": 3
       },
       "city": false,
       "properties": {},
@@ -355,75 +355,6 @@
           "remaining": 20000
         }
       ],
-      "items": []
-    },
-    {
-      "key": "terra.capital.lot1",
-      "name": "Свободный участок",
-      "layer": "planet",
-      "planet": "terra",
-      "parent": "terra.capital",
-      "anchor": "terra.capital.forge",
-      "area_m2": 96,
-      "place": {
-        "x": 7,
-        "y": -2
-      },
-      "city": false,
-      "properties": {
-        "участок": true,
-        "плодородие": 40,
-        "вода": "нет"
-      },
-      "machines": [],
-      "relics": [],
-      "veins": [],
-      "items": []
-    },
-    {
-      "key": "terra.capital.lot2",
-      "name": "Свободный участок",
-      "layer": "planet",
-      "planet": "terra",
-      "parent": "terra.capital",
-      "anchor": "terra.capital.forge",
-      "area_m2": 121,
-      "place": {
-        "x": -4,
-        "y": -8
-      },
-      "city": false,
-      "properties": {
-        "участок": true,
-        "плодородие": 30,
-        "вода": "нет"
-      },
-      "machines": [],
-      "relics": [],
-      "veins": [],
-      "items": []
-    },
-    {
-      "key": "terra.capital.lot3",
-      "name": "Свободный участок",
-      "layer": "planet",
-      "planet": "terra",
-      "parent": "terra.capital",
-      "anchor": "terra.capital.forge",
-      "area_m2": 74,
-      "place": {
-        "x": 6,
-        "y": -8
-      },
-      "city": false,
-      "properties": {
-        "участок": true,
-        "плодородие": 55,
-        "вода": "нет"
-      },
-      "machines": [],
-      "relics": [],
-      "veins": [],
       "items": []
     },
     {
@@ -748,24 +679,6 @@
     {
       "a": "terra.capital.core",
       "b": "terra.capital.gate",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
-      "a": "terra.capital.forge",
-      "b": "terra.capital.lot1",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
-      "a": "terra.capital.forge",
-      "b": "terra.capital.lot2",
-      "seconds": null,
-      "surface": "paved"
-    },
-    {
-      "a": "terra.capital.forge",
-      "b": "terra.capital.lot3",
       "seconds": null,
       "surface": "paved"
     },

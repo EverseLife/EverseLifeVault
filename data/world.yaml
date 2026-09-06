@@ -83,7 +83,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 8, y: 1}
+    place: {x: 10, y: 1}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -92,7 +92,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 4, y: -7}
+    place: {x: 3, y: -6}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -105,7 +105,7 @@ nodes:
     parent: terra.capital
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 4, y: 7}
+    place: {x: 2, y: 6}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -114,7 +114,7 @@ nodes:
     parent: terra.capital
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 2, y: -7}
+    place: {x: 3, y: -10}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -151,7 +151,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -20, y: 6}
+    place: {x: -17, y: 9}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -163,14 +163,14 @@ nodes:
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -8, y: -2}
+    place: {x: -6, y: -2}
 
   - key: terra.capital.port
     name: Космодром
     parent: terra.capital
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: 5, y: 10}
+    place: {x: 4, y: 9}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -183,7 +183,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -8, y: 2}
+    place: {x: -10, y: 3}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -195,36 +195,6 @@ nodes:
   # только на своей земле мастер ставит станок (D-150). Площади — из вилки
   # `land.area_ring1` (D-125), выбраны при переносе раскладки в данные.
   #
-  # Земля под ними живая (D-246): городской участок стоит на той же почве, что
-  # и поле за стеной, и огород под окном — обычное дело. Плодородие ниже
-  # поймы: центр утоптан, и вода сюда не подходит. Свойства разные у трёх
-  # участков нарочно — выбор места и есть выбор земли.
-  - key: terra.capital.lot1
-    name: Свободный участок
-    parent: terra.capital
-    area_m2: 96
-    anchor: terra.capital.forge
-    place: {x: 7, y: -2}
-    properties: {участок: true, плодородие: 40, вода: нет}
-
-  - key: terra.capital.lot2
-    name: Свободный участок
-    parent: terra.capital
-    area_m2: 121
-    anchor: terra.capital.forge
-    place: {x: -4, y: -8}
-    properties: {участок: true, плодородие: 30, вода: нет}
-
-  - key: terra.capital.lot3
-    name: Свободный участок
-    parent: terra.capital
-    area_m2: 74
-    anchor: terra.capital.forge
-    place: {x: 6, y: -8}
-    properties: {участок: true, плодородие: 55, вода: нет}
-
-  # Первое кольцо за стенами (D-319): время — метры до узла шагом хода, не
-  # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
   - key: terra.coal
     name: Угольная шахта
     layer: planet
@@ -361,11 +331,10 @@ edges:
   - {a: terra.capital.library, b: terra.capital.hall, surface: paved}
   - {a: terra.capital.market, b: terra.capital.forge, surface: paved}
   - {a: terra.capital.core, b: terra.capital.gate, surface: paved}
-  - {a: terra.capital.forge, b: terra.capital.lot1, surface: paved}
-  - {a: terra.capital.forge, b: terra.capital.lot2, surface: paved}
-  - {a: terra.capital.forge, b: terra.capital.lot3, surface: paved}
   # За стены ведёт дорога, не бездорожье: уголь и хлеб возят по ней, и город
   # сам построил себе эти дороги. Длина — по дали узла (D-180).
+  # Первое кольцо за стенами (D-319): время — метры до узла шагом хода, не
+  # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
   - {a: terra.capital.gate, b: terra.coal, surface: road}
   - {a: terra.capital.gate, b: terra.floodplain, surface: road}
   # К скважине дороги ещё нет: бездорожье, пока ноги не протопчут тропинку (D-319)
