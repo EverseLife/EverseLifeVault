@@ -83,7 +83,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 50, y: 1}
+    place: {x: 8, y: 1}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -92,7 +92,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 19, y: -20}
+    place: {x: 4, y: -7}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -105,7 +105,7 @@ nodes:
     parent: terra.capital
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 25, y: 28}
+    place: {x: 4, y: 7}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -114,7 +114,7 @@ nodes:
     parent: terra.capital
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 19, y: -52}
+    place: {x: 2, y: -7}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -151,7 +151,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -86, y: -47}
+    place: {x: -20, y: 6}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -163,14 +163,14 @@ nodes:
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -46, y: -13}
+    place: {x: -8, y: -2}
 
   - key: terra.capital.port
     name: Космодром
     parent: terra.capital
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: -18, y: 25}
+    place: {x: 5, y: 10}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -183,7 +183,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -108, y: 0}
+    place: {x: -8, y: 2}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -204,7 +204,7 @@ nodes:
     parent: terra.capital
     area_m2: 96
     anchor: terra.capital.forge
-    place: {x: 48, y: -21}
+    place: {x: 7, y: -2}
     properties: {участок: true, плодородие: 40, вода: нет}
 
   - key: terra.capital.lot2
@@ -212,7 +212,7 @@ nodes:
     parent: terra.capital
     area_m2: 121
     anchor: terra.capital.forge
-    place: {x: 6, y: -82}
+    place: {x: -4, y: -8}
     properties: {участок: true, плодородие: 30, вода: нет}
 
   - key: terra.capital.lot3
@@ -220,7 +220,7 @@ nodes:
     parent: terra.capital
     area_m2: 74
     anchor: terra.capital.forge
-    place: {x: 51, y: -59}
+    place: {x: 6, y: -8}
     properties: {участок: true, плодородие: 55, вода: нет}
 
   # Первое кольцо за стенами (D-319): время — метры до узла шагом хода, не
