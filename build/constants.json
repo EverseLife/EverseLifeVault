@@ -688,6 +688,7 @@
   "explore.forest_share": 35,
   "explore.stones_share": 30,
   "explore.meadow_share": 40,
+  "explore.fill_share": 0.8,
   "explore.node_area": {
     "min": 60,
     "max": 240
