@@ -83,7 +83,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 10, y: 1}
+    place: {x: -20, y: 8}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -92,7 +92,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 3, y: -6}
+    place: {x: 11, y: 0}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -105,7 +105,7 @@ nodes:
     parent: terra.capital
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 2, y: 6}
+    place: {x: 0, y: 7}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -114,7 +114,7 @@ nodes:
     parent: terra.capital
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 3, y: -10}
+    place: {x: 30, y: -12}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -151,7 +151,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -17, y: 9}
+    place: {x: -78, y: -49}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -163,14 +163,14 @@ nodes:
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -6, y: -2}
+    place: {x: -9, y: -13}
 
   - key: terra.capital.port
     name: Космодром
     parent: terra.capital
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: 4, y: 9}
+    place: {x: 21, y: 37}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -183,7 +183,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -10, y: 3}
+    place: {x: -40, y: 14}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}

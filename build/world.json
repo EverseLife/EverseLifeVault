@@ -51,8 +51,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 10,
-        "y": 1
+        "x": -20,
+        "y": 8
       },
       "city": false,
       "properties": {},
@@ -76,8 +76,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 3,
-        "y": -6
+        "x": 11,
+        "y": 0
       },
       "city": false,
       "properties": {},
@@ -106,8 +106,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 180,
       "place": {
-        "x": 2,
-        "y": 6
+        "x": 0,
+        "y": 7
       },
       "city": false,
       "properties": {},
@@ -131,8 +131,8 @@
       "anchor": "terra.capital.market",
       "area_m2": 260,
       "place": {
-        "x": 3,
-        "y": -10
+        "x": 30,
+        "y": -12
       },
       "city": false,
       "properties": {},
@@ -251,8 +251,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -17,
-        "y": 9
+        "x": -78,
+        "y": -49
       },
       "city": false,
       "properties": {},
@@ -276,8 +276,8 @@
       "anchor": "terra.capital.core",
       "area_m2": 80,
       "place": {
-        "x": -6,
-        "y": -2
+        "x": -9,
+        "y": -13
       },
       "city": false,
       "properties": {},
@@ -295,8 +295,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 240,
       "place": {
-        "x": 4,
-        "y": 9
+        "x": 21,
+        "y": 37
       },
       "city": false,
       "properties": {},
@@ -325,8 +325,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 120,
       "place": {
-        "x": -10,
-        "y": 3
+        "x": -40,
+        "y": 14
       },
       "city": false,
       "properties": {},
