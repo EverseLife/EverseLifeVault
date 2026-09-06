@@ -53,6 +53,13 @@ external:
   - terra
   - aurora
 
+# Имена узлов, которые сид рождает правилом, а не раскладкой (D-251):
+# плато и чёрные поля Пироксиса кладёт `seed_surfaces.py` по весам вольта,
+# и их имена — голос мира, а не код. `{number}` — номер поля
+names:
+  pyroxis_plateau: Плато Наковальни
+  pyroxis_field: "Чёрное поле №{number}"
+
 nodes:
   - key: terra.capital
     name: Столица Терры

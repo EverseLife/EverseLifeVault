@@ -1,4 +1,8 @@
 {
+  "names": {
+    "pyroxis_plateau": "Плато Наковальни",
+    "pyroxis_field": "Чёрное поле №{number}"
+  },
   "nodes": [
     {
       "key": "terra.capital",

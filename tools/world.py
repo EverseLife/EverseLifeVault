@@ -451,6 +451,9 @@ def build_world(doc: dict) -> dict:
 
     by_key = {node["key"]: node for node in doc.get("nodes") or []}
     return {
+        #: The names the seed gives to what it lays by rule (D-251): the
+        #: world's voice, kept with the world.
+        "names": dict(doc.get("names") or {}),
         "nodes": [
             {
                 "key": node["key"],
