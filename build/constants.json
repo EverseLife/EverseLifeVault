@@ -684,20 +684,21 @@
   "forest.stock_per_share": 40,
   "forest.regrow_per_day": 1.5,
   "site.quality_budget": 10,
-  "explore.vein_share": 40,
-  "explore.forest_share": 35,
-  "explore.stones_share": 30,
-  "explore.meadow_share": 40,
+  "ground.vein_share": 40,
+  "ground.forest_share": 35,
+  "ground.stones_share": 30,
+  "ground.meadow_share": 40,
+  "explore.window_km": 2,
   "explore.fill_share": 0.8,
   "explore.node_area": {
     "min": 60,
     "max": 240
   },
-  "explore.vein_richness": {
+  "ground.vein_richness": {
     "min": 20,
     "max": 80
   },
-  "explore.vein_stock": {
+  "ground.vein_stock": {
     "min": 8000,
     "max": 60000
   },

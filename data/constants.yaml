@@ -2231,30 +2231,38 @@ groups:
       # обязан оставаться нормой, иначе штраф достаётся новичку на первом заходе.
       # Дальше каждое ребро сверх нормы отнимает десятую часть шанса, и звезда
       # на двадцать шесть рёбер ищет впятеро хуже свободного узла
-      - key: explore.vein_share
+      # Кости земли: что несёт место, сделанное без точки поля — помещение,
+      # ручной узел (D-191, D-196). Найденные узлы читают поле (D-321). До
+      # уборки волны 6 плана D-319 ключи звались `explore.*` — кости разведчика
+      - key: ground.vein_share
         value: 40
         unit: "% находок"
         note: Какая доля находок несёт жилу. Остальное — участки под застройку
         decision: D-152
       # Лесистость мира: и доля находок с лесом, и во столько же раз уже шанс
       # при прицельном поиске леса (D-191)
-      - key: explore.forest_share
+      - key: ground.forest_share
         value: 35
         unit: "% находок"
         note: Доля мест с этим признаком для узла без точки поля — помещения и ручные узлы (D-191, D-196); найденные узлы берут признаки по биому (`biome.marks`, D-321)
         decision: D-191
       # Камни и луг — такие же свойства места, как лес (D-196). Своих операций
       # у них больше нет (D-210): знаки ждут роли множителей к таблице находок
-      - key: explore.stones_share
+      - key: ground.stones_share
         value: 30
         unit: "% находок"
         note: Доля мест с этим признаком для узла без точки поля — помещения и ручные узлы (D-191, D-196); найденные узлы берут признаки по биому (`biome.marks`, D-321)
         decision: D-196
-      - key: explore.meadow_share
+      - key: ground.meadow_share
         value: 40
         unit: "% находок"
         note: Доля мест с этим признаком для узла без точки поля — помещения и ручные узлы (D-191, D-196); найденные узлы берут признаки по биому (`biome.marks`, D-321)
         decision: D-196
+      - key: explore.window_km
+        value: 2
+        unit: км
+        note: "Окно прицела (D-321): узлы в нём решают место, пути хотя бы с одним концом в нём — пересечения; путь с обоими концами снаружи прицел не видит, дальше земля считается пустой. Много шире любой дали (`biome.reach_m`) и шага кольца, так что ничего важного снаружи нет; и всё же окно, чтобы прицел не читал всю планету"
+        decision: D-321
       - key: explore.fill_share
         value: 0.8
         unit: доля
@@ -2268,12 +2276,12 @@ groups:
       # Длину перехода к находке задаёт даль узла (D-180): explore.distance
       # упразднён — расстояние росло бы вслепую, одинаково у первого кольца
       # и у края карты
-      - key: explore.vein_richness
+      - key: ground.vein_richness
         value: {min: 20, max: 80}
         unit: богатства
         note: "Богатство найденной жилы. Верх ниже ста: идеальной жилы не находят"
         decision: D-152
-      - key: explore.vein_stock
+      - key: ground.vein_stock
         value: {min: 8000, max: 60000}
         unit: единиц
         note: Запас найденной жилы. Жилы конечны, и это неотменяемо
@@ -2680,12 +2688,12 @@ groups:
       - key: biome.marks
         value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}}
         unit: "% мест"
-        note: Доля найденных мест биома с лесом, камнями и лугом; заменяет `explore.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений
+        note: Доля найденных мест биома с лесом, камнями и лугом; заменяет `ground.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений
         decision: D-321
       - key: biome.vein_k
         value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5}
         unit: раз
-        note: Множитель `explore.vein_share` по биому; заменил `terrain.mountain_vein_k` — жилы в горах вдвое чаще, как и было
+        note: Множитель `ground.vein_share` по биому; заменил `terrain.mountain_vein_k` — жилы в горах вдвое чаще, как и было
         decision: D-321
       - key: biome.bounds
         value: {cold_c: -2, cool_c: 5, dry: 30, wet: 38, desert_lat: 35, coast_km: 3, hills_relief: 0.25, marsh_relief: 0.15}
