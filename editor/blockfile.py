@@ -24,6 +24,7 @@ must not have moved on disk while it was open.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Any
@@ -380,7 +381,23 @@ def scalar(value: Any, *, flow: bool = True) -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
     if isinstance(value, (int, float)):
-        return f"{value:g}" if isinstance(value, float) else str(value)
+        if not isinstance(value, float):
+            return str(value)
+        #: A whole float keeps its `.0`. Everywhere else in the editor a whole
+        #: number has already become an `int` on the way in (`number_of`), so a
+        #: float that arrives here is one somebody meant to keep as a measure --
+        #: a latitude of `41.0` is a place, and `41` reads as a count.
+        if value.is_integer():
+            return f"{value:.1f}"
+        #: The shortest text that reads back as the same number, and not
+        #: `:g`: six **significant** digits turn a latitude of `41.017267`
+        #: into `41.0173`, eight metres away, and a share of `0.000244140625`
+        #: into a different share. Such a write then fails the file's own
+        #: round-trip guard, which complains about the file rather than about
+        #: the number -- and where the guard does not reach, it just lies.
+        text = repr(value)
+        #: PyYAML wants a dot before an exponent: `1e+16` reads back as text.
+        return text.replace("e", ".0e") if "e" in text and "." not in text else text
     if isinstance(value, dict):
         return mapping(value)
     if isinstance(value, list):
@@ -436,6 +453,12 @@ def number_of(
         number = float(value)
     except (TypeError, ValueError) as error:
         raise VaultError(f"{what}: нужно число, а не «{value}»") from error
+    #: `nan` passes every bound below, because every comparison with it is
+    #: false, and `inf` passes the lower ones; both are written back as bare
+    #: words that YAML reads as text. Refused here, where the word for it is
+    #: the field's own, rather than three lines later by the round trip.
+    if not math.isfinite(number):
+        raise VaultError(f"{what}: нужно число, а не «{value}»")
     if above is not None and number <= above:
         raise VaultError(f"{what}: больше {above:g}")
     if at_least is not None and number < at_least:

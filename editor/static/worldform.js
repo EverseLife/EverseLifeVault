@@ -13,12 +13,11 @@
 // own check says whether it was right.** Nothing here declares an edit good.
 
 import { h, num } from './ui.js';
-import { BY_REACH, LAYERS, SURFACES, SURFACE_LABEL, spellSeconds } from './world.js';
+import { LAYERS, SURFACES, SURFACE_LABEL, spellSeconds } from './world.js';
 
 const LAYER_LABEL = {
-  planet: 'планета — город или отдельное место на её поверхности',
-  city: 'застройка — узел внутри города',
-  location: 'помещение — этаж, комната, отсек',
+  planet: 'поверхность — вся земля планеты, застройка города в том числе (D-319)',
+  location: 'помещения — этаж, отсек, зал',
 };
 
 /**
@@ -43,7 +42,7 @@ export function nodeForm(host, world, key, tools) {
   fields.area = h('input', { type: 'number', min: '1', step: '1', value: num(draft.area_m2) });
   fields.layer = h('select', {},
     ...LAYERS.map((one) => h('option', {
-      value: one, selected: (draft.layer || 'city') === one, text: one,
+      value: one, selected: (draft.layer || 'planet') === one, text: one,
     })));
   const keys = world.nodes.map((one) => one.key);
   const external = world.external || [];
@@ -51,9 +50,29 @@ export function nodeForm(host, world, key, tools) {
   fields.anchor = pick(keys.filter((one) => one !== key), draft.anchor, 'без якоря');
   fields.city = h('input', { type: 'checkbox', checked: !!draft.city });
 
+  //: Пин бывает двух видов, и форма показывает тот, что у узла: градусы у
+  //: узла поверхности (D-319, D-324), метры от якоря у всех остальных.
+  //: Показывать метры там, где в файле широта, значило бы врать о числе и
+  //: записать его не туда.
   const place = draft.place || null;
-  fields.x = h('input', { type: 'number', step: '1', value: place ? num(place.x) : '' });
-  fields.y = h('input', { type: 'number', step: '1', value: place ? num(place.y) : '' });
+  //: У непришпиленного узла форму выбирает якорь, а не слой: метры
+  //: отсчитываются от якоря, и узлу, которому есть от чего мерить, они
+  //: подходят точнее градусов — так и лежит в файле город (ядро в градусах,
+  //: лавки метрами от ядра). Градусы остаются тому, мерить кому не от чего.
+  const surface = (draft.layer || 'planet') === 'planet';
+  const geographic = place
+    ? 'lat' in place
+    : surface && !(draft.anchor || draft.parent);
+  const first = geographic ? 'широта' : 'x';
+  const second = geographic ? 'долгота' : 'y';
+  fields.x = h('input', {
+    type: 'number', step: geographic ? '0.000001' : '1', placeholder: first,
+    value: place ? num(geographic ? place.lat : place.x) : '',
+  });
+  fields.y = h('input', {
+    type: 'number', step: geographic ? '0.000001' : '1', placeholder: second,
+    value: place ? num(geographic ? place.lon : place.y) : '',
+  });
 
   const properties = propertyRows(draft.properties || {}, world.properties);
   const machines = machineRows(draft.machines || [], world.palette);
@@ -68,8 +87,7 @@ export function nodeForm(host, world, key, tools) {
     parent: fields.parent.value || null,
     anchor: fields.anchor.value || null,
     area_m2: Number(fields.area.value),
-    place: fields.x.value === '' && fields.y.value === ''
-      ? null : { x: Number(fields.x.value || 0), y: Number(fields.y.value || 0) },
+    place: placeOf(fields, geographic),
     city: fields.city.checked,
     properties: properties.value(),
     machines: machines.value(),
@@ -102,7 +120,10 @@ export function nodeForm(host, world, key, tools) {
       h('span', { class: 'label', text: 'здесь основывается город' }),
       h('span', { class: 'hint', text: 'устав, казна и законы — дело движка (D-154)' })),
     h('div', { class: 'field' },
-      h('span', { class: 'label', text: 'место на карте' }),
+      h('span', {
+        class: 'label',
+        text: geographic ? 'место на карте: широта и долгота' : 'место на карте: метры от якоря',
+      }),
       h('div', { class: 'pair' }, fields.x, fields.y,
         h('button', {
           class: 'ghost', title: 'убрать прибитое место: узел снова сядет рядом с якорем',
@@ -111,8 +132,11 @@ export function nodeForm(host, world, key, tools) {
         })),
       h('span', {
         class: 'hint',
-        text: place ? 'прибито: узел стоит здесь и не двигается'
-          : 'пусто — движок сажает узел сам, рядом с якорем',
+        text: (place ? 'прибито: узел стоит здесь и не двигается'
+          : 'пусто — движок сажает узел сам, рядом с якорем')
+          + (geographic
+            ? ' · градусы на глобусе планеты, не метры (D-319)'
+            : ' · метры на восток и на север от якоря'),
       })),
 
     section('свойства места', properties.node,
@@ -201,8 +225,8 @@ function rows(items, render, blank, label) {
  * flag, a number for a number, a select for a word out of a set.
  *
  * Every property carries its own line of explanation, because half of them do
- * not explain themselves: «даль» is not a distance in metres, and «выход» is
- * not a door out of a building.
+ * not explain themselves: «участок» is not any free ground, and «глубина» is
+ * not a height.
  */
 function propertyRows(properties, catalogue) {
   const known = catalogue || {};
@@ -374,12 +398,20 @@ function withList(input, values) {
   return h('span', { class: 'withlist' }, input, list);
 }
 
+/** Место так, как его пишет файл: пустые поля — пина нет вовсе. */
+function placeOf(fields, geographic) {
+  if (fields.x.value === '' && fields.y.value === '') return null;
+  const first = Number(fields.x.value || 0);
+  const second = Number(fields.y.value || 0);
+  return geographic ? { lat: first, lon: second } : { x: first, y: second };
+}
+
 function roadRow(edge, key, tools) {
   const other = edge.a === key ? edge.b : edge.a;
   const seconds = h('input', {
     type: 'text', value: edge.seconds == null ? '' : String(edge.seconds),
-    placeholder: 'шаг города',
-    title: 'число секунд, «reach» — по дали узла (D-180), пусто — шаг города',
+    placeholder: 'по расстоянию',
+    title: 'число секунд; пусто — время идёт из расстояния между узлами (D-319)',
   });
   const surface = h('select', {}, ...SURFACES.map((one) => h('option', {
     value: one, selected: (edge.surface || 'road') === one, text: SURFACE_LABEL[one],
@@ -393,8 +425,10 @@ function roadRow(edge, key, tools) {
       onclick: () => tools.saveEdge({
         a: edge.a,
         b: edge.b,
-        seconds: seconds.value.trim() === '' ? null
-          : seconds.value.trim() === BY_REACH ? BY_REACH : Number(seconds.value),
+        //: Как набрано, так и уходит: `Number` на опечатке даёт NaN, а NaN
+        //: уезжает как `null` — то есть «секунд нет», и опечатка молча
+        //: стирает длину дороги. Нечисло отказывает вольт, по имени и вслух.
+        seconds: seconds.value.trim() === '' ? null : seconds.value.trim(),
         surface: surface.value,
       }),
     }),
@@ -410,7 +444,7 @@ export function newNodeForm(host, world, tools, seed = {}) {
     key: h('input', { type: 'text', placeholder: 'terra.capital.market', value: seed.key || '' }),
     name: h('input', { type: 'text', placeholder: 'Рынок' }),
     layer: h('select', {}, ...LAYERS.map((one) => h('option', {
-      value: one, selected: (seed.layer || 'city') === one, text: one,
+      value: one, selected: (seed.layer || 'planet') === one, text: one,
     }))),
     area: h('input', { type: 'number', min: '1', value: '200' }),
   };

@@ -13,6 +13,7 @@ import { api } from './api.js';
 import { ask, h } from './ui.js';
 import * as worldmap from './world.js';
 import * as worldform from './worldform.js';
+import { terrainPanel } from './terrainpanel.js';
 
 /**
  * `ctx` is what the tab borrows from the page: the shared state, the DOM it
@@ -43,52 +44,89 @@ export function createWorldTab(ctx) {
     return app.world.nodes.some((node) => node.key === pick);
   }
 
-  // Карта — своя у каждой группы: застройка одного города, поверхность одной
-  // планеты, помещения одного дома. Их не смешивают: у двух планет нет общей
-  // земли, и рисовать их вместе значило бы врать про расстояния.
+  // Карта — своя у каждой группы: **вся** поверхность одной планеты, города
+  // на ней в том числе (D-319), и помещения одного дома. Их не смешивают: у
+  // двух планет нет общей земли, и рисовать их вместе значило бы врать про
+  // расстояния; а у города и дикой земли она общая, и делить их было бы такой
+  // же ложью — редактор делил их до 2026-09-08.
   function renderFilters() {
     if (!app.world) return;
     dom.filters.replaceChildren(
       ...worldmap.groups(app.world.nodes).map(({ group, members }) => h('button', {
-        class: 'chip' + (group === app.worldGroup ? ' on' : ''),
+        class: 'chip' + (group === app.worldGroup && !app.worldTerrain ? ' on' : ''),
         text: `${worldmap.groupTitle(group, app.world.nodes)} · ${members.length}`,
-        onclick: () => { app.worldGroup = group; renderFilters(); draw(); },
+        onclick: () => {
+          app.worldGroup = group;
+          app.worldTerrain = false;
+          renderFilters();
+          draw();
+          openForm();
+        },
       })),
+      //: Рельеф — не группа узлов, а то, на чём они стоят: своя фишка, и
+      //: открывается он в той же колонке, где формы (D-319, D-323).
+      h('button', {
+        class: 'chip' + (app.worldTerrain ? ' on' : ''),
+        title: 'зерно и числа генерации: примерить и посмотреть, прежде чем записать',
+        text: 'Рельеф ⛰',
+        onclick: () => { app.worldTerrain = true; renderFilters(); openForm(); },
+      }),
     );
   }
+
+  //: Узел, к которому карта должна приехать: ставится выбором **из списка** и
+  //: гаснет первой же отрисовкой. Выбор с карты его не ставит — там узел уже
+  //: под курсором, и везти к нему карту значило бы сбивать масштаб, который
+  //: смотрящий выставил сам.
+  let focus = null;
 
   function renderList() {
     if (!app.world) return;
     worldmap.renderList(dom.list, app.world, {
       selected: app.worldPick,
       query: app.query,
-      onSelect: (key) => select(key),
+      onSelect: (key) => { focus = key; select(key); },
     });
   }
 
   function renderLegend() {
     dom.legend.replaceChildren(
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.city}` }), 'застройка'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.planet}` }), 'на поверхности'),
-      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.exit}` }), 'ворота города'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.city}` }), 'узел города'),
+      h('span', {}, h('i', { style: `background:${worldmap.COLOUR.planet}` }), 'дикая земля'),
       h('span', {}, h('i', { style: `background:${worldmap.COLOUR.vein}; border-radius:50%` }), 'жила'),
       h('span', {}, h('i', { style: `background:${worldmap.COLOUR.relic}; border-radius:50%` }), 'реликвия Предтеч'),
       h('span', { text: '· число в кружке — сколько станков стоит' }),
       h('span', { text: '· пунктирный контур — место считает движок; сплошной — прибито в файле' }),
-      h('span', { text: '· перетащить узел — прибить место (D-237)' }),
+      h('span', { text: '· север вверху; перетащить узел — прибить место (D-237)' }),
       h('span', { text: '· Shift + потянуть от узла к узлу — проложить дорогу' }),
+      //: Чего карте не хватает, чтобы не врать. Пусто — обычный день; строка
+      //: здесь значит, что картинка разошлась с игрой, и молчать об этом
+      //: нельзя: по ней двигают узлы.
+      ...trouble() ? [h('span', { class: 'bad', text: `· ${trouble()}` })] : [],
     );
   }
+
+  const trouble = () => (app.world && app.worldGroup
+    ? worldmap.mapTrouble(app.world.nodes, app.worldGroup, app.world)
+    : null);
 
   function draw() {
     if (!app.world || !app.worldGroup) return;
     worldmap.renderMap(dom.worldStage, app.world, {
       group: app.worldGroup,
       selected: app.worldPick,
+      focus: takeFocus(),
       onSelect: (what) => { if (what.node) select(what.node); },
       onPlace: (key, spot) => pinPlace(key, spot),
       onConnect: (a, b) => connectNodes(a, b),
     });
+  }
+
+  //: Один раз: приехали — и дальше карта стоит, где стоит.
+  function takeFocus() {
+    const one = focus;
+    focus = null;
+    return one;
   }
 
   function select(pick) {
@@ -103,6 +141,10 @@ export function createWorldTab(ctx) {
 
   function openForm() {
     const host = document.getElementById('panel');
+    if (app.worldTerrain) {
+      void openTerrain(host);
+      return;
+    }
     if (!app.worldPick) {
       host.replaceChildren(h('div', { class: 'empty', text: 'Выберите узел на карте или слева.' }));
       return;
@@ -114,6 +156,39 @@ export function createWorldTab(ctx) {
     worldform.nodeForm(host, app.world, app.worldPick, tools);
   }
 
+  //: Числа рельефа читаются реестром при открытии панели, а не возятся с
+  //: раскладкой: их девять, а карту открывают ради узлов.
+  async function openTerrain(host) {
+    host.replaceChildren(h('div', { class: 'empty', text: 'читаю числа рельефа…' }));
+    let registry;
+    try {
+      registry = await api.constants();
+    } catch (error) {
+      host.replaceChildren(h('div', { class: 'empty', text: String(error.message || error) }));
+      return;
+    }
+    const constants = {};
+    for (const group of registry.groups) {
+      for (const one of group.constants) constants[one.key] = one.value;
+    }
+    const planet = app.worldGroup?.startsWith('planet:') ? app.worldGroup.slice(7) : 'terra';
+    terrainPanel(host, {
+      constants,
+      planet,
+      tools: {
+        save: async (key, value) => {
+          const entry = registry.groups
+            .flatMap((group) => group.constants)
+            .find((one) => one.key === key);
+          if (!entry) throw new Error(`нет такой константы: ${key}`);
+          const result = await api.updateConstant(key, { data: { ...entry, value } });
+          if (result && result.check) reportRun(result.check, 'проверка вольта');
+        },
+        notify: (text, bad) => say(text, bad),
+      },
+    });
+  }
+
   // Новый узел заводится там же, где стоит выбранный: группа и якорь берутся у
   // него. Мир — граф, и узел без соседа в нём просто негде поставить.
   function openNew() {
@@ -121,16 +196,43 @@ export function createWorldTab(ctx) {
     app.worldPick = null;
     renderList();
     worldform.newNodeForm(document.getElementById('panel'), app.world, tools, node
-      ? { layer: node.layer || 'city', parent: node.parent, anchor: node.key }
+      ? { layer: node.layer || 'planet', parent: node.parent, anchor: node.key }
       : {});
   }
 
   // Перетащенный узел получает прибитое место: с этой минуты его считает не
   // движок, а файл, и карта редактора и карта игры сходятся по построению.
+  //
+  // В какой форме — решает не редактор, а узел. Карта считает в метрах обе
+  // формы (`world.pinMetres`), но узел поверхности прибит **градусами**
+  // (D-319, D-324), и записать ему метры значило бы переехать его на другую
+  // планету: метры отсчитываются от якоря, а градусы — от нуля сферы. Узел,
+  // у которого пина ещё нет, получает ту форму, какая у него есть от чего:
+  // есть якорь — метры от него, нет — свои градусы. Так и лежит в файле
+  // столица: ядро в градусах, лавки метрами от ядра, и город переезжает
+  // целиком, когда переезжает ядро.
   async function pinPlace(key, [x, y]) {
     const node = app.world.nodes.find((one) => one.key === key);
     if (!node) return;
-    await write('место узла', () => api.putNode({ ...node, place: { x, y } }), key);
+    const frame = worldmap.frameOf(app.world.nodes, app.worldGroup, app.world);
+    const beside = worldmap.anchorAt(node, app.world.nodes, app.worldGroup, app.world);
+    //: Градусы бывают только на поверхности: у комнаты широты нет, и метры
+    //: её пола отсчитываются от начала своего плана, а не от соседа.
+    const surface = (node.layer || 'planet') === 'planet';
+    const geographic = node.place ? 'lat' in node.place : surface && !beside;
+    let place;
+    if (geographic) {
+      place = worldmap.pinDegrees([x, y], frame);
+      if (!place) {
+        say('у планеты нет радиуса земли в вольте — место в градусах не посчитать', true);
+        return;
+      }
+    } else {
+      //: Метры пишутся от якоря, а не от начала карты: сид прочтёт их именно
+      //: так (`seed_world._pinned`), и разница — это весь город.
+      place = worldmap.pinOffset([x, y], beside || [0, 0], frame);
+    }
+    await write('место узла', () => api.putNode({ ...node, place }), key);
   }
 
   async function connectNodes(a, b) {
@@ -141,8 +243,8 @@ export function createWorldTab(ctx) {
       say(`дорога ${a} — ${b} уже проложена`, true, 'дорога уже есть');
       return;
     }
-    //: Мощёная и шаг города по умолчанию: внутри застройки так и есть, а
-    //: длина за стены правится в форме, где рядом видно «даль» узла.
+    //: Мощёная и без секунд: время такой дороги идёт из расстояния между
+    //: узлами (D-319), а задать его числом можно в форме дороги.
     await write('дорога', () => api.putEdge({ a, b, seconds: null, surface: 'paved' }), a);
   }
 
@@ -167,6 +269,22 @@ export function createWorldTab(ctx) {
       await write('дорога', () => api.dropEdge(a, b), app.worldPick);
     },
     savePocket: async (owner, items) => {
+      //: Пустой список — это «убрать карман», и уносит он всё снаряжение
+      //: стартовой личности разом. Удаление узла спрашивало, а это нет, и
+      //: одного случайного нажатия хватало, чтобы двенадцать строк ушли
+      //: молча (2026-09-08).
+      if (!items.length) {
+        const had = (app.world?.pockets || {})[owner] || [];
+        const answer = await ask({
+          title: `Убрать карман «${owner}»?`,
+          body: had.length
+            ? `Из файла уйдут все ${had.length} строк снаряжения этой личности. `
+              + 'На уже созданный мир это не влияет: сид не отнимает того, что выдал (D-007).'
+            : 'Карман и так пуст.',
+          ok: 'Убрать',
+        });
+        if (!answer) return;
+      }
       await write('карман', () => api.putPocket(owner, items),
         items.length ? `pocket:${owner}` : null);
     },

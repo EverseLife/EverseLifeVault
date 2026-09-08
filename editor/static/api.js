@@ -7,8 +7,12 @@
 
 async function req(method, path, params, body) {
   const url = new URL(path, location.origin);
-  for (const [key, value] of Object.entries(params || {})) {
-    if (value !== undefined && value !== null) url.searchParams.set(key, value);
+  //: Пары, а не только словарь: одному имени бывает несколько значений —
+  //: превью рельефа примеряет сразу несколько чисел (`?set=…&set=…`), а из
+  //: словаря второе такое просто выпало бы.
+  const pairs = Array.isArray(params) ? params : Object.entries(params || {});
+  for (const [key, value] of pairs) {
+    if (value !== undefined && value !== null) url.searchParams.append(key, value);
   }
   const response = await fetch(url, {
     method,
@@ -51,6 +55,17 @@ export const api = {
   removeBuilding: (name) => req('DELETE', '/api/building', { name }),
   // Константы (D-065): реестр целиком и одна запись за раз.
   constants: () => req('GET', '/api/constants'),
+  // Небо (D-320, D-324): те же константы, отобранные по смыслу, и
+  // выведенные из них числа каждого мира. Только чтение — правки идут
+  // через `updateConstant`, тем же путём, что и во вкладке констант.
+  space: () => req('GET', '/api/space'),
+  // Рельеф (D-319, D-321, D-323): поле считает движок, редактор его только
+  // показывает. `overrides` — числа, которые примеряют, не записывая.
+  terrainReady: () => req('GET', '/api/terrain/ready'),
+  terrain: (planet, overrides = []) => req('GET', '/api/terrain', [
+    ['planet', planet],
+    ...overrides.map((one) => ['set', one]),
+  ]),
   createConstant: (body) => req('POST', '/api/constant', null, body),
   updateConstant: (key, body) => req('PUT', '/api/constant', { key }, body),
   removeConstant: (key) => req('DELETE', '/api/constant', { key }, { with_comment: true }),

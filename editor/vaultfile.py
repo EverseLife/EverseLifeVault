@@ -178,8 +178,20 @@ def _number(value: float) -> str:
     number = float(value)
     if number.is_integer():
         return f"{int(number)}.0"
-    text = f"{number:.6f}".rstrip("0").rstrip(".")
-    return text if text not in ("", "0", "-0") else repr(number)
+    text = repr(number)
+    if "e" not in text:
+        return text
+    #: An exponent reads back as a string, so a small number is spelled out --
+    #: with as many places as it takes to read back as itself, and not the six
+    #: that turned a land share of `0.000244140625` into `0.000244`.
+    for places in range(6, 25):
+        spelled = f"{number:.{places}f}"
+        if float(spelled) == number:
+            return spelled
+    #: Smaller than any decimal spelling worth writing: the same dodge
+    #: `blockfile.scalar` uses, so a number too small to spell out still reads
+    #: back as a number rather than as text.
+    return text.replace("e", ".0e") if "." not in text else text
 
 
 def _flow(value: Any) -> str:

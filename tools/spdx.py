@@ -48,9 +48,14 @@ POLICIES: list[tuple[str, str, tuple[str, ...]]] = [
     ("код", CODE, (
         "tools/*.py",
         "editor/*.py",
+        "editor/tests/*.py",
         "editor/static/*.js",
         "editor/static/*.css",
         "editor/static/*.html",
+        #: Тесты карты — на JavaScript, потому что и карта на нём: арифметика
+        #: зума и пинов живёт там, где рисуется (`node --test`).
+        "editor/tests/*.mjs",
+        "tools/tests/*.py",
     )),
     ("содержимое", CONTENT, (
         "*.md",
@@ -88,6 +93,7 @@ STYLES: dict[str, list[str]] = {
     ".py": ["# {spdx}", "# {copy}"],
     ".yaml": ["# {spdx}", "# {copy}"],
     ".js": ["// {spdx}", "// {copy}"],
+    ".mjs": ["// {spdx}", "// {copy}"],
     ".css": ["/* {spdx}", "   {copy} */"],
     ".html": ["<!--", "{spdx}", "{copy}", "-->"],
     #: В документах и шаблонах — HTML-комментарий: в Obsidian и на GitHub он не

@@ -11,6 +11,7 @@ holds as everywhere: touch one line, leave the rest of the file alone.
 from __future__ import annotations
 
 import copy
+import subprocess
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -207,3 +208,28 @@ def test_the_rest_of_the_file_is_left_alone(recipes: Path):
     lines = vault.MetaBlock(file, "units").put(name, "м")
     comments = [line for line in lines if line.lstrip().startswith("#")]
     assert comments == [line for line in before if line.lstrip().startswith("#")]
+
+
+def test_the_maps_arithmetic_is_checked_too() -> None:
+    """`node --test` over `world.test.mjs`, in this run and not beside it.
+
+    Half the «Мир» tab is arithmetic -- where a pin lands, what the drag
+    writes back -- and it lives in JavaScript because that is where the map is
+    drawn. Left to a runner of its own it would be run the day it was written
+    and never again; two real defects (a pin measured from the wrong origin, a
+    cosine the wrong way up) reached the file precisely because nothing ran.
+    So it runs here, with everything else, and is skipped where node is not.
+    """
+    tests = Path(__file__).with_name("world.test.mjs")
+    try:
+        done = subprocess.run(
+            ["node", "--test", str(tests)],
+            cwd=tests.parent.parent,
+            capture_output=True,
+            timeout=120,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        pytest.skip(f"node не запустился: {error}")
+    said = (done.stdout + done.stderr).decode("utf-8", errors="replace")
+    assert done.returncode == 0, said[-4000:]

@@ -20,6 +20,7 @@ import { createPlantsTab } from './plantstab.js';
 import { createGraph } from './graphview.js';
 import { createPanel } from './panel.js';
 import { createRecipesTab } from './recipestab.js';
+import { createSpaceTab } from './spacetab.js';
 import { createStationsTab } from './stationstab.js';
 import { h, plural } from './ui.js';
 import { createWorldTab } from './worldtab.js';
@@ -53,6 +54,13 @@ const app = {
   world: null,
   worldPick: null,
   worldGroup: null,
+  //: Показана ли панель рельефа вместо формы узла.
+  worldTerrain: false,
+  //: Небо (D-320, D-324) — свой отбор тех же констант и свой выбор: настраивая
+  //: небо, держат в голове миры, а не группы файла.
+  space: null,
+  spacePick: null,
+  spaceForm: null,
   //: Константы (D-065) — свой реестр и свой выбор: ключ константы не имя вещи.
   constants: null,
   constPick: null,
@@ -137,6 +145,7 @@ const tabs = {
   buildings: createBuildingsTab(ctx),
   plants: createPlantsTab(ctx),
   constants: createConstantsTab(ctx),
+  space: createSpaceTab(ctx),
   world: createWorldTab(ctx),
 };
 const current = () => tabs[app.tab];
@@ -274,20 +283,35 @@ function select(name, { focus = false } = {}) {
 
 // ------------------------------------------------------------------- console
 
-function say(text, bad = false, title = null) {
+function say(text, bad = false, title = null, level = null) {
   dom.consoleOut.textContent = text || '';
   dom.consoleTitle.textContent = title || (bad ? 'проверка нашла новые проблемы' : 'готово');
-  dom.consoleTitle.className = bad ? 'bad' : 'ok';
+  dom.consoleTitle.className = level || (bad ? 'bad' : 'ok');
   dom.consoleBox.classList.remove('folded');
 }
 
+//: Три уровня, как у самой проверки (`tools/build.py`): проблема ломает игру
+//: или сборку, предупреждение значит, что вольт разошёлся сам с собой, а
+//: известное ждёт решения по открытому вопросу. Красным горит только первое:
+//: строка, красная всегда, перестаёт что-либо значить, а из пятнадцати
+//: находок 2026-09-08 четырнадцать были расхождением текста с реестром.
 function reportRun(result, what) {
   const bad = result.code !== 0;
   //: Сборка пишет файлы и выходит нулём даже с проблемами — заголовок «чисто»
   //: над списком проблем врал бы. Слова проверки ищутся в её же выводе.
-  const complained = /НОВЫЕ проблемы/.test(result.output || '');
-  say(result.output || '(без вывода)', bad || complained,
-    `${what}: ${bad ? 'проблемы' : complained ? 'сделано, но проверка нашла проблемы' : 'чисто'}`);
+  const output = result.output || '';
+  const complained = /НОВЫЕ проблемы/.test(output);
+  const warned = /^Предупреждения \((\d+)\)/m.exec(output);
+  let title = 'чисто';
+  let level = 'ok';
+  if (bad || complained) {
+    title = bad ? 'проблемы' : 'сделано, но проверка нашла проблемы';
+    level = 'bad';
+  } else if (warned) {
+    title = `сделано; предупреждений ${warned[1]}`;
+    level = 'warn';
+  }
+  say(output || '(без вывода)', bad || complained, `${what}: ${title}`, level);
 }
 
 async function afterWrite(result, openName) {

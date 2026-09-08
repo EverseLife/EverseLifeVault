@@ -30,6 +30,8 @@ from urllib.parse import parse_qs, urlparse
 
 import api_buildings
 import api_plants
+import api_space
+import api_terrain
 import api_world
 import store
 import vaultfile as vault
@@ -160,6 +162,8 @@ ROUTES = {
     ("PUT", "/api/classes"): membership,
     **api_buildings.ROUTES,
     **api_plants.ROUTES,
+    **api_space.ROUTES,
+    **api_terrain.ROUTES,
     **api_world.ROUTES,
     ("POST", "/api/masses"): masses,
     ("POST", "/api/check"): check,

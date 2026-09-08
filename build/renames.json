@@ -206,7 +206,8 @@
     "Гидропонная установка": "hydroponic_unit",
     "Космическая мастерская": "space_workshop",
     "Космическая верфь": "space_shipyard",
-    "Основа узла корабля": "ship_node_foundation"
+    "Основа узла корабля": "ship_node_foundation",
+    "Основа узла корабля на пироксите": "pyroxite_ship_node_foundation"
   },
   "classes": {
     "Кирка": "pickaxe",
@@ -594,7 +595,8 @@
       "hydroponic_unit": "Гидропонная установка",
       "space_workshop": "Космическая мастерская",
       "space_shipyard": "Космическая верфь",
-      "ship_node_foundation": "Основа узла корабля"
+      "ship_node_foundation": "Основа узла корабля",
+      "pyroxite_ship_node_foundation": "Основа узла корабля на пироксите"
     },
     "classes": {
       "pickaxe": "Кирка",
@@ -1034,6 +1036,7 @@
       "pyroxite_backpack": "Pyroxite backpack",
       "pyroxite_exoskeleton": "Pyroxite exoskeleton",
       "pyroxite_hull": "Pyroxite hull",
+      "pyroxite_ship_node_foundation": "Pyroxite ship node foundation",
       "pyroxite_slab": "Pyroxite slab",
       "pyroxite_suit": "Pyroxite suit",
       "quartz_sand": "Quartz sand",

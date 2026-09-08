@@ -240,6 +240,42 @@ def test_a_place_pinned_and_unpinned(world: Path) -> None:
     assert "place" not in third.node("terra.capital.gate")
 
 
+def test_a_place_in_degrees_survives_being_written(world: Path) -> None:
+    """A latitude comes back the latitude it went in as.
+
+    Half a degree is kilometres and the sixth decimal is millimetres, so the
+    line the editor writes has to keep every digit it was handed. It did not:
+    the file's number writer spelled a float with six **significant** digits,
+    which turned `41.017267` into `41.0173` -- eight metres away -- and the
+    save then failed its own round-trip guard, complaining about the file
+    rather than about the number. Dragging a node on a surface is the one
+    gesture the whole map exists for, and it refused every time.
+    """
+    file = open_world(world)
+    node = copy.deepcopy(file.node("terra.capital"))
+    node["place"] = {"lat": 41.017267, "lon": -23.500001}
+    again = save(file, file.put_node(node))
+    assert again.node("terra.capital")["place"] == {"lat": 41.017267, "lon": -23.500001}
+
+
+def test_a_road_length_that_is_not_a_number_is_refused_by_name(world: Path) -> None:
+    """A typo says so. It used to erase the road's length instead.
+
+    The form sends the seconds as they were typed, because `Number("4o")` is
+    NaN and NaN travels as `null` -- which reads as "no seconds at all", the
+    one value that means something else entirely (D-319: then the time comes
+    from the distance). So a slip of the finger silently turned a measured
+    road into a computed one, and nothing anywhere said so.
+    """
+    file = open_world(world)
+    pair = {"a": "terra.capital", "b": "terra.coal"}
+    with pytest.raises(vault.VaultError, match="секунды"):
+        file.put_edge({**pair, "seconds": "4o"})
+    _, doc = file.put_edge({**pair, "seconds": "45"})
+    written = [edge for edge in doc["edges"] if {edge["a"], edge["b"]} == set(pair.values())]
+    assert [edge["seconds"] for edge in written] == [45]
+
+
 def test_a_new_node_lands_after_the_one_it_hangs_on(world: Path) -> None:
     """Order in the file is the order the seed lays the world in.
 
@@ -267,10 +303,12 @@ def test_a_new_node_lands_after_the_one_it_hangs_on(world: Path) -> None:
 def test_a_node_removed_takes_its_roads(world: Path) -> None:
     """"Remove this place" means nothing leads there any more."""
     file = open_world(world)
-    again = save(file, file.drop_node("terra.capital.lot3"))
-    assert "terra.capital.lot3" not in again.node_keys()
+    #: A node with roads and nobody standing on it: the jail is joined to the
+    #: city and nothing is anchored to it, so it can go.
+    again = save(file, file.drop_node("terra.capital.jail"))
+    assert "terra.capital.jail" not in again.node_keys()
     assert not [
-        edge for edge in again.doc["edges"] if "terra.capital.lot3" in (edge["a"], edge["b"])
+        edge for edge in again.doc["edges"] if "terra.capital.jail" in (edge["a"], edge["b"])
     ]
 
 
@@ -285,11 +323,11 @@ def test_roads_are_undirected(world: Path) -> None:
     """a -- b and b -- a are one road: the way there is the way back."""
     file = open_world(world)
     again = save(file, file.put_edge(
-        {"a": "terra.capital.lot1", "b": "terra.capital.forge", "seconds": 45, "surface": "paved"}
+        {"a": "terra.capital.jail", "b": "terra.capital.forge", "seconds": 45, "surface": "paved"}
     ))
     matching = [
         edge for edge in again.doc["edges"]
-        if {edge["a"], edge["b"]} == {"terra.capital.forge", "terra.capital.lot1"}
+        if {edge["a"], edge["b"]} == {"terra.capital.forge", "terra.capital.jail"}
     ]
     assert len(matching) == 1
     assert matching[0]["seconds"] == 45
@@ -301,16 +339,30 @@ def test_a_road_into_nowhere_is_refused(world: Path) -> None:
         file.put_edge({"a": "terra.capital.gate", "b": "terra.atlantis", "surface": "road"})
 
 
-def test_a_road_by_reach_keeps_its_word(world: Path) -> None:
-    """«По дали» is not a number and must not become one (D-180)."""
+def test_a_road_without_seconds_keeps_its_silence(world: Path) -> None:
+    """A road that names no seconds is a road measured by distance (D-319).
+
+    It used to say the word «reach» (D-180). Distance became the length of
+    every road that does not name its own seconds, the seed started reading
+    `seconds` as a number or not at all, and the word would now crash it --
+    so saving such a road must not put a number, or the word, back in.
+    """
     file = open_world(world)
     edge = [
         one for one in file.doc["edges"]
         if {one["a"], one["b"]} == {"terra.capital.gate", "terra.coal"}
     ][0]
-    assert edge["seconds"] == "reach"
+    assert "seconds" not in edge
     again = save(file, file.put_edge(dict(edge)))
-    assert again.doc["edges"][file.edge_index("terra.capital.gate", "terra.coal")]["seconds"] == "reach"
+    kept = again.doc["edges"][file.edge_index("terra.capital.gate", "terra.coal")]
+    assert "seconds" not in kept
+
+
+def test_the_word_reach_is_refused_by_name(world: Path) -> None:
+    """And an old layout is told what to do, not silently written back out."""
+    file = open_world(world)
+    with pytest.raises(vault.VaultError, match="время идёт из расстояния"):
+        file.put_edge({"a": "terra.capital.gate", "b": "terra.coal", "seconds": "reach"})
 
 
 def test_a_pocket_is_written_and_taken_away(world: Path) -> None:

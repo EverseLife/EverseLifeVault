@@ -419,15 +419,15 @@
   "transport.stamina_k": 0,
   "planet.mass": {
     "terra": 1.0,
-    "pyroxis": 1.3,
-    "aurora": 0.8,
-    "aquatica": 1.1
+    "pyroxis": 317.8,
+    "aurora": 1.5,
+    "aquatica": 0.5
   },
   "planet.radius": {
     "terra": 1.0,
-    "pyroxis": 1.0,
-    "aurora": 1.13,
-    "aquatica": 1.09
+    "pyroxis": 10.973,
+    "aurora": 1.393,
+    "aquatica": 0.838
   },
   "ship.node_mass": 2000,
   "ship.node_area": 40,
@@ -442,8 +442,8 @@
     "Двигатель II класса": 2,
     "Двигатель III класса": 3
   },
-  "ship.ascent_hours": 4,
-  "ship.descent_hours": 3,
+  "ship.ascent_hours": 2,
+  "ship.descent_hours": 1.5,
   "ship.min_thrust_ratio": 0.15,
   "ship.reference_ratio": 0.5,
   "ship.route_min_share": 50,
@@ -464,13 +464,26 @@
   "orbit.burn_share": 0.5,
   "orbit.corona_radius": 35,
   "orbit.longest_days": 12,
-  "orbit.planet_mu": 150,
-  "orbit.body_radius": 0.5,
-  "orbit.park_radius": 1.5,
+  "orbit.period_days": {
+    "pyroxis": 11,
+    "terra": 28,
+    "aquatica": 70,
+    "aurora": 130
+  },
+  "orbit.phase": {
+    "pyroxis": 0.8,
+    "terra": 2.1,
+    "aquatica": 4.0,
+    "aurora": 2.28
+  },
+  "orbit.terra_radius": 136,
+  "orbit.planet_mu": 24,
+  "orbit.body_radius": 0.08,
+  "orbit.park_radii": 3.0,
   "orbit.step_minutes": 1,
   "orbit.plan_step_minutes": 60,
   "orbit.eject_window": 0.15,
-  "orbit.capture_radius": 3,
+  "orbit.capture_radii": 12.0,
   "orbit.capture_speed": 2,
   "orbit.system_radius": 800,
   "orbit.forecast_days": 90,
@@ -854,9 +867,15 @@
   },
   "wear.station_per_batch": 0.5,
   "wear.transport_per_leg": 1.5,
-  "planet.terra_radius_km": 319,
+  "planet.earth_radius_km": 6371,
+  "planet.land_area_share": {
+    "terra": 0.000244140625,
+    "pyroxis": 8.138020833e-05,
+    "aurora": 0.00048828125,
+    "aquatica": 0.000244140625
+  },
   "map.sky_unit_km": 1100000,
-  "map.approach_km": 2500,
+  "map.approach_km": 800,
   "map.city_step_m": 7,
   "map.min_gap_m": 6,
   "map.city_lat_max": 60,
@@ -864,7 +883,7 @@
   "map.memory_places": 400,
   "map.public_delay_days": 3,
   "map.sight_km": 0.1,
-  "travel.walk_speed_kmh": 4,
+  "travel.walk_speed_kmh": 8,
   "terrain.river_reach_km": 1,
   "terrain.rain_noise_share": 0.6,
   "road.wild_multiplier": 4,

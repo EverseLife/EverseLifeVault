@@ -251,8 +251,8 @@
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -78,
-        "y": -49
+        "x": -66,
+        "y": -23
       },
       "city": false,
       "properties": {},
@@ -325,8 +325,8 @@
       "anchor": "terra.capital.gate",
       "area_m2": 120,
       "place": {
-        "x": -40,
-        "y": 14
+        "x": -37,
+        "y": -7
       },
       "city": false,
       "properties": {},
@@ -427,7 +427,10 @@
       "parent": "terra",
       "anchor": "terra.capital.gate",
       "area_m2": 400,
-      "place": null,
+      "place": {
+        "x": 3,
+        "y": -9
+      },
       "city": false,
       "properties": {
         "вода": "нет"

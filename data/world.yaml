@@ -22,12 +22,15 @@
 # Словарь узла:
 #   key         устойчивый ключ узла: `terra.capital.core`
 #   name        имя, которое видит игрок
-#   layer       слой карты: planet | city | location (по умолчанию city)
+#   layer       слой карты: planet | location (по умолчанию planet). Города
+#               среди слоёв нет с D-319: поверхность планеты одна, а город —
+#               это метка группы, узлы с родителем-городом
 #   parent      ключ группы; `terra` создаётся кодом и объявлен в external
 #   area_m2     площадь участка
 #   anchor      рядом с кем узел встаёт на карте (D-237)
-#   place       {x, y} — прибитое место на карте своей группы; без него место
-#               раздаёт движок рядом с якорем
+#   place       прибитое место: {lat, lon} на глобусе планеты (D-319, D-324)
+#               либо {x, y} — метры на восток и на север от якоря; без него
+#               место раздаёт движок рядом с якорем
 #   city        true — здесь основывается институциональный город (D-154)
 #   properties  свойства места: лес, вода, плодородие, глубина...
 #               Кольца у узла нет: сколько узлов до биопринтера, движок меряет
@@ -63,11 +66,10 @@ names:
 nodes:
   - key: terra.capital
     name: Столица Терры
-    layer: planet
     parent: terra
     area_m2: 1
-    city: true
     place: {lat: 41.0, lon: 24.0}
+    city: true
 
   # Ядро: каждый умерший приходит к биопринтеру, с него город и начинается.
   # Свойство «предтечи» — не украшение: по нему движок узнаёт вечную машину,
@@ -151,7 +153,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -78, y: -49}
+    place: {x: -66, y: -23}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -183,7 +185,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -40, y: 14}
+    place: {x: -37, y: -7}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -197,7 +199,6 @@ nodes:
   #
   - key: terra.coal
     name: Угольная шахта
-    layer: planet
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
@@ -211,7 +212,6 @@ nodes:
   # Пашня за городом: земля в кольцах слишком дорога для полбы (D-089).
   - key: terra.floodplain
     name: Пойма у реки
-    layer: planet
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
@@ -229,10 +229,10 @@ nodes:
   # построит сам, из её же битума.
   - key: terra.oilfield
     name: Нефтяное поле
-    layer: planet
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
+    place: {x: 3, y: -9}
     properties: {вода: нет}
     veins:
       - {resource: Нефть, richness: 55, remaining: 40000}
@@ -254,10 +254,9 @@ nodes:
 
   - key: aurora.merid
     name: Мерид
-    layer: planet
     parent: aurora
-    place: {lat: -8.0, lon: 112.0}
     area_m2: 1
+    place: {lat: -8.0, lon: 112.0}
     properties: {предтечи: true, город: столица}
 
   - key: aurora.merid.hall
@@ -278,10 +277,9 @@ nodes:
 
   - key: aurora.caldar
     name: Кальдар
-    layer: planet
     parent: aurora
-    place: {lat: -20.5, lon: 118.5}
     area_m2: 1
+    place: {lat: -20.5, lon: 118.5}
     properties: {предтечи: true, город: цех}
 
   - key: aurora.caldar.hall
@@ -301,10 +299,9 @@ nodes:
 
   - key: aurora.veyr
     name: Вейр
-    layer: planet
     parent: aurora
-    place: {lat: 3.0, lon: 131.0}
     area_m2: 1
+    place: {lat: 3.0, lon: 131.0}
     properties: {предтечи: true, город: улей}
 
   - key: aurora.veyr.hall
@@ -332,7 +329,7 @@ edges:
   - {a: terra.capital.market, b: terra.capital.forge, surface: paved}
   - {a: terra.capital.core, b: terra.capital.gate, surface: paved}
   # За стены ведёт дорога, не бездорожье: уголь и хлеб возят по ней, и город
-  # сам построил себе эти дороги. Длина — по дали узла (D-180).
+  # сам построил себе эти дороги.
   # Первое кольцо за стенами (D-319): время — метры до узла шагом хода, не
   # двадцать минут. Ближние ресурсы возят ежедневно, в этом и смысл.
   - {a: terra.capital.gate, b: terra.coal, surface: road}

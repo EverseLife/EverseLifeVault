@@ -87,9 +87,27 @@ ENTRY_ORDERS = {
 }
 ENTRY_NAMES = ("name", "class", "resource")
 
-LAYERS = ("planet", "city", "location")
-SURFACES = ("trail", "road", "paved")
-#: The edge length that means "by the node's distance" (D-180).
+#: The levels a node can live on. There is no `city` any more (D-319): a
+#: planet's whole surface is **one** level, and a city is a mark of a group --
+#: the nodes whose parent is the city's own node. The engine's `Layer` has not
+#: had the member since, and the vault's own check refuses it
+#: (`tools/world.py`, WORLD_LAYERS), so a node written on it could neither be
+#: built nor seeded. The editor offered it until 2026-09-08.
+LAYERS = ("planet", "location")
+#: What a node is on when the file says nothing -- the vault's own default.
+DEFAULT_LAYER = "planet"
+
+#: The four the vault's check knows (`tools/world.WORLD_SURFACES`). The
+#: editor knew three, so the one `wild` edge of the layout could not be saved
+#: at all -- and the form, building its select from the same three, offered
+#: `trail` in its place and wrote it without a word.
+SURFACES = ("wild", "trail", "road", "paved")
+#: How a road says «время из расстояния»: by **saying nothing**. It used to be
+#: the word `reach` (D-180), and D-319 made distance the length of every road
+#: that does not name its seconds — the seed now reads `seconds` as a number or
+#: not at all (`seed_world._lay_edges`), and the word would crash it. Kept only
+#: to refuse it by name, so an older layout is told what to do rather than
+#: written back out and broken.
 BY_REACH = "reach"
 
 #: Where a node begins inside `nodes:`.
@@ -394,12 +412,13 @@ def clean_node(data: dict) -> dict:
             f"ключ «{key}» не годится: только латиница, цифры и точки — «terra.capital.forge»"
         )
     out: dict[str, Any] = {"key": key, "name": _text(data.get("name"), "имя узла")}
-    layer = data.get("layer") or "city"
+    layer = data.get("layer") or DEFAULT_LAYER
     if layer not in LAYERS:
         raise VaultError(f"слой «{layer}» не из {', '.join(LAYERS)}")
-    #: `city` is the default and the file leaves it out: written in, it would
+    #: The default is left out, as the vault's own reader takes it
+    #: (`tools/world.py`: `node.get("layer", "planet")`). Written in, it would
     #: appear on every node the editor ever touched and on no other.
-    if layer != "city":
+    if layer != DEFAULT_LAYER:
         out["layer"] = layer
     if data.get("parent"):
         out["parent"] = str(data["parent"])
@@ -408,10 +427,7 @@ def clean_node(data: dict) -> dict:
         out["anchor"] = str(data["anchor"])
     place = data.get("place")
     if place:
-        out["place"] = {
-            "x": _number(place.get("x"), "x на карте", above=None),
-            "y": _number(place.get("y"), "y на карте", above=None),
-        }
+        out["place"] = clean_place(place, layer)
     if data.get("city"):
         out["city"] = True
     properties = data.get("properties") or {}
@@ -432,6 +448,42 @@ def clean_node(data: dict) -> dict:
     if items:
         out["items"] = items
     return out
+
+
+def clean_place(place: dict, layer: str = DEFAULT_LAYER) -> dict:
+    """A pin, in whichever of its two shapes the layout wrote it.
+
+    The engine reads two (`seed_world._pinned`): **degrees** -- where a node
+    stands on its planet's globe (D-237, D-319, D-324) -- and **metres** from
+    the node's anchor, which inside a house are the floor plan's own units.
+    Which of them a node uses is the layout's business and not the editor's:
+    reading one and writing the other would move the node, and reading only
+    the metres -- which is what this did until 2026-09-08 -- makes every city
+    of the surface unreadable, because the globe waves pinned them by latitude.
+    """
+    if not isinstance(place, dict):
+        raise VaultError("место узла — это словарь")
+    if "lat" in place or "lon" in place:
+        #: Only a surface has a globe. `_pinned` looks for `lat` **before** it
+        #: looks at the layer, so a room written with a latitude would be
+        #: given a place on the sphere -- and then the floor it belongs to
+        #: would not see it at all, and the next room would be laid on top.
+        if layer != DEFAULT_LAYER:
+            raise VaultError(
+                f"широта и долгота бывают только на поверхности, а «{layer}» — это нутро:"
+                " место внутри задаётся метрами плана (x, y)"
+            )
+        #: Kept as a float even when it is whole: `41.0` is a latitude and
+        #: `41` reads as a count. Everything else in the layout is measured in
+        #: whole metres and takes the registry's own int-if-whole.
+        return {
+            "lat": float(_number(place.get("lat"), "широта", at_least=-90, below=90)),
+            "lon": float(_number(place.get("lon"), "долгота", at_least=-180, below=180)),
+        }
+    return {
+        "x": _number(place.get("x"), "x на карте", above=None),
+        "y": _number(place.get("y"), "y на карте", above=None),
+    }
 
 
 def _clean_machine(data: dict) -> dict:
@@ -472,8 +524,11 @@ def clean_edge(data: dict) -> dict:
     }
     seconds = data.get("seconds")
     if seconds == BY_REACH:
-        out["seconds"] = BY_REACH
-    elif seconds not in (None, ""):
+        raise VaultError(
+            "«reach» больше не длина дороги: с D-319 время идёт из расстояния,"
+            " и дорога без секунд — это она и есть. Оставьте поле пустым"
+        )
+    if seconds not in (None, ""):
         out["seconds"] = _number(seconds, "секунды", above=0)
     surface = data.get("surface") or "road"
     if surface not in SURFACES:

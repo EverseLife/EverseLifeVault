@@ -262,3 +262,20 @@ def test_undo_walks_back_one_edit(recipes: Path):
     assert read(recipes) != original
     store.undo(recipes)
     assert read(recipes) == original
+
+
+def test_a_small_number_is_written_whole() -> None:
+    """A share of the planet's land keeps every digit it was given (D-324).
+
+    The writer spelled a float to six decimal places, so `0.000244140625` --
+    Terra's land share, one part in 4096 -- came out `0.000244`, a different
+    planet. Six places are plenty for a mass in kilograms and nowhere near
+    enough for a share, and the loss was silent: the line looked like a
+    number, read back as a number, and was the wrong one.
+    """
+    assert vault._number(0.000244140625) == "0.000244140625"
+    assert vault._number(0.5) == "0.5"
+    assert vault._number(1.0) == "1.0"
+    #: No exponent, whatever it costs in digits: `1e-05` reads back as text.
+    assert "e" not in vault._number(1e-05)
+    assert float(vault._number(1e-05)) == 1e-05

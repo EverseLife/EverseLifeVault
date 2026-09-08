@@ -88,6 +88,11 @@ class Session:
 
         Windows would hand the child a cp1251 pipe and the Russian output would
         come back as question marks, so the child is told to speak UTF-8.
+
+        Two pipes come back as one strip of text, and **stderr goes first**:
+        the check writes problems there and everything else to stdout, so the
+        other order buried the one block that has to be read at the top under
+        warnings, known issues and the verdict line.
         """
         argv = [sys.executable, *command]
         env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
@@ -97,7 +102,7 @@ class Session:
             )
         except FileNotFoundError as error:
             raise vault.VaultError(f"не удалось запустить: {' '.join(argv)} ({error})") from error
-        text = (done.stdout + done.stderr).decode("utf-8", errors="replace").strip()
+        text = (done.stderr + done.stdout).decode("utf-8", errors="replace").strip()
         return {"command": " ".join(argv), "code": done.returncode, "output": text}
 
 

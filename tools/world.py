@@ -26,6 +26,7 @@
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import yaml
@@ -36,6 +37,10 @@ DATA = ROOT / "data"
 #: Слои, на которых сид раскладывает узлы (D-045). Космос не отсюда: планеты
 #: и орбиты — правила движка, а не раскладка (10-world/06).
 WORLD_LAYERS = ("planet", "location")
+#: Слой, на котором узел стоит, когда файл молчит.
+DEFAULT_LAYER = "planet"
+#: Градус в радианах: раскладка меряет землю в метрах, а пишет в градусах.
+RAD = math.pi / 180
 WORLD_SURFACES = ("wild", "trail", "road", "paved")
 #: Ключ узла космического слоя — это и есть планета (build/world.json).
 WORLD_PLANETS = ("terra", "aquatica", "pyroxis", "aurora")
@@ -108,18 +113,14 @@ WORLD_PROPERTIES = {
         "hint": "свободный участок: город раздаёт такие жителям, и только на своей "
                 "земле мастер ставит станок (D-089, D-150)",
     },
-    "выход": {
-        "values": "flag",
-        "hint": "ворота города: единственный узел застройки, к которому можно "
-                "привязать дорогу за стены (D-206). В городе он ровно один",
-        "where": "city",
-    },
-    "даль": {
-        "values": "number",
-        "hint": "сколько колец за стенами: каждое следующее дороже предыдущего "
-                "в travel.frontier_growth раз (D-180). Это и есть вся география",
-        "where": "planet",
-    },
+    #: «выход» и «даль» стояли здесь до 2026-09-08 и ушли вместе с тем, что
+    #: их держало. Ворота города имели смысл, пока город был слоем: D-319
+    #: свёл поверхность в одну карту, и дорога за стены выходит теперь из
+    #: любого узла — а «where»: «city» у свойства стало условием, которое
+    #: нечем выполнить, и проверка отказывала бы каждому узлу с ним. Кольца
+    #: «дали» считались по travel.frontier_growth, которого в вольте больше
+    #: нет: с D-319 расстояние меряет глобус. Ни того, ни другого не читает
+    #: движок и не носит ни один узел файла.
     "предтечи": {
         "values": "flag",
         "hint": "наследие Предтеч: по этой метке движок узнаёт их машины и их "
@@ -222,6 +223,134 @@ def _check_properties(key: str, properties: dict, layer: str) -> list[str]:
                 f"а «{key}» на «{layer}»"
             )
     return problems
+
+
+def land_radii(constants: dict) -> dict[str, float]:
+    """Радиус земли каждой планеты, метры (`globe.radius_m`, D-324)."""
+    shares = constants.get("planet.land_area_share")
+    earth_km = constants.get("planet.earth_radius_km")
+    if not isinstance(shares, dict) or not isinstance(earth_km, (int, float)):
+        return {}
+    out = {}
+    for planet, share in shares.items():
+        try:
+            part = float(share)
+        except (TypeError, ValueError):
+            continue
+        if part > 0:
+            out[planet] = math.sqrt(part) * float(earth_km) * 1000.0
+    return out
+
+
+def pinned_places(doc: dict, radii: dict[str, float]) -> dict[str, tuple[str, float, float]]:
+    """Место каждого прибитого узла: группа и метры на восток и на север.
+
+    Повторяет ход сида (`seed_world._pinned`) на **касательной плоскости**:
+    градусы переводятся в метры радиусом планеты, метровый пин складывается с
+    местом якоря, и восток меряется косинусом широты якоря — как это делает
+    `globe.offset`. Сфера в этом не участвует, и не должна: город меряется
+    сотнями метров на шаре в сотню километров, и разница с большим кругом там
+    меньше миллиметра. Проверено против самого движка на Терре и Авроре
+    2026-09-08 — расхождение ноль.
+
+    Хозяин арифметики всё равно движок: здесь она затем, чтобы **отказать до
+    сида**, а не чтобы иметь второе мнение о числе.
+    """
+    by_key = {node["key"]: node for node in doc.get("nodes") or []}
+    out: dict[str, tuple[str, float, float]] = {}
+    #: Начало кадра у каждой планеты своё — первый узел с градусами.
+    origins: dict[str, tuple[float, float]] = {}
+    for node in doc.get("nodes") or []:
+        place = node.get("place") or {}
+        planet = node["key"].split(".", 1)[0]
+        if "lat" in place and planet not in origins:
+            origins[planet] = (float(place["lat"]), float(place["lon"]))
+
+    def place_of(key: str, seen: frozenset = frozenset()) -> tuple[float, float] | None:
+        node = by_key.get(key)
+        if node is None or key in seen:
+            return None
+        place = node.get("place")
+        planet = key.split(".", 1)[0]
+        radius = radii.get(planet)
+        origin = origins.get(planet)
+        if place is None or radius is None or origin is None:
+            return None
+        if "lat" in place:
+            north = (float(place["lat"]) - origin[0]) * RAD * radius
+            east = (float(place["lon"]) - origin[1]) * RAD * radius * math.cos(origin[0] * RAD)
+            return east, north
+        beside = node.get("anchor") or node.get("parent")
+        at = place_of(beside, seen | {key}) if beside else None
+        if at is None:
+            at = (0.0, 0.0)
+        #: Шаг на восток — косинусом широты **якоря**, как в `globe.offset`.
+        lat = origin[0] + (at[1] / radius) / RAD
+        scale = max(math.cos(origin[0] * RAD), 1e-9) / max(math.cos(lat * RAD), 1e-9)
+        return at[0] + float(place["x"]) * scale, at[1] + float(place["y"])
+
+    for node in doc.get("nodes") or []:
+        spot = place_of(node["key"])
+        if spot is not None:
+            out[node["key"]] = (group_of(node, by_key), spot[0], spot[1])
+    return out
+
+
+def group_of(node: dict, by_key: dict) -> str:
+    """Одна карта: вся поверхность планеты, либо нутро одного дома."""
+    layer = node.get("layer", DEFAULT_LAYER)
+    if layer != DEFAULT_LAYER:
+        return f"{layer}:{node.get('parent', '')}"
+    cursor = node
+    while cursor and cursor.get("parent") in by_key:
+        cursor = by_key[cursor["parent"]]
+    return f"planet:{cursor.get('parent') or cursor.get('key', '')}"
+
+
+def check_spacing(doc: dict, constants: dict) -> list[str]:
+    """Два узла одной карты не стоят ближе, чем `map.min_gap_m`.
+
+    Зазор — обещание движка: сажая узел, он не ставит его ближе (D-319,
+    `places._geo_seat`). Прибитого пина это обещание не касается вовсе —
+    `_pinned` кладёт узел туда, где сказано, и не смотрит на соседей, — так
+    что руками написанная раскладка может поставить два узла вплотную, и
+    узнает об этом разве что глаз на карте.
+
+    А глазу от этого хуже всех: карта рисует узел кружком в пятую долю
+    зазора (`bands.nodeRadius` в клиенте), и два узла ближе зазора — это два
+    кружка друг на друге. Отсюда и порог: не «красиво», а то самое число,
+    от которого клиент считает свой кружок.
+    """
+    gap = constants.get("map.min_gap_m")
+    if not isinstance(gap, (int, float)) or gap <= 0:
+        return []
+    radii = land_radii(constants)
+    if not radii:
+        return []
+    places = pinned_places(doc, radii)
+    #: Узел города в сравнение не идёт: это не место, куда ходят, а якорь
+    #: группы (площадь у него метр), и на карте он рисуется **на своём
+    #: биопринтере** (D-319) — то есть по построению совпадает с одним из
+    #: своих. Сравнивать его с ними значило бы объявить теснотой то, что
+    #: задумано; города между собой при этом сверяются — их точки это точки
+    #: их ядер, и те в сравнении есть.
+    holds = {node.get("parent") for node in doc.get("nodes") or [] if node.get("parent")}
+    tight: list[tuple[float, str, str]] = []
+    keys = sorted(key for key in places if key not in holds)
+    for i, one in enumerate(keys):
+        group, x1, y1 = places[one]
+        for other in keys[i + 1:]:
+            other_group, x2, y2 = places[other]
+            if other_group != group:
+                continue
+            span = math.hypot(x2 - x1, y2 - y1)
+            if span < float(gap):
+                tight.append((span, one, other))
+    return [
+        f"мир: «{one}» и «{other}» стоят в {span:.1f} м друг от друга —"
+        f" ближе зазора map.min_gap_m ({gap:g} м), и на карте их кружки сойдутся"
+        for span, one, other in sorted(tight)
+    ]
 
 
 def check_world(doc: dict, recipes_doc: dict, all_recipes) -> list[str]:

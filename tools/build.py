@@ -5,6 +5,7 @@
 
     python tools/build.py           собрать всё, показать предупреждения
     python tools/build.py --check   только проверить, ничего не писать; код возврата 1 при проблемах
+    python tools/build.py --check --strict   ещё и предупреждения считать отказом
     python tools/build.py --masses  вес каждой вещи из входов и кто его переопределил (D-228)
 
 Что делает:
@@ -940,6 +941,10 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
         problems.append(f"следствие круга — недостижимо {len(victims)} позиций: {head}{tail}")
 
     # 3. тупики. Конечность выводится из типа: обязан идти дальше только материал.
+    #: Буквально, а не через классы, и это не упущение: движок закрывает
+    #: классом **инструмент** и поведение (D-215), а вход рецепта берёт по
+    #: имени (`craft/_internal._stock`). Раскрыть здесь значило бы объявить
+    #: связанным то, что игра не соберёт.
     consumed = {canon(i) for r in recipes.values() for i in r["inputs"]}
     for op in doc["operations"]:
         for q in list(op["requires"]) + list(op.get("consumes", [])):
@@ -1649,13 +1654,18 @@ def missing_constant(
 def check_constant_refs(constants_doc: dict) -> list[str]:
     """Документ не вправе обещать число, которого нет в реестре (D-065).
 
-    Ловит обратную ошибку тоже: константу удалили решением, а текст на неё ссылается.
+    Ловит обратную ошибку тоже: константу удалили решением, а текст на неё
+    ссылается. Это **предупреждение**, а не проблема (см. `main`): движок
+    документов не читает, и чинится такое строкой текста.
+
+    Одна строка на документ, а не на ссылку: план карты называл девять снятых
+    констант девятью строками, и вся проверка тонула в одном файле.
     """
     known = set(flatten_constants(constants_doc))
     namespaces = {key.split(".", 1)[0] for key in known}
     keys_of_socket = named_socket_keys()
     problems: list[str] = []
-    for path, rel in documents():
+    for path, rel in vault_pages():
         # Журнал решений — архив: замороженные и пересмотренные записи законно
         # ссылаются на константы, которых в реестре уже нет (например D-108).
         # Отчёт симуляции — наоборот: он существует ради того, чтобы называть
@@ -1676,14 +1686,21 @@ def check_constant_refs(constants_doc: dict) -> list[str]:
         # значило бы перестать проверять сорок настоящих ссылок ради двух
         # ненастоящих. Там работает `socket_keys` — исключение по имени, а не
         # по документу.
-        if rel.startswith((".obsidian/", "build/", "templates/", "editor/")) or rel in (
+        #: README редактора здесь наравне с прочими: это документ вольта про
+        #: вольт, и величины он называет живые — проверено, когда его вернули
+        #: в обход (`vault_pages`).
+        if rel in (
                 "90-production/02-decision-log.md", "90-production/04-simulation.md",
                 "90-production/08-session-protocol.md",
                 "90-production/09-code-review-2026-08-23.md"):
             continue
-        for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8")))):
-            if missing_constant(key, known, namespaces, keys_of_socket):
-                problems.append(f"{rel}: ссылается на константу «{key}», которой нет в реестре")
+        gone = [
+            key
+            for key in sorted(set(CONST_REF.findall(path.read_text(encoding="utf-8"))))
+            if missing_constant(key, known, namespaces, keys_of_socket)
+        ]
+        if gone:
+            problems.append(f"{rel} — {', '.join(gone)}")
     return problems
 
 
@@ -2108,14 +2125,152 @@ def documents():
         yield path, rel
 
 
-def build_status_index() -> str:
+
+#: Реестры, по которым сверяются названные записи. Журнал — единственный
+#: источник решений, два файла вопросов — единственный источник вопросов.
+DECISION_LOG = "90-production/02-decision-log.md"
+QUESTION_REGISTRIES = ("00-core/02-open-questions.md", "00-core/04-closed-questions.md")
+
+#: Ссылка одного документа на другой: [текст](путь.md), при желании с якорем.
+#: Внешние адреса пропускаются — `(?!\w+:)` отсекает `https:` и прочие схемы:
+#: живость чужого сайта вольту не проверить, да и не его это дело. Проверяется
+#: только `.md`: ссылок на `data/*.yaml` и `tools/*.py` в вольте три десятка,
+#: все живые, и звать их сюда — отдельная работа со своими краями (цель вне
+#: вольта, звёздочка в пути); граница названа тут нарочно, чтобы её не искали.
+DOC_LINK = re.compile(r"\]\((?!\w+:)([^)#\s]+\.md)(?:#[^)]*)?\)")
+DECISION_REF = re.compile(r"\bD-\d+\b")
+QUESTION_REF = re.compile(r"\bOQ-\d+\b")
+#: Огороженный блок и код-спан: то, что в них написано, — пример, а не ссылка.
+#: Абзац, объясняющий эту самую семью, привёл в спане `[текст](путь.md)` — и
+#: единственным живым предупреждением уровня, заведённого ради читаемых
+#: предупреждений, оказалось ложное, в его же документации.
+FENCED = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
+CODE_SPAN = re.compile(r"`[^`\n]*`")
+#: Вопросы, снятые до того, как завёлся реестр закрытых: журнал называет их
+#: по праву — это архив, и переписать историю ради зелёной проверки нельзя.
+#: Списком, а не вычерком всего журнала: в нём номера решений ссылаются друг
+#: на друга сотнями раз, и опечатка `D-137`→`D-173` уводит в чужое решение.
+ARCHIVED_QUESTIONS = frozenset({"OQ-020", "OQ-021", "OQ-027", "OQ-102"})
+
+
+def prose(text: str) -> str:
+    """Текст без кода: пример в кавычках — не ссылка и не номер решения."""
+    return CODE_SPAN.sub(" ", FENCED.sub(" ", text))
+
+
+def vault_pages():
+    """Документы, за которые вольт отвечает содержанием.
+
+    Отсеивается только то, что вольт не писал: настройки Obsidian и кеш
+    pytest. Всё остальное — да, включая README, CLAUDE.md и README редактора:
+    последний называет три десятка решений и ссылается на те же документы, и
+    исключать его значило бы не проверять файл, где номера решений встречаются
+    чаще, чем где-либо после журнала.
+
+    Статусов это не касается — там свой, более узкий список: у README
+    инструмента статуса нет и быть не должно (см. `statuses`).
+    """
+    for path, rel in documents():
+        if rel.startswith((".obsidian/", ".pytest_cache/")):
+            continue
+        yield path, rel
+
+
+def check_doc_links() -> list[str]:
+    """Ссылка одного документа на другой обязана вести в живой файл.
+
+    Предупреждение, а не проблема: движок документов не читает, и битая
+    ссылка не ломает ни сборку, ни игру. Ломает она другое — чтение вольта, а
+    вольт затем и существует, чтобы его читали. Переименованный документ
+    оставляет за собой десяток ссылок в никуда, и находит их сегодня только
+    тот, кто по ним пошёл.
+    """
+    problems: list[str] = []
+    for path, rel in vault_pages():
+        gone = sorted(
+            {
+                target
+                for target in DOC_LINK.findall(prose(path.read_text(encoding="utf-8")))
+                if not (path.parent / target).exists()
+            }
+        )
+        if gone:
+            problems.append(f"{rel} — {', '.join(gone)}")
+    return problems
+
+
+def known_records() -> tuple[set[str], set[str]]:
+    """Что вольт объявил: решения журнала и вопросы обоих реестров."""
+    #: Отсутствующий реестр — не повод ронять сборку трейсбеком: семья эта
+    #: текстовая, и переименованный файл найдётся проверкой ссылок словами.
+    #: Тот же приём, что у `named_socket_keys`.
+    def read(name: str) -> str:
+        path = ROOT / name
+        return path.read_text(encoding="utf-8") if path.exists() else ""
+
+    decisions = set(re.findall(r"^### (D-\d+)", read(DECISION_LOG), re.MULTILINE))
+    questions: set[str] = set()
+    for name in QUESTION_REGISTRIES:
+        questions |= set(re.findall(r"\|\s*(OQ-\d+)\s*\|", read(name)))
+    return decisions, questions
+
+
+def check_named_records() -> list[str]:
+    """Названное решение и названный вопрос обязаны существовать.
+
+    «D-137» и «OQ-104» — несущие ссылки: по ним ходят и человек, и следующая
+    сессия. Опечатка в номере ведёт в чужое решение, а номер, взятый заранее и
+    не записанный, — в пустоту; и то и другое молча, потому что номер выглядит
+    ссылкой независимо от того, есть ли за ним запись.
+
+    Журнал решений из проверки исключён, и по той же причине, по какой он
+    исключён из сверки констант: это архив. Он законно называет вопросы,
+    снятые до того, как завёлся реестр закрытых, — OQ-020, OQ-021, OQ-027
+    сняты решением, OQ-102 «закрыт вопросом, а не ответом».
+    """
+    decisions, questions = known_records()
+    problems: list[str] = []
+    for path, rel in vault_pages():
+        text = prose(path.read_text(encoding="utf-8"))
+        #: Журнал прощается только вопросам, и только названным поимённо:
+        #: решения в нём проверяются наравне со всеми.
+        excused = ARCHIVED_QUESTIONS if rel == DECISION_LOG else frozenset()
+        gone = sorted(set(DECISION_REF.findall(text)) - decisions)
+        gone += sorted(set(QUESTION_REF.findall(text)) - questions - excused)
+        if gone:
+            problems.append(f"{rel} — {', '.join(gone)}")
+    return problems
+
+
+def check_statuses() -> list[str]:
+    """У документа обязан быть статус, и притом один из шести.
+
+    Статус — контракт синхронизации: «реализовано» обязывает совпадать с
+    кодом, «идея» не обязывает ни к чему. Документ без него выпадает из этого
+    контракта целиком — сверять его не с чем, и незаметно: индекс статусов
+    собирает такие в отдельный список внизу, куда никто не смотрит.
+    """
+    _, unknown = statuses()
+    return [f"{rel} — {title}" for rel, title in unknown]
+
+
+def statuses() -> tuple[dict[str, list[tuple[str, str]]], list[tuple[str, str]]]:
+    """Статус каждого документа по его собственной шапке: узнанные и нет.
+
+    Одним ходом для двух читателей — индекса, который их печатает, и проверки,
+    которая ругается на неузнанные. Два обхода разошлись бы на первой же
+    правке списка исключений.
+    """
     found: dict[str, list[tuple[str, str]]] = {s: [] for s in STATUS_ORDER}
     unknown: list[tuple[str, str]] = []
 
-    for path, rel in documents():
-        # Служебные документы корня статуса не имеют и в индексе не нужны: они
-        # не про игру, а про то, как с репозиторием обращаться.
-        if rel.startswith((".obsidian/", ".pytest_cache/", "build/", "templates/", "editor/")) or rel in ("README.md", "CLAUDE.md", "MEMORY.md", "CLA.md", "CONTENT-LICENSE.md"):
+    for path, rel in vault_pages():
+        # Служебные документы корня и README редактора статуса не имеют и в
+        # индексе не нужны: они не про игру, а про то, как с репозиторием и с
+        # инструментом обращаться.
+        if rel.startswith(("build/", "templates/", "editor/")) or rel in (
+            "README.md", "CLAUDE.md", "MEMORY.md", "CLA.md", "CONTENT-LICENSE.md"
+        ):
             continue
         if rel == "90-production/03-status.md":
             continue
@@ -2134,7 +2289,11 @@ def build_status_index() -> str:
             unknown.append((rel, title))
         else:
             found[status].append((rel, title))
+    return found, unknown
 
+
+def build_status_index() -> str:
+    found, unknown = statuses()
     out = [
         "# Статусы документов",
         "",
@@ -2167,9 +2326,66 @@ def relative_link(rel: str) -> str:
 
 # ---------------------------------------------------------------------- main
 
+#: Заголовок для каждой семьи предупреждений: их группируют по нему, а не
+#: по тексту находки. Семья известна на месте вызова, и знать её там дешевле,
+#: чем разбирать потом готовую строку.
+REFS_GONE = "документ ссылается на снятую константу"
+LINKS_DEAD = "ссылка ведёт в никуда"
+RECORDS_UNKNOWN = "названо решение или вопрос, которого нет"
+STATUS_MISSING = "документ без распознанного статуса"
+
+
+def by_kind(found: list[tuple[str, str]]) -> list[tuple[str, list[str]]]:
+    """Находки по семьям, в порядке первого появления семьи."""
+    out: dict[str, list[str]] = {}
+    for kind, text in found:
+        out.setdefault(kind, []).append(text)
+    return list(out.items())
+
+
+def verdict(problems: list, warnings: list, strict: bool) -> tuple[str, int]:
+    """Последнее слово проверки и код возврата: что сказать и чем выйти.
+
+    Отдельной функцией потому, что это и есть весь новый контракт: чем
+    проверка падает, а чем только говорит. Спрятанное в `main` правило
+    проверить нечем — а проверять его надо, потому что менять его будут.
+    """
+    if problems:
+        return "проверка нашла новые проблемы", 1
+    if warnings and strict:
+        return f"предупреждений {len(warnings)} — с --strict это отказ", 1
+    if warnings:
+        return f"проверка чистая; предупреждений {len(warnings)}", 0
+    return "проверка чистая", 0
+
+
 def main() -> int:
     check_only = "--check" in sys.argv
     masses_only = "--masses" in sys.argv
+    #: Уровней три, а не два, и делит их один вопрос: что сломается.
+    #:
+    #: **Проблема** ломает игру или сборку — её читает движок: неизвестный
+    #: вход, круг в лестнице, имя без перевода, вес больше вошедшей материи.
+    #: Такая роняет проверку.
+    #:
+    #: **Предупреждение** значит, что вольт разошёлся сам с собой: документ
+    #: обещает число, которого в реестре уже нет. Обманет оно читателя, а не
+    #: движок — документов он не читает. Ронять этим сборку значит приучать
+    #: на неё не смотреть: на 2026-09-08 таких строк было четырнадцать из
+    #: пятнадцати, проверка была красной всегда, и красной её перестали
+    #: читать — ровно то, о чём предупреждает докстринг `tools/tests/test_refs`.
+    #: Кому нужна прежняя строгость — `--strict`.
+    #:
+    #: **Известное** — расхождение, за которым стоит открытый вопрос: решение
+    #: ещё не принято, и чинить нечего, пока его нет.
+    strict = "--strict" in sys.argv
+    if strict and not check_only:
+        #: Строгость — про вердикт, а вердикт выносит только `--check`: сборка
+        #: пишет файлы и выходит нулём даже с проблемами. Молча проглоченный
+        #: флаг строгости хуже отсутствующего, поэтому отказ, а не совет.
+        print("--strict имеет смысл только с --check: сборка вердикта не выносит",
+              file=sys.stderr)
+        return 2
 
     # Реестр материалов читается первым: из него наполняются таблицы констант
     recipes_doc, registry_problems = load_recipes_doc()
@@ -2202,11 +2418,21 @@ def main() -> int:
     problems += qty_problems
     problems += plant_problems
     problems += check_laws(laws_doc)
-    problems += check_constant_refs(constants_doc)
+    #: Уровень предупреждений — про **вольт как текст**: сюда идёт всё, что
+    #: обманет читателя и не тронет игру. Семей четыре, и разъезжаются они
+    #: по-разному, но чинятся одинаково — строкой в документе.
+    warnings = [(REFS_GONE, one) for one in check_constant_refs(constants_doc)]
+    warnings += [(LINKS_DEAD, one) for one in check_doc_links()]
+    warnings += [(RECORDS_UNKNOWN, one) for one in check_named_records()]
+    warnings += [(STATUS_MISSING, one) for one in check_statuses()]
     problems += check_building_types(constants_doc, recipes_doc)
     problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
+    #: Зазор между узлами: обещание движка, которого прибитый пин не
+    #: касается (`seed_world._pinned` кладёт узел, куда сказано). Числа
+    #: для этого — радиус земли планеты и `map.min_gap_m`, оба из реестра.
+    problems += worldfile.check_spacing(world_doc, flatten_constants(constants_doc))
     vocabulary = load_vocabulary()
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
@@ -2219,21 +2445,31 @@ def main() -> int:
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
 
-    if known_problems:
-        print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
-        for p in known_problems:
-            print(f"  · {p}")
-        print()
-
     if problems:
         print(f"НОВЫЕ проблемы ({len(problems)}):", file=sys.stderr)
         for p in problems:
             print(f"  · {p}", file=sys.stderr)
         print(file=sys.stderr)
 
+    if warnings:
+        print(f"Предупреждения ({len(warnings)}) — вольт расходится сам с собой;"
+              " игру это не ломает:")
+        for kind, items in by_kind(warnings):
+            print(f"  {kind} ({len(items)}):")
+            for item in items:
+                print(f"    · {item}")
+        print()
+
+    if known_problems:
+        print(f"Известные расхождения, ждут решения по открытому вопросу ({len(known_problems)}):")
+        for p in known_problems:
+            print(f"  · {p}")
+        print()
+
     if check_only:
-        print("проверка чистая" if not problems else "проверка нашла новые проблемы")
-        return 1 if problems else 0
+        said, code = verdict(problems, warnings, strict)
+        print(said)
+        return code
 
     BUILD.mkdir(exist_ok=True)
     written = []

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import math
 import sys
 from pathlib import Path
 
@@ -26,21 +27,78 @@ def world(session: Session, _query: dict, _body: dict) -> dict:
     """
     file = session.open_world()
     _, ladder = session.open()
+    #: Один раз на запрос: реестр констант складывается из всего файла, и
+    #: собирать его дважды ради двух ключей и одной таблицы — работа на
+    #: пустом месте.
+    entries = _constants(session)
     return {
         "source": str(session.world),
+        #: How wide the land of each planet is, metres. A node of a surface is
+        #: pinned in **degrees** (D-319, D-324) while everything else in the
+        #: layout is metres from an anchor, and one flat map cannot hold both
+        #: without a radius to turn one into the other -- the same radius
+        #: `globe.radius_m` uses, from the same two numbers of the vault.
+        "radii": _land_radii(entries),
+        #: The step and the gap the engine seats an unpinned node by. In the
+        #: vault since D-319 (`map.city_step_m`, `map.min_gap_m`), and the map
+        #: had them hard-coded at the old 150 and 96: it seated by a rule the
+        #: engine stopped using, and drew a city twenty times too wide.
+        "seating": _seating(entries),
         "external": file.doc.get("external") or [],
         "nodes": file.doc.get("nodes") or [],
         "edges": file.doc.get("edges") or [],
         "pockets": file.doc.get("pockets") or {},
         "palette": _world_palette(ladder),
         #: Place properties as a closed list with an explanation of each: the
-        #: same person edits them and the machines, and the word «даль» does
-        #: not explain itself. The list is the one the check refuses by
+        #: same person edits them and the machines, and «участок» does not
+        #: explain itself. The list is the one the check refuses by
         #: (`tools/world.py`), not a second one: two lists would part ways on
         #: the first new property, and the form would offer what the build
         #: would not take.
         "properties": worldtool.WORLD_PROPERTIES,
     }
+
+
+def _seating(entries: dict) -> dict:
+    """`map.city_step_m` and `map.min_gap_m`: what the engine seats by."""
+    step = entries.get("map.city_step_m")
+    gap = entries.get("map.min_gap_m")
+    out = {}
+    if isinstance(step, (int, float)):
+        out["step_m"] = float(step)
+    if isinstance(gap, (int, float)):
+        out["gap_m"] = float(gap)
+    return out
+
+
+def _constants(session: Session) -> dict:
+    entries: dict = {}
+    for group in session.open_constants().registry():
+        for one in group["constants"]:
+            entries[one["key"]] = one.get("value")
+    return entries
+
+
+def _land_radii(entries: dict) -> dict:
+    """The radius of every planet's land, metres (`globe.radius_m`, D-324).
+
+    Read from the constants file the editor is already holding, not from the
+    build: the person turning `planet.land_area_share` wants the map to move
+    with the number they just typed, and the build has not been run yet.
+    """
+    share = entries.get("planet.land_area_share")
+    earth_km = entries.get("planet.earth_radius_km")
+    if not isinstance(share, dict) or not isinstance(earth_km, (int, float)):
+        return {}
+    out = {}
+    for planet, value in share.items():
+        try:
+            part = float(value)
+        except (TypeError, ValueError):
+            continue
+        if part > 0:
+            out[planet] = math.sqrt(part) * float(earth_km) * 1000.0
+    return out
 
 
 def _world_palette(ladder: model.Ladder) -> dict:
