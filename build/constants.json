@@ -910,6 +910,7 @@
     "aurora": 6
   },
   "terrain.lapse_c": 12,
+  "terrain.relief_m": 3000,
   "map.lattice_m": 5,
   "biome.names": {
     "coast": "Берег",
