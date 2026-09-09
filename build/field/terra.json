@@ -4,7 +4,7 @@
     "seed": 81043624,
     "step_m": 500.0,
     "radius_m": 99546.875,
-    "sea_share": 0.6,
+    "sea_share": 0.3,
     "relief_m": 3000.0,
     "plates": 12,
     "continental_share": 0.5,
@@ -24,14 +24,14 @@
     "coarse_iterations": 60,
     "fine_iterations": 24
   },
-  "digest": "1c6e8f88a03b",
+  "digest": "5687db9a7f03",
   "grid": {
     "rows": 625,
     "cols": 1250,
     "step_m": 500.0,
     "radius_m": 99546.875
   },
-  "land_share": 0.4058,
+  "land_share": 0.7117,
   "height_max_m": 3000.0,
   "forms": [
     {

@@ -57,6 +57,8 @@ def params_for(args: argparse.Namespace) -> pipeline.Params:
         overrides["step_m"] = float(args.step)
     if args.seed is not None:
         overrides["seed"] = int(args.seed)
+    if args.sea is not None:
+        overrides["sea_share"] = float(args.sea)
     if args.coarse_iter is not None:
         overrides["coarse_iterations"] = int(args.coarse_iter)
     if args.fine_iter is not None:
@@ -166,6 +168,7 @@ def main() -> int:
     ap.add_argument("--planet", choices=PLANETS, default="terra")
     ap.add_argument("--step", type=float, help="шаг сетки в метрах поверх terrain.step_m")
     ap.add_argument("--seed", type=int, help="зерно поверх terrain.seed (уже своё для планеты)")
+    ap.add_argument("--sea", type=float, help="доля моря поверх terrain.sea_share, на один прогон")
     ap.add_argument("--coarse-iter", type=int)
     ap.add_argument("--fine-iter", type=int)
     ap.add_argument("--field", default=str(FIELD), help="куда класть и откуда читать поле")

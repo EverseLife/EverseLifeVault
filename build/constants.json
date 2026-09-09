@@ -892,7 +892,7 @@
   "path.fade_per_day": 1,
   "terrain.seed": 20260906,
   "terrain.sea_share": {
-    "terra": 0.6,
+    "terra": 0.3,
     "aquatica": 0.9,
     "pyroxis": 0.0,
     "aurora": 0.0
