@@ -51,11 +51,12 @@ LIFT_REF = 0.67
 LEE_REF = 0.5
 RAIN_CAP = 0.5
 #: Край сухого пояса гуляет по долготе шумом, иначе на карте лежит полоса.
-DRY_BELT_WANDER_DEG = 5.0
-DRY_BELT_WANDER_LATTICE = 3.0
-#: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой.
-RAIN_NOISE = 0.15
-RAIN_NOISE_LATTICE = 20.0
+DRY_BELT_WANDER_DEG = 8.0
+DRY_BELT_WANDER_LATTICE = 6.0
+#: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой
+#: и край сухого пояса не шёл ровной чертой.
+RAIN_NOISE = 0.3
+RAIN_NOISE_LATTICE = 40.0
 
 
 @dataclass(frozen=True)
@@ -81,7 +82,7 @@ class Bounds:
 #: холодеет на всю величину `Weather.continental_c`; и решётка шума
 #: местного климата — течения, заливы, чего у модели нет поимённо.
 CONTINENTAL_R = 0.5
-CLIMATE_NOISE_LATTICE = 6.0
+CLIMATE_NOISE_LATTICE = 10.0
 
 
 @dataclass(frozen=True)
