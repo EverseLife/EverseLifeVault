@@ -26,18 +26,28 @@ from field.grid import Grid
 #: второго — западные (на восток), дальше — полярные восточные.
 TRADE_LAT = 30.0
 WESTERLY_LAT = 60.0
-#: Влага: испарение над морем за шаг, потеря над сушей за шаг, базовый дождь
-#: и орографический — на единицу подъёма (м/м) вдоль ветра.
-EVAPORATION = 0.08
-LAND_LOSS = 0.004
-RAIN_BASE = 0.012
-RAIN_LIFT = 3.5
+#: Влага — в метрах пути, не в клетках, чтобы сетка и планета не меняли
+#: климата (план §3): над морем воздух насыщается за `EVAPORATION_M`, над
+#: ровной сушей отдаёт дождём и теряет влагу с такими же длинами;
+#: орографический дождь — на единицу подъёма (м/м) вдоль ветра.
+EVAPORATION_M = 15_000.0
+#: Суша тоже дышит: лес и озёра возвращают влагу в воздух, медленнее моря.
+LAND_EVAPORATION_M = 200_000.0
+LAND_LOSS_M = 400_000.0
+RAIN_BASE_M = 150_000.0
+#: Подъём вдоль ветра, выжимающий всю влагу, и спуск, высушивающий дождь
+#: за хребтом, — в метрах высоты.
+LIFT_REF_M = 2_000.0
+LEE_REF_M = 1_500.0
 RAIN_CAP = 0.5
+#: Сухой пояс — нисходящий воздух ячейки Хэдли: широта середины, полуширина
+#: в градусах и насколько он сушит.
+DRY_BELT_LAT = 27.0
+DRY_BELT_WIDTH = 10.0
+DRY_BELT_STRENGTH = 0.4
 #: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой.
 RAIN_NOISE = 0.15
 RAIN_NOISE_LATTICE = 20.0
-#: Осадки нормируются на этот квантиль суши: сверху всё «очень мокро».
-RAIN_TOP_QUANTILE = 0.97
 
 
 def temperature(lat2d: np.ndarray, height_m: np.ndarray, warm: float, cold: float, lapse_per_km: float) -> np.ndarray:
@@ -58,26 +68,37 @@ def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.nda
     moisture = np.full(rows, 0.5)
     out = np.zeros_like(height_m)
     r = np.arange(rows)
+    evaporation = np.clip(grid.dx / EVAPORATION_M, 0.0, 1.0)
+    breath = np.clip(grid.dx / LAND_EVAPORATION_M, 0.0, 1.0)
+    loss = np.clip(grid.dx / LAND_LOSS_M, 0.0, 1.0)
+    base = grid.dx / RAIN_BASE_M
     for step in range(2 * cols):
         col = np.where(direction > 0, step % cols, (cols - 1 - step) % cols)
         prev = (col - direction) % cols
         here_sea = sea[r, col]
-        rise = (height_m[r, col] - height_m[r, prev]) / grid.dx
-        lift = np.clip(rise, 0.0, None)
-        fall = np.clip(-rise, 0.0, None)
-        wet = moisture * np.minimum(RAIN_BASE + RAIN_LIFT * lift, RAIN_CAP)
+        rise = np.clip(height_m[r, col], 0.0, None) - np.clip(height_m[r, prev], 0.0, None)
+        lift = np.clip(rise, 0.0, None) / LIFT_REF_M
+        fall = np.clip(-rise, 0.0, None) / LEE_REF_M
+        share = np.minimum(base + lift, RAIN_CAP)
+        wet = moisture * share
         wet = np.where(here_sea, 0.0, wet)
-        #: Спуск за хребтом сушит: воздух греется и дождя не даёт.
-        wet = wet * np.exp(-RAIN_LIFT * fall)
         moisture = moisture - wet
-        moisture = np.where(here_sea, moisture + EVAPORATION * (1.0 - moisture), moisture * (1.0 - LAND_LOSS))
+        #: Спуск за хребтом сушит: воздух греется, и дождь за ним слабеет.
+        moisture = moisture * np.exp(-fall)
+        moisture = np.where(
+            here_sea,
+            moisture + evaporation * (1.0 - moisture),
+            moisture * (1.0 - loss) + breath * (1.0 - moisture) * out[r, prev],
+        )
         moisture = np.clip(moisture, 0.0, 1.0)
-        out[r, col] = wet
-    land = ~sea
-    top = float(np.quantile(out[land], RAIN_TOP_QUANTILE)) if land.any() else 1.0
-    scaled = np.clip(out / max(top, 1e-9), 0.0, 1.0)
-    texture = noise.fractal(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
-    return np.clip(scaled * (1.0 - RAIN_NOISE) + texture * RAIN_NOISE * scaled.mean() * 2.0, 0.0, 1.0)
+        #: Осадки места — не сколько выпало на клетку, а насколько мокрый
+        #: здесь воздух: дождь за клетку делится на дождь ровной земли, так
+        #: что равнина читает влажность воздуха, а склон против ветра — единицу.
+        out[r, col] = np.where(here_sea, 0.0, np.minimum(wet / base, 1.0))
+    belt = 1.0 - DRY_BELT_STRENGTH * np.exp(-(((np.abs(grid.lat) - DRY_BELT_LAT) / DRY_BELT_WIDTH) ** 2))
+    scaled = np.clip(out * belt[:, None], 0.0, 1.0)
+    texture = noise.centred(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
+    return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
 
 
 #: Предпросмотр зональных биомов: коды и пороги. Оси — температура, °C, и

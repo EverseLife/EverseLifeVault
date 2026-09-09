@@ -32,11 +32,11 @@ VERSION = 1
 SEA_DEPTH_M = 2000.0
 #: Грубая сетка эрозии: во сколько раз крупнее шаг и сколько итераций там и там.
 COARSE_FACTOR = 4
-COARSE_ITERATIONS = 40
-FINE_ITERATIONS = 8
+COARSE_ITERATIONS = 60
+FINE_ITERATIONS = 24
 #: Мелочь под грубой сеткой, когда высота переезжает на тонкую: амплитуда в
 #: долях размаха и длина волны в метрах; на твёрдой породе шум гребенчатый.
-DETAIL_AMPLITUDE = 0.03
+DETAIL_AMPLITUDE = 0.015
 DETAIL_WAVELENGTH_M = 6_000.0
 #: Дальше этого «близость воды» не считается, метры.
 WET_MAX_M = 5_000.0
@@ -159,7 +159,7 @@ def _to_metres(
 def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Rasters:
     fine = Grid.of(params.radius_m, params.step_m)
     log(f"grid {fine.rows}x{fine.cols} at {fine.step_m:.0f} m")
-    tect = plates.build(fine, params.seed, params.plates, params.continental_share)
+    tect = plates.build(fine, params.seed, params.plates, params.continental_share, params.sea_share)
     height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
 
@@ -200,6 +200,11 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: Дельта, дошедшая до кромки, — суша: море отступило от устья само.
     sea = sea & (height < 0.0)
     land = ~sea
+    #: Размах — слово вольта, не эрозии: поднятие за сорок итераций уводит
+    #: вершину выше `terrain.relief_m`, и суша приводится к нему линейно.
+    top = float(height[land].max()) if land.any() else params.relief_m
+    height = np.where(land, height * (params.relief_m / max(top, 1e-9)), height)
+    flow = hydro.route(height, sea, fine)
     river = land & ~flow.lake & (flow.area_m2 >= params.river_area_km2 * 1e6)
     water = np.full(height.shape, WATER_LAND, dtype=np.uint8)
     water[sea] = WATER_SEA

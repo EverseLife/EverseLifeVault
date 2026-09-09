@@ -31,7 +31,7 @@ from field.grid import OFFSETS, Grid
 #: вода всё-таки шла к выходу, а не стояла.
 FILL_EPS = 0.01
 #: Озеро — где заливка подняла клетку выше этого, метры.
-LAKE_DEPTH_M = 0.5
+LAKE_DEPTH_M = 3.0
 
 
 @dataclass(frozen=True)

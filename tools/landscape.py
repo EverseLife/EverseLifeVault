@@ -23,6 +23,8 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS))
@@ -80,19 +82,87 @@ def do_census(args: argparse.Namespace, rasters: pipeline.Rasters | None = None)
     rep = census.report(rasters)
     print(census.markdown(rep))
     if args.json:
-        Path(args.json).write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
+        target = Path(args.json).resolve()
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(rep, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n")
 
 
 def do_render(args: argparse.Namespace, rasters: pipeline.Rasters | None = None) -> None:
     rasters = rasters or store.load(Path(args.field).resolve(), args.planet)
-    lat, lon = (float(x) for x in args.focus.split(","))
+    if args.focus:
+        lat, lon = (float(x) for x in args.focus.split(","))
+        lat, lon = nearest_land(rasters, lat, lon)
+    else:
+        lat, lon = best_site(rasters)
+    print(f"focus {lat:.2f}, {lon:.2f}")
     for path in render.render_all(rasters, Path(args.out).resolve(), (lat, lon)):
         print(shown(path))
 
 
+def best_site(rasters: pipeline.Rasters, samples: int = 3000) -> tuple[float, float]:
+    """Где поселенец поставил бы город: умеренно, вода рядом, форм вокруг
+    много (план §9.8). Лучшая из случайной выборки клеток суши по этой мере."""
+    grid = rasters.grid
+    rng = np.random.default_rng(0)
+    land = np.flatnonzero(rasters.water == pipeline.WATER_LAND)
+    pick = rng.choice(land, size=min(samples, land.size), replace=False)
+    radius = grid.cells_for_metres(3000.0)
+    offsets = [(dr, dc) for dr in range(-radius, radius + 1) for dc in range(-radius, radius + 1) if dr * dr + dc * dc <= radius * radius]
+    drs = np.array([o[0] for o in offsets])
+    dcs = np.array([o[1] for o in offsets])
+    best, best_score = (0, 0), -1e9
+    for flat in pick.tolist():
+        row, col = divmod(flat, grid.cols)
+        rr = np.clip(row + drs, 0, grid.rows - 1)
+        cc = (col + dcs) % grid.cols
+        block_forms = rasters.form[rr, cc]
+        block_water = rasters.water[rr, cc]
+        distinct = np.unique(block_forms[block_water == pipeline.WATER_LAND]).size
+        water = float((block_water != pipeline.WATER_LAND).mean())
+        warmth = float(rasters.temperature_c[row, col])
+        score = distinct + 4.0 * min(water, 0.25) - abs(warmth - 14.0) / 4.0 - 3.0 * float(rasters.ice[row, col])
+        if score > best_score:
+            best, best_score = (row, col), score
+    return float(grid.lat[best[0]]), float(grid.lon[best[1]])
+
+
+def nearest_land(rasters: pipeline.Rasters, lat: float, lon: float) -> tuple[float, float]:
+    """Точка кадра, сдвинутая на ближайшую сушу: новое поле не обязано
+    класть сушу туда, где стояла столица старого."""
+    grid = rasters.grid
+    row, col = grid.cell(lat, lon)
+    if rasters.land[row, col]:
+        return lat, lon
+    land_rows, land_cols = np.nonzero(rasters.land)
+    dlat = np.radians(grid.lat[land_rows] - lat)
+    dlon = np.radians(((grid.lon[land_cols] - lon + 180.0) % 360.0) - 180.0) * np.cos(np.radians(lat))
+    best = int(np.argmin(dlat * dlat + dlon * dlon))
+    return float(grid.lat[land_rows[best]]), float(grid.lon[land_cols[best]])
+
+
+def do_scan(args: argparse.Namespace) -> None:
+    """Несколько зёрен подряд, по строке на каждое: чем выбирают зерно (план §4.4)."""
+    base = params_for(args)
+    print("seed | land | T50 | rain50 | ice | desert | missing | walk | hood | water")
+    for k in range(int(args.seeds)):
+        params = pipeline.Params(**{**base.__dict__, "seed": base.seed + k * 1000})
+        rasters = pipeline.build(params)
+        rep = census.report(rasters)
+        ice = rep["forms"]["ice"]["share"]
+        desert = rep["forms"]["rocky_desert"]["share"] + rep["forms"]["dunes"]["share"]
+        print(
+            f"{params.seed} | {rep['land_share']:.2f} | {rep['temperature_quantiles'][2]:5.1f} | "
+            f"{rep['rain_quantiles'][2]:.2f} | {100 * ice:4.0f} % | {100 * desert:4.0f} % | "
+            f"{len(rep['missing_forms'])} | {rep['walk']['form_changes_mean']:.2f} | "
+            f"{rep['neighbourhood']['forms_mean']:.2f} | {100 * rep['neighbourhood']['with_water_share']:.0f} %",
+            flush=True,
+        )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=("build", "census", "render", "all"))
+    ap.add_argument("command", choices=("build", "census", "render", "all", "scan"))
+    ap.add_argument("--seeds", type=int, default=6, help="сколько зёрен перебрать в scan")
     ap.add_argument("--planet", choices=PLANETS, default="terra")
     ap.add_argument("--step", type=float, help="шаг сетки в метрах поверх terrain.step_m")
     ap.add_argument("--seed", type=int, help="зерно поверх terrain.seed (уже своё для планеты)")
@@ -100,7 +170,7 @@ def main() -> int:
     ap.add_argument("--fine-iter", type=int)
     ap.add_argument("--field", default=str(FIELD), help="куда класть и откуда читать поле")
     ap.add_argument("--out", default=str(PREVIEW), help="куда класть картинки")
-    ap.add_argument("--focus", default=f"{FOCUS[0]},{FOCUS[1]}", help="широта,долгота кадров области и города")
+    ap.add_argument("--focus", help="широта,долгота кадров области и города; без него — лучшее место под город")
     ap.add_argument("--json", help="перепись ещё и в этот файл")
     args = ap.parse_args()
     if args.command == "build":
@@ -109,6 +179,8 @@ def main() -> int:
         do_census(args)
     elif args.command == "render":
         do_render(args)
+    elif args.command == "scan":
+        do_scan(args)
     else:
         rasters = do_build(args)
         do_census(args, rasters)

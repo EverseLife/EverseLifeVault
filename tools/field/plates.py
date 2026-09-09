@@ -34,6 +34,9 @@ OCEAN_BASE = (0.15, 0.35)
 #: Искажение границ плит: решётка и амплитуда шума, гнущего Вороного.
 WARP_LATTICE = 4.0
 WARP_AMPLITUDE = 0.09
+#: Ширина перехода основы между плитами, в косинусах угла: 0.08 — около
+#: 40 км на Терре, и ни одной ступеньки на дне.
+BASE_BLEND = 0.08
 #: Широкий шум недр — плато и впадины внутри плиты — и его вклад в основу.
 INTERIOR_LATTICE = 3.0
 INTERIOR_AMPLITUDE = 0.16
@@ -45,6 +48,8 @@ BELT_HEIGHT = 0.45
 #: Рифт расхождения: полуширина и глубина; плечи стоят на удвоенной ширине.
 RIFT_WIDTH_M = 12_000.0
 RIFT_DEPTH = 0.22
+#: Гряды внутри пояса: решётка гребенчатого шума (клеток поперёк диаметра).
+RIDGE_LATTICE = 28.0
 #: Твёрдость породы по происхождению.
 HARD_SHIELD = 0.78
 HARD_OCEAN = 0.45
@@ -89,7 +94,7 @@ def _tangent(rng: np.random.Generator, at: np.ndarray) -> np.ndarray:
     return _unit(v)
 
 
-def build(grid: Grid, seed: int, count: int, continental_share: float) -> Plates:
+def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share: float) -> Plates:
     rng = np.random.default_rng(seed)
     count = max(2, int(count))
     centres = _unit(rng.normal(size=(count, 3)))
@@ -111,6 +116,12 @@ def build(grid: Grid, seed: int, count: int, continental_share: float) -> Plates
     warped = _unit(xyz + WARP_AMPLITUDE * warp)
     dots = np.einsum("rcx,px->prc", warped, centres)
     plate = np.argmax(dots, axis=0).astype(np.int16)
+    #: Основа — не ступенька на границе, а плавный переход между плитами:
+    #: веса софтмакса по близости к центрам, ширина перехода `BASE_BLEND`
+    #: в косинусах угла. Хребет делает схождение, а не разница высот плит.
+    weight = np.exp((dots - dots.max(axis=0, keepdims=True)) / BASE_BLEND)
+    weight /= weight.sum(axis=0, keepdims=True)
+    blended_base = np.einsum("prc,p->rc", weight, base_of)
 
     #: Граница: сосед из другой плиты. Нормаль к границе — от своего центра к
     #: чужому, спроецированная на касательную плоскость клетки.
@@ -149,21 +160,27 @@ def build(grid: Grid, seed: int, count: int, continental_share: float) -> Plates
 
     interior = noise.centred(seed + 21, xyz, INTERIOR_LATTICE, 4) * INTERIOR_AMPLITUDE
     fine = noise.centred(seed + 31, xyz, FINE_LATTICE, 3) * FINE_AMPLITUDE
-    base = base_of[own] + interior + fine + BELT_HEIGHT * belt - RIFT_DEPTH * rift
+    base = blended_base + interior + fine + BELT_HEIGHT * belt - RIFT_DEPTH * rift
     base += 0.5 * RIFT_DEPTH * shoulder
 
     #: Дуга вулканов над погружением: своя плита материковая, чужая — океан.
     subduction = converging > 0.15
     arc_band = subduction & cell_continental & ~other_continental
     arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_M) <= grid.step_m * 0.75)
-    rows_idx, cols_idx = np.nonzero(arc_line)
     cones = np.zeros(plate.shape, dtype=bool)
-    if rows_idx.size:
-        keep = (rows_idx // ARC_SPACING_CELLS + cols_idx // ARC_SPACING_CELLS) % 2 == 0
-        keep &= (rows_idx % ARC_SPACING_CELLS == 0) | (cols_idx % ARC_SPACING_CELLS == 0)
-        cones[rows_idx[keep], cols_idx[keep]] = True
-    land_like = base_of[own] >= CONTINENT_BASE[0]
-    candidates = np.flatnonzero(land_like)
+    rows_idx, cols_idx = np.nonzero(arc_line)
+    #: Конусы вдоль дуги с шагом: клетки дуги в случайном порядке, каждая
+    #: следующая не ближе `ARC_SPACING_CELLS` к уже взятым.
+    taken: list[tuple[int, int]] = []
+    for k in rng.permutation(rows_idx.size).tolist():
+        r, c = int(rows_idx[k]), int(cols_idx[k])
+        if all(max(abs(r - tr), min(abs(c - tc), grid.cols - abs(c - tc))) >= ARC_SPACING_CELLS for tr, tc in taken):
+            taken.append((r, c))
+            cones[r, c] = True
+    #: Горячие точки — на будущей суше: уровень моря режется потом, здесь
+    #: он прикинут по той же доле, чтобы вулкан не ушёл на дно.
+    level = float(np.quantile(base, sea_share)) if 0.0 < sea_share < 1.0 else float(base.min()) - 1.0
+    candidates = np.flatnonzero(base >= level)
     if candidates.size:
         for flat in rng.choice(candidates, size=min(HOTSPOTS, candidates.size), replace=False):
             cones.flat[flat] = True
@@ -172,18 +189,23 @@ def build(grid: Grid, seed: int, count: int, continental_share: float) -> Plates
     volcano = np.clip(1.0 - cone_dist / cone_r, 0.0, 1.0)
     base += CONE_HEIGHT * volcano**2
 
-    hardness = np.where(cell_continental, HARD_SHIELD, HARD_OCEAN)
-    core = converging > 0.1
-    hardness = np.where(core & (boundary_m < 0.5 * belt_w), HARD_BELT_CORE, hardness)
-    hardness = np.where(
-        core & (boundary_m >= 0.5 * belt_w) & (boundary_m < 2.0 * belt_w), HARD_BELT_FLANK, hardness
-    )
-    hardness = np.where(rift > 0.3, HARD_RIFT, hardness)
-    hardness = np.where(volcano > 0.0, HARD_ARC, hardness)
+    #: Порода — плавные веса, не ступени: у ступени по расстоянию от границы
+    #: эрозия вырезала бы прямой уступ вдоль всей дуги Вороного.
+    hardness = np.where(cell_continental, HARD_SHIELD, HARD_OCEAN).astype(float)
+    core_w = np.clip(converging / 0.3, 0.0, 1.0) * np.exp(-((boundary_m / (0.6 * belt_w)) ** 2))
+    flank_w = np.clip(converging / 0.3, 0.0, 1.0) * np.exp(-(((boundary_m - 1.3 * belt_w) / belt_w) ** 2))
+    hardness = hardness + (HARD_BELT_CORE - hardness) * core_w
+    hardness = hardness + (HARD_BELT_FLANK - hardness) * flank_w * (1.0 - core_w)
+    hardness = hardness + (HARD_RIFT - hardness) * np.clip(rift / 0.5, 0.0, 1.0)
+    hardness = hardness + (HARD_ARC - hardness) * np.clip(volcano * 2.0, 0.0, 1.0)
     hardness += noise.centred(seed + 41, xyz, HARD_LATTICE, 3) * HARD_NOISE
     hardness = np.clip(hardness, HARD_FLOOR, HARD_CEIL)
 
-    uplift = np.clip(belt / max(float(belt.max()), 1e-9), 0.0, 1.0)
+    #: Хребет — не один вал, а гряды: поднятие рябит гребенчатым шумом,
+    #: чтобы вода резала его на параллельные хребты и долины между ними.
+    grain = noise.ridged(seed + 81, xyz, RIDGE_LATTICE, 2)
+    uplift = belt * (0.55 + 0.45 * grain)
+    uplift = np.clip(uplift / max(float(uplift.max()), 1e-9), 0.0, 1.0)
     return Plates(
         plate=plate,
         base=np.clip(base, 0.0, 1.5),

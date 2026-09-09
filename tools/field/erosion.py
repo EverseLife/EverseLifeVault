@@ -38,7 +38,7 @@ AREA_REF_M2 = 1.0e8
 AREA_EXP = 0.5
 SLOPE_EXP = 1.0
 #: Срез за итерацию при единичной силе, в долях размаха.
-INCISION = 0.035
+INCISION = 0.06
 #: Не больше этой доли перепада до приёмника снимается за раз: устойчивость.
 INCISION_CAP = 0.6
 #: Уклон, ниже которого осадок оседает целиком; выше — едет дальше.
@@ -46,8 +46,12 @@ DEPOSIT_SLOPE = 0.015
 DEPOSIT_SHARE = 0.7
 #: Потолок отложения за итерацию, доли размаха.
 DEPOSIT_CAP = 0.012
-#: Диффузия склона за итерацию: делится на твёрдость.
-DIFFUSION = 0.10
+#: Диффузия склона за итерацию на клетке `DIFFUSION_STEP_M`, делится на
+#: твёрдость. Оплывание — дело сотен метров, а не километров: на клетке
+#: крупнее оно слабеет квадратом шага, иначе грубая сетка замыла бы долины,
+#: которые сама же прорезала.
+DIFFUSION = 0.03
+DIFFUSION_STEP_M = 500.0
 #: Предел уклона, за которым склон сыплется: мягкий 35°, твёрдый под 57°.
 SLIDE_BASE, SLIDE_PER_HARDNESS = 0.35, 1.2
 SLIDE_DIFFUSION = 0.35
@@ -111,7 +115,8 @@ def erode(
 
         slope = grid.slope(h)
         limit = SLIDE_BASE + SLIDE_PER_HARDNESS * hardness
-        kd = DIFFUSION / hardness + np.where(slope > limit, SLIDE_DIFFUSION, 0.0)
+        scale = (DIFFUSION_STEP_M / grid.step_m) ** 2
+        kd = DIFFUSION * scale / hardness + np.where(slope > limit, SLIDE_DIFFUSION, 0.0)
         kd = np.where(ice, kd * ICE_DIFFUSION, kd)
         h = np.where(land, h + kd * grid.laplacian(h), h)
 

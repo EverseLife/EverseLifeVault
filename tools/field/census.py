@@ -147,6 +147,8 @@ def report(r: Rasters, seed: int = 0) -> dict:
         "forms": counted,
         "missing_forms": [key for key, v in counted.items() if v["objects"] == 0 and key != "lake"],
         "zonal": zonal_share,
+        "rain_quantiles": [round(float(q), 3) for q in np.quantile(r.rain[r.land], (0.1, 0.25, 0.5, 0.75, 0.9))],
+        "temperature_quantiles": [round(float(q), 1) for q in np.quantile(r.temperature_c[r.land], (0.1, 0.25, 0.5, 0.75, 0.9))],
         "walk": walk_test(r, rng),
         "neighbourhood": neighbourhood_test(r, rng),
     }
@@ -177,4 +179,8 @@ def markdown(rep: dict) -> str:
     )
     lines.append("")
     lines.append("Зональные (предпросмотр): " + ", ".join(f"{k} {100 * v:.0f} %" for k, v in rep["zonal"].items() if v > 0.001))
+    lines.append(
+        f"Осадки суши по квантилям 10/25/50/75/90: {rep['rain_quantiles']}; "
+        f"температура: {rep['temperature_quantiles']}"
+    )
     return "\n".join(lines) + "\n"

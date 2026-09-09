@@ -75,7 +75,7 @@ FAN_SLOPE = (0.012, 0.08)
 DELTA_DEPOSIT = 0.006
 COAST_CELLS_M = 1_000.0
 COAST_CLIFF_SLOPE = 0.15
-COAST_CLIFF_HARDNESS = 0.72
+COAST_CLIFF_HARDNESS = 0.88
 RIFT_SHARE = 0.4
 VOLCANO_SHARE = 0.35
 DRY_RAIN = 0.15
@@ -163,6 +163,7 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
     put("rift", (i.rift >= RIFT_SHARE) & (above_floor < 0.3 * np.maximum(local, 1e-9)))
     dry = i.rain01 < DRY_RAIN
     put("dunes", dry & (i.hardness < DUNE_HARDNESS) & (slope < DUNE_SLOPE))
-    put("rocky_desert", dry)
+    #: Холмы остаются холмами и в пустыне: сушь — форма только ровной земли.
     put("hills", local >= HILLS_RELIEF)
+    put("rocky_desert", dry)
     return form
