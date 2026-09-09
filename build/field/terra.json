@@ -17,7 +17,7 @@
     "ice_deep_c": -20.0,
     "cold_c_zonal": -2.0,
     "continental_c": 5.0,
-    "climate_noise_c": 3.0,
+    "climate_noise_c": 5.0,
     "cool_c": 5.0,
     "dry": 30.0,
     "desert_lat": 35.0,
@@ -29,7 +29,7 @@
     "coarse_iterations": 60,
     "fine_iterations": 24
   },
-  "digest": "fce60350a00d",
+  "digest": "8819597ac634",
   "grid": {
     "rows": 625,
     "cols": 1250,

@@ -209,7 +209,8 @@ ZONAL_NAMES = (
     "tundra", "taiga", "desert", "steppe", "semidesert", "savanna", "rainforest", "woodland", "forest",
 )
 SEMIDESERT_DRY = 1.4
-DESERT_C = 16.0
+DESERT_C = 20.0
+DESERT_COLD_C = 4.0
 WARM_C = 20.0
 MILD_C = 14.0
 SAVANNA_RAIN = 0.5
@@ -226,7 +227,9 @@ def zonal(temperature_c: np.ndarray, rain01: np.ndarray, lat2d: np.ndarray, boun
     rules = (
         ("tundra", t < bounds.cold_c),
         ("taiga", t < bounds.cool_c),
-        ("desert", (r < bounds.dry) & (t >= DESERT_C)),
+        #: Чем холоднее, тем суше должно быть, чтобы читаться пустыней:
+        #: граница зависит от обоих, а не режется одной изотермой.
+        ("desert", r < bounds.dry * np.clip((t - DESERT_COLD_C) / (DESERT_C - DESERT_COLD_C), 0.0, 1.0)),
         ("steppe", r < bounds.dry),
         ("semidesert", (r < bounds.dry * SEMIDESERT_DRY) & (t >= MILD_C)),
         ("savanna", (t >= WARM_C) & (rain01 < SAVANNA_RAIN)),
