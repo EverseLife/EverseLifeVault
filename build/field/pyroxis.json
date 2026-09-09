@@ -36,73 +36,115 @@
         "id": "black_level",
         "rain_shift": -10.0,
         "temp_shift_c": 1.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "smooth_lava"
+        ]
       },
       {
         "id": "thorn_field",
         "rain_shift": -5.0,
         "temp_shift_c": 0.0,
-        "vein_k": 1.2
+        "vein_k": 1.2,
+        "favours": [
+          "clinker"
+        ]
       },
       {
         "id": "sulphur_springs",
         "rain_shift": 5.0,
         "temp_shift_c": 4.0,
-        "vein_k": 1.6
+        "vein_k": 1.6,
+        "favours": [
+          "hot_ground"
+        ]
       },
       {
         "id": "rust_cones",
         "rain_shift": -10.0,
         "temp_shift_c": 2.0,
-        "vein_k": 1.8
+        "vein_k": 1.8,
+        "favours": [
+          "cinder_cone",
+          "clinker"
+        ]
       },
       {
         "id": "ash_lowland",
         "rain_shift": 0.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.7
+        "vein_k": 0.7,
+        "favours": [
+          "ash_flat"
+        ]
       },
       {
         "id": "sunken_edge",
         "rain_shift": -5.0,
         "temp_shift_c": -1.0,
-        "vein_k": 2.0
+        "vein_k": 2.0,
+        "favours": [
+          "collapse_trench"
+        ]
       },
       {
         "id": "salt_bowls",
         "rain_shift": 10.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "lava_basin"
+        ]
       },
       {
         "id": "hot_slope",
         "rain_shift": -15.0,
         "temp_shift_c": 6.0,
-        "vein_k": 1.5
+        "vein_k": 1.5,
+        "favours": [
+          "hot_ground",
+          "cinder_cone"
+        ]
       },
       {
         "id": "cold_field",
         "rain_shift": 5.0,
         "temp_shift_c": -5.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "smooth_lava",
+          "ash_flat"
+        ]
       },
       {
         "id": "glass_bank",
         "rain_shift": -10.0,
         "temp_shift_c": 0.0,
-        "vein_k": 1.4
+        "vein_k": 1.4,
+        "favours": [
+          "smooth_lava",
+          "collapse_trench"
+        ]
       },
       {
         "id": "smoke_ridge",
         "rain_shift": 0.0,
         "temp_shift_c": 3.0,
-        "vein_k": 1.7
+        "vein_k": 1.7,
+        "favours": [
+          "cinder_cone",
+          "hot_ground"
+        ]
       },
       {
         "id": "still_bowl",
         "rain_shift": 15.0,
         "temp_shift_c": -2.0,
-        "vein_k": 0.6
+        "vein_k": 0.6,
+        "favours": [
+          "lava_basin",
+          "ash_flat"
+        ]
       }
     ],
     "zones": [
@@ -266,7 +308,7 @@
       100.0
     ]
   },
-  "digest": "913a9ec87023",
+  "digest": "ae46d572d12b",
   "grid": {
     "rows": 361,
     "cols": 722,
@@ -409,73 +451,115 @@
       "id": "black_level",
       "rain_shift": -10.0,
       "temp_shift_c": 1.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "smooth_lava"
+      ]
     },
     {
       "id": "thorn_field",
       "rain_shift": -5.0,
       "temp_shift_c": 0.0,
-      "vein_k": 1.2
+      "vein_k": 1.2,
+      "favours": [
+        "clinker"
+      ]
     },
     {
       "id": "sulphur_springs",
       "rain_shift": 5.0,
       "temp_shift_c": 4.0,
-      "vein_k": 1.6
+      "vein_k": 1.6,
+      "favours": [
+        "hot_ground"
+      ]
     },
     {
       "id": "rust_cones",
       "rain_shift": -10.0,
       "temp_shift_c": 2.0,
-      "vein_k": 1.8
+      "vein_k": 1.8,
+      "favours": [
+        "cinder_cone",
+        "clinker"
+      ]
     },
     {
       "id": "ash_lowland",
       "rain_shift": 0.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.7
+      "vein_k": 0.7,
+      "favours": [
+        "ash_flat"
+      ]
     },
     {
       "id": "sunken_edge",
       "rain_shift": -5.0,
       "temp_shift_c": -1.0,
-      "vein_k": 2.0
+      "vein_k": 2.0,
+      "favours": [
+        "collapse_trench"
+      ]
     },
     {
       "id": "salt_bowls",
       "rain_shift": 10.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "lava_basin"
+      ]
     },
     {
       "id": "hot_slope",
       "rain_shift": -15.0,
       "temp_shift_c": 6.0,
-      "vein_k": 1.5
+      "vein_k": 1.5,
+      "favours": [
+        "hot_ground",
+        "cinder_cone"
+      ]
     },
     {
       "id": "cold_field",
       "rain_shift": 5.0,
       "temp_shift_c": -5.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "smooth_lava",
+        "ash_flat"
+      ]
     },
     {
       "id": "glass_bank",
       "rain_shift": -10.0,
       "temp_shift_c": 0.0,
-      "vein_k": 1.4
+      "vein_k": 1.4,
+      "favours": [
+        "smooth_lava",
+        "collapse_trench"
+      ]
     },
     {
       "id": "smoke_ridge",
       "rain_shift": 0.0,
       "temp_shift_c": 3.0,
-      "vein_k": 1.7
+      "vein_k": 1.7,
+      "favours": [
+        "cinder_cone",
+        "hot_ground"
+      ]
     },
     {
       "id": "still_bowl",
       "rain_shift": 15.0,
       "temp_shift_c": -2.0,
-      "vein_k": 0.6
+      "vein_k": 0.6,
+      "favours": [
+        "lava_basin",
+        "ash_flat"
+      ]
     }
   ]
 }

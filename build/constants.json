@@ -1303,7 +1303,8 @@
     "slope_full": 0.2,
     "wet_km": 4,
     "patch_km": 1,
-    "soft_edge": 0.25
+    "soft_edge": 0.25,
+    "favour_k": 2.5
   },
   "biome.bounds": {
     "wet": 38,

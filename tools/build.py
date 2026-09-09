@@ -2085,7 +2085,7 @@ def check_facets(constants: dict, facets: dict[str, list[dict]]) -> list[str]:
     axes = constants.get("biome.facet_axes") or {}
     problems += [
         f"biome.facet_axes: нет положительной оси {axis}"
-        for axis in ("wave_m", "slope_full", "wet_km", "patch_km", "soft_edge")
+        for axis in ("wave_m", "slope_full", "wet_km", "patch_km", "soft_edge", "favour_k")
         if not isinstance(axes.get(axis), (int, float)) or float(axes[axis]) <= 0
     ]
     return problems
@@ -2120,8 +2120,26 @@ def load_provinces() -> tuple[dict[str, list[dict]], list[str]]:
             for key in ("rain_shift", "temp_shift_c", "vein_k"):
                 if not isinstance(row.get(key), (int, float)):
                     problems.append(f"provinces.yaml: у «{pid}» нет числа {key}")
+            if not isinstance(row.get("favours") or [], list):
+                problems.append(f"provinces.yaml: `favours` у «{pid}» не список")
             out[planet].append(row)
     return out, problems
+
+
+def check_favours(provinces: dict[str, list[dict]], facets: dict[str, list[dict]]) -> list[str]:
+    """`favours` провинции называет фацеты, которые здесь чаще обычного
+    (план §7, волна 8): ключа, которого нет в `facets.yaml`, быть не может —
+    он бы молча ничего не делал."""
+    known = {str(row.get("id")) for rows in facets.values() for row in rows or []}
+    if not known:
+        return []
+    return [
+        f"provinces.yaml: «{row['id']}» любит фацет «{fid}», которого нет в facets.yaml"
+        for rows in provinces.values()
+        for row in rows or []
+        for fid in (row.get("favours") or [])
+        if str(fid) not in known
+    ]
 
 
 def build_renames(
@@ -2691,6 +2709,7 @@ def main() -> int:
     facets_doc, facet_problems = load_facets()
     problems += facet_problems
     problems += check_facets(flatten_constants(constants_doc), facets_doc)
+    problems += check_favours(provinces_doc, facets_doc)
     problems += check_zonal(flatten_constants(constants_doc))
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не

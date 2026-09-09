@@ -64,6 +64,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
                 "rain_shift": row["rain_shift"],
                 "temp_shift_c": row["temp_shift_c"],
                 "vein_k": row["vein_k"],
+                "favours": list(row.get("favours") or ()),
             }
             for row in r.provinces
         ],
@@ -76,8 +77,12 @@ def load(directory: Path, planet: str) -> Rasters:
     meta = json.loads((directory / f"{planet}.json").read_text(encoding="utf-8"))
     raw = dict(meta["params"])
     #: JSON не знает кортежей: строки провинций возвращаются тем же кортежем,
-    #: каким они были в параметрах, иначе паспорт не равен сам себе.
-    raw["provinces"] = tuple(raw.get("provinces", []))
+    #: каким они были в параметрах, иначе паспорт не равен сам себе. Список
+    #: любимых фацетов внутри строки — тот же случай (план §7, волна 8).
+    raw["provinces"] = tuple(
+        {**row, "favours": tuple(row.get("favours") or ())}
+        for row in raw.get("provinces", [])
+    )
     raw["zones"] = tuple(raw.get("zones", []))
     raw["rain_range"] = tuple(raw.get("rain_range", (0.0, 100.0)))
     params = Params(**raw)
@@ -104,5 +109,8 @@ def load(directory: Path, planet: str) -> Rasters:
             uplift=z["uplift"].astype(float) / 255.0,
             ice=z["ice"].astype(bool),
             province=z["province"] if "province" in z else np.zeros(z["water"].shape, dtype=np.uint8),
-            provinces=list(meta.get("provinces", [])),
+            provinces=[
+                {**row, "favours": tuple(row.get("favours") or ())}
+                for row in meta.get("provinces", [])
+            ],
         )

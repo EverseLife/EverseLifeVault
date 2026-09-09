@@ -11,6 +11,7 @@
 * у каждой клетки суши есть спуск к воде: приёмник ниже, сток кончается в
   море или в озере, площадь стока растёт вниз по течению;
 * формы читаются кодами из таблицы, вода — водой;
+* любимые фацеты провинции доезжают до паспорта поля;
 * файл поля читается назад тем же полем.
 
 Всё на крошечной сетке: конвейер один, шаг — число (план §4.1).
@@ -18,6 +19,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -40,9 +42,12 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
         dry_belt_wander_deg=8.0, rain_noise=0.3, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
         provinces=(
-            {"id": "ore_ridge", "rain_shift": -5.0, "temp_shift_c": -1.0, "vein_k": 1.8},
-            {"id": "wet_ridge", "rain_shift": 18.0, "temp_shift_c": 0.0, "vein_k": 0.8},
-            {"id": "salt_wedge", "rain_shift": -20.0, "temp_shift_c": 3.0, "vein_k": 0.9},
+            {"id": "ore_ridge", "rain_shift": -5.0, "temp_shift_c": -1.0, "vein_k": 1.8,
+             "favours": ("scree", "crag")},
+            {"id": "wet_ridge", "rain_shift": 18.0, "temp_shift_c": 0.0, "vein_k": 0.8,
+             "favours": ()},
+            {"id": "salt_wedge", "rain_shift": -20.0, "temp_shift_c": 3.0, "vein_k": 0.9,
+             "favours": ()},
         ),
         rain_range=(0.0, 100.0),
         zones=(
@@ -136,3 +141,11 @@ def test_the_file_reads_back_as_the_same_field(tmp_path: Path) -> None:
     assert np.array_equal(back.form, r.form) and np.array_equal(back.water, r.water)
     assert np.array_equal(back.province, r.province) and back.provinces == r.provinces
     assert back.params.digest() == r.params.digest()
+    #: Любимые фацеты провинции едут в паспорт (план §7, волна 8): игра берёт
+    #: провинции оттуда, и список, потерянный здесь, молча ничего не делал бы.
+    #: В самом файле это список — JSON кортежей не знает, — а прочитанное
+    #: назад поле обязано быть равно исходному, поэтому кортеж возвращается.
+    written = json.loads((tmp_path / "terra.json").read_text(encoding="utf-8"))
+    assert written["provinces"][0]["favours"] == ["scree", "crag"]
+    assert written["provinces"][1]["favours"] == []
+    assert back.provinces[0]["favours"] == ("scree", "crag")

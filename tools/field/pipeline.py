@@ -140,6 +140,9 @@ class Params:
                     "rain_shift": float(row.get("rain_shift", 0.0)),
                     "temp_shift_c": float(row.get("temp_shift_c", 0.0)),
                     "vein_k": float(row.get("vein_k", 1.0)),
+                    #: Фацеты, которые здесь чаще обычного (план §7, волна 8):
+                    #: едут в паспорт, потому что провинции игра берёт оттуда.
+                    "favours": tuple(str(f) for f in (row.get("favours") or ())),
                 }
                 for row in (provinces or [])
             ),

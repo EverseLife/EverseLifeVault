@@ -36,241 +36,401 @@
         "id": "ore_ridge",
         "rain_shift": -5.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.8
+        "vein_k": 1.8,
+        "favours": [
+          "scree",
+          "crag"
+        ]
       },
       {
         "id": "wet_ridge",
         "rain_shift": 18.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "levee_ridge",
+          "willow_brake"
+        ]
       },
       {
         "id": "salt_wedge",
         "rain_shift": -20.0,
         "temp_shift_c": 3.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "salt_flat",
+          "alkali_flat"
+        ]
       },
       {
         "id": "still_reach",
         "rain_shift": 10.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.6
+        "vein_k": 0.6,
+        "favours": [
+          "oxbow",
+          "water_meadow"
+        ]
       },
       {
         "id": "black_pinewood",
         "rain_shift": 5.0,
         "temp_shift_c": -2.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "spruce_stand",
+          "pine_wood"
+        ]
       },
       {
         "id": "windy_rise",
         "rain_shift": -8.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.2
+        "vein_k": 1.2,
+        "favours": [
+          "long_rise",
+          "stony_ground"
+        ]
       },
       {
         "id": "rotten_lowland",
         "rain_shift": 22.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "quagmire",
+          "marsh_wood"
+        ]
       },
       {
         "id": "dry_shore",
         "rain_shift": -15.0,
         "temp_shift_c": 2.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "shingle",
+          "cliff"
+        ]
       },
       {
         "id": "far_corner",
         "rain_shift": 8.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.1
+        "vein_k": 1.1,
+        "favours": [
+          "thicket",
+          "alder_bottom"
+        ]
       },
       {
         "id": "stone_gate",
         "rain_shift": 0.0,
         "temp_shift_c": -2.0,
-        "vein_k": 1.6
+        "vein_k": 1.6,
+        "favours": [
+          "saddle",
+          "rock_face"
+        ]
       },
       {
         "id": "yellow_steppe",
         "rain_shift": -12.0,
         "temp_shift_c": 2.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "feather_grass",
+          "liman"
+        ]
       },
       {
         "id": "white_sands",
         "rain_shift": -25.0,
         "temp_shift_c": 4.0,
-        "vein_k": 0.7
+        "vein_k": 0.7,
+        "favours": [
+          "dune",
+          "clay_pan"
+        ]
       },
       {
         "id": "alder_glen",
         "rain_shift": 15.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "glen",
+          "alder_bottom"
+        ]
       },
       {
         "id": "rust_hills",
         "rain_shift": -6.0,
         "temp_shift_c": 1.0,
-        "vein_k": 1.5
+        "vein_k": 1.5,
+        "favours": [
+          "hillside",
+          "bare_patch"
+        ]
       },
       {
         "id": "long_spit",
         "rain_shift": 5.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "sandbar",
+          "lagoon"
+        ]
       },
       {
         "id": "burnt_hollow",
         "rain_shift": -5.0,
         "temp_shift_c": 1.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "burn",
+          "glade"
+        ]
       },
       {
         "id": "cold_spring",
         "rain_shift": 10.0,
         "temp_shift_c": -3.0,
-        "vein_k": 1.1
+        "vein_k": 1.1,
+        "favours": [
+          "cirque",
+          "snowfield"
+        ]
       },
       {
         "id": "cranberry_moss",
         "rain_shift": 20.0,
         "temp_shift_c": -2.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "moss_bog",
+          "bog_ridge"
+        ]
       },
       {
         "id": "oak_cape",
         "rain_shift": 5.0,
         "temp_shift_c": 2.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "oak_stand",
+          "shore_wood"
+        ]
       },
       {
         "id": "warm_ravine",
         "rain_shift": 3.0,
         "temp_shift_c": 3.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "ravine",
+          "grove_island"
+        ]
       },
       {
         "id": "wormwood_plain",
         "rain_shift": -18.0,
         "temp_shift_c": 2.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "wormwood_flat",
+          "dry_lake"
+        ]
       },
       {
         "id": "hummock_field",
         "rain_shift": 5.0,
         "temp_shift_c": -5.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "hummocks",
+          "dwarf_scrub"
+        ]
       },
       {
         "id": "blue_mountains",
         "rain_shift": 5.0,
         "temp_shift_c": -4.0,
-        "vein_k": 1.7
+        "vein_k": 1.7,
+        "favours": [
+          "crest",
+          "boulder_field"
+        ]
       },
       {
         "id": "crooked_shore",
         "rain_shift": 8.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.7
+        "vein_k": 0.7,
+        "favours": [
+          "tidal_flat",
+          "sandy_shore"
+        ]
       },
       {
         "id": "gravel_ridge",
         "rain_shift": -10.0,
         "temp_shift_c": 0.0,
-        "vein_k": 1.6
+        "vein_k": 1.6,
+        "favours": [
+          "stony_rise",
+          "rubble"
+        ]
       },
       {
         "id": "rain_slope",
         "rain_shift": 25.0,
         "temp_shift_c": 2.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "jungle_bottom",
+          "jungle_scarp"
+        ]
       },
       {
         "id": "wet_wilds",
         "rain_shift": 22.0,
         "temp_shift_c": 3.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "jungle_thicket",
+          "jungle_gap"
+        ]
       },
       {
         "id": "hot_plain",
         "rain_shift": -8.0,
         "temp_shift_c": 4.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "tall_grass",
+          "pan"
+        ]
       },
       {
         "id": "goat_crag",
         "rain_shift": 0.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.4
+        "vein_k": 1.4,
+        "favours": [
+          "crag",
+          "scree"
+        ]
       },
       {
         "id": "willow_bottoms",
         "rain_shift": 12.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.6
+        "vein_k": 0.6,
+        "favours": [
+          "willow_brake",
+          "bottomland_wood"
+        ]
       },
       {
         "id": "bald_knolls",
         "rain_shift": -5.0,
         "temp_shift_c": -2.0,
-        "vein_k": 1.5
+        "vein_k": 1.5,
+        "favours": [
+          "bald_top",
+          "knoll"
+        ]
       },
       {
         "id": "pine_sands",
         "rain_shift": -5.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "pine_wood",
+          "edge"
+        ]
       },
       {
         "id": "flood_meadows",
         "rain_shift": 15.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "water_meadow",
+          "oxbow"
+        ]
       },
       {
         "id": "grey_range",
         "rain_shift": 10.0,
         "temp_shift_c": -5.0,
-        "vein_k": 1.8
+        "vein_k": 1.8,
+        "favours": [
+          "snowfield",
+          "rock_face"
+        ]
       },
       {
         "id": "feather_grass_reach",
         "rain_shift": -10.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "feather_grass",
+          "long_rise"
+        ]
       },
       {
         "id": "dark_spruce",
         "rain_shift": 12.0,
         "temp_shift_c": -3.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "spruce_stand",
+          "swamp_wood"
+        ]
       },
       {
         "id": "lichen_flats",
         "rain_shift": -5.0,
         "temp_shift_c": -6.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "moss_flat",
+          "frost_mound"
+        ]
       },
       {
         "id": "dry_washes",
         "rain_shift": -20.0,
         "temp_shift_c": 3.0,
-        "vein_k": 1.2
+        "vein_k": 1.2,
+        "favours": [
+          "dry_wash",
+          "mesa"
+        ]
       },
       {
         "id": "dune_shore",
         "rain_shift": 3.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "dune_ridge",
+          "sandy_shore"
+        ]
       },
       {
         "id": "cold_glen",
         "rain_shift": 5.0,
         "temp_shift_c": -4.0,
-        "vein_k": 1.3
+        "vein_k": 1.3,
+        "favours": [
+          "glen",
+          "deadfall"
+        ]
       }
     ],
     "zones": [
@@ -434,7 +594,7 @@
       100.0
     ]
   },
-  "digest": "ef4384f3ed1a",
+  "digest": "4d3327792308",
   "grid": {
     "rows": 625,
     "cols": 1250,
@@ -577,241 +737,401 @@
       "id": "ore_ridge",
       "rain_shift": -5.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.8
+      "vein_k": 1.8,
+      "favours": [
+        "scree",
+        "crag"
+      ]
     },
     {
       "id": "wet_ridge",
       "rain_shift": 18.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "levee_ridge",
+        "willow_brake"
+      ]
     },
     {
       "id": "salt_wedge",
       "rain_shift": -20.0,
       "temp_shift_c": 3.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "salt_flat",
+        "alkali_flat"
+      ]
     },
     {
       "id": "still_reach",
       "rain_shift": 10.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.6
+      "vein_k": 0.6,
+      "favours": [
+        "oxbow",
+        "water_meadow"
+      ]
     },
     {
       "id": "black_pinewood",
       "rain_shift": 5.0,
       "temp_shift_c": -2.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "spruce_stand",
+        "pine_wood"
+      ]
     },
     {
       "id": "windy_rise",
       "rain_shift": -8.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.2
+      "vein_k": 1.2,
+      "favours": [
+        "long_rise",
+        "stony_ground"
+      ]
     },
     {
       "id": "rotten_lowland",
       "rain_shift": 22.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "quagmire",
+        "marsh_wood"
+      ]
     },
     {
       "id": "dry_shore",
       "rain_shift": -15.0,
       "temp_shift_c": 2.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "shingle",
+        "cliff"
+      ]
     },
     {
       "id": "far_corner",
       "rain_shift": 8.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.1
+      "vein_k": 1.1,
+      "favours": [
+        "thicket",
+        "alder_bottom"
+      ]
     },
     {
       "id": "stone_gate",
       "rain_shift": 0.0,
       "temp_shift_c": -2.0,
-      "vein_k": 1.6
+      "vein_k": 1.6,
+      "favours": [
+        "saddle",
+        "rock_face"
+      ]
     },
     {
       "id": "yellow_steppe",
       "rain_shift": -12.0,
       "temp_shift_c": 2.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "feather_grass",
+        "liman"
+      ]
     },
     {
       "id": "white_sands",
       "rain_shift": -25.0,
       "temp_shift_c": 4.0,
-      "vein_k": 0.7
+      "vein_k": 0.7,
+      "favours": [
+        "dune",
+        "clay_pan"
+      ]
     },
     {
       "id": "alder_glen",
       "rain_shift": 15.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "glen",
+        "alder_bottom"
+      ]
     },
     {
       "id": "rust_hills",
       "rain_shift": -6.0,
       "temp_shift_c": 1.0,
-      "vein_k": 1.5
+      "vein_k": 1.5,
+      "favours": [
+        "hillside",
+        "bare_patch"
+      ]
     },
     {
       "id": "long_spit",
       "rain_shift": 5.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "sandbar",
+        "lagoon"
+      ]
     },
     {
       "id": "burnt_hollow",
       "rain_shift": -5.0,
       "temp_shift_c": 1.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "burn",
+        "glade"
+      ]
     },
     {
       "id": "cold_spring",
       "rain_shift": 10.0,
       "temp_shift_c": -3.0,
-      "vein_k": 1.1
+      "vein_k": 1.1,
+      "favours": [
+        "cirque",
+        "snowfield"
+      ]
     },
     {
       "id": "cranberry_moss",
       "rain_shift": 20.0,
       "temp_shift_c": -2.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "moss_bog",
+        "bog_ridge"
+      ]
     },
     {
       "id": "oak_cape",
       "rain_shift": 5.0,
       "temp_shift_c": 2.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "oak_stand",
+        "shore_wood"
+      ]
     },
     {
       "id": "warm_ravine",
       "rain_shift": 3.0,
       "temp_shift_c": 3.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "ravine",
+        "grove_island"
+      ]
     },
     {
       "id": "wormwood_plain",
       "rain_shift": -18.0,
       "temp_shift_c": 2.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "wormwood_flat",
+        "dry_lake"
+      ]
     },
     {
       "id": "hummock_field",
       "rain_shift": 5.0,
       "temp_shift_c": -5.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "hummocks",
+        "dwarf_scrub"
+      ]
     },
     {
       "id": "blue_mountains",
       "rain_shift": 5.0,
       "temp_shift_c": -4.0,
-      "vein_k": 1.7
+      "vein_k": 1.7,
+      "favours": [
+        "crest",
+        "boulder_field"
+      ]
     },
     {
       "id": "crooked_shore",
       "rain_shift": 8.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.7
+      "vein_k": 0.7,
+      "favours": [
+        "tidal_flat",
+        "sandy_shore"
+      ]
     },
     {
       "id": "gravel_ridge",
       "rain_shift": -10.0,
       "temp_shift_c": 0.0,
-      "vein_k": 1.6
+      "vein_k": 1.6,
+      "favours": [
+        "stony_rise",
+        "rubble"
+      ]
     },
     {
       "id": "rain_slope",
       "rain_shift": 25.0,
       "temp_shift_c": 2.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "jungle_bottom",
+        "jungle_scarp"
+      ]
     },
     {
       "id": "wet_wilds",
       "rain_shift": 22.0,
       "temp_shift_c": 3.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "jungle_thicket",
+        "jungle_gap"
+      ]
     },
     {
       "id": "hot_plain",
       "rain_shift": -8.0,
       "temp_shift_c": 4.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "tall_grass",
+        "pan"
+      ]
     },
     {
       "id": "goat_crag",
       "rain_shift": 0.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.4
+      "vein_k": 1.4,
+      "favours": [
+        "crag",
+        "scree"
+      ]
     },
     {
       "id": "willow_bottoms",
       "rain_shift": 12.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.6
+      "vein_k": 0.6,
+      "favours": [
+        "willow_brake",
+        "bottomland_wood"
+      ]
     },
     {
       "id": "bald_knolls",
       "rain_shift": -5.0,
       "temp_shift_c": -2.0,
-      "vein_k": 1.5
+      "vein_k": 1.5,
+      "favours": [
+        "bald_top",
+        "knoll"
+      ]
     },
     {
       "id": "pine_sands",
       "rain_shift": -5.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "pine_wood",
+        "edge"
+      ]
     },
     {
       "id": "flood_meadows",
       "rain_shift": 15.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "water_meadow",
+        "oxbow"
+      ]
     },
     {
       "id": "grey_range",
       "rain_shift": 10.0,
       "temp_shift_c": -5.0,
-      "vein_k": 1.8
+      "vein_k": 1.8,
+      "favours": [
+        "snowfield",
+        "rock_face"
+      ]
     },
     {
       "id": "feather_grass_reach",
       "rain_shift": -10.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "feather_grass",
+        "long_rise"
+      ]
     },
     {
       "id": "dark_spruce",
       "rain_shift": 12.0,
       "temp_shift_c": -3.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "spruce_stand",
+        "swamp_wood"
+      ]
     },
     {
       "id": "lichen_flats",
       "rain_shift": -5.0,
       "temp_shift_c": -6.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "moss_flat",
+        "frost_mound"
+      ]
     },
     {
       "id": "dry_washes",
       "rain_shift": -20.0,
       "temp_shift_c": 3.0,
-      "vein_k": 1.2
+      "vein_k": 1.2,
+      "favours": [
+        "dry_wash",
+        "mesa"
+      ]
     },
     {
       "id": "dune_shore",
       "rain_shift": 3.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "dune_ridge",
+        "sandy_shore"
+      ]
     },
     {
       "id": "cold_glen",
       "rain_shift": 5.0,
       "temp_shift_c": -4.0,
-      "vein_k": 1.3
+      "vein_k": 1.3,
+      "favours": [
+        "glen",
+        "deadfall"
+      ]
     }
   ]
 }

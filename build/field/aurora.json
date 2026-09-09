@@ -36,73 +36,115 @@
         "id": "white_level",
         "rain_shift": -5.0,
         "temp_shift_c": -2.0,
-        "vein_k": 0.7
+        "vein_k": 0.7,
+        "favours": [
+          "firn_plain",
+          "glaze_ice"
+        ]
       },
       {
         "id": "black_teeth",
         "rain_shift": -10.0,
         "temp_shift_c": -3.0,
-        "vein_k": 1.9
+        "vein_k": 1.9,
+        "favours": [
+          "bare_summit"
+        ]
       },
       {
         "id": "broken_ice",
         "rain_shift": 0.0,
         "temp_shift_c": 0.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "pressure_ridges",
+          "crevasses"
+        ]
       },
       {
         "id": "warm_lead",
         "rain_shift": 15.0,
         "temp_shift_c": 4.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "melt_pool",
+          "glaze_ice"
+        ]
       },
       {
         "id": "wind_ridge",
         "rain_shift": -15.0,
         "temp_shift_c": -5.0,
-        "vein_k": 0.8
+        "vein_k": 0.8,
+        "favours": [
+          "sastrugi"
+        ]
       },
       {
         "id": "blue_rifts",
         "rain_shift": 0.0,
         "temp_shift_c": -2.0,
-        "vein_k": 1.1
+        "vein_k": 1.1,
+        "favours": [
+          "crevasses"
+        ]
       },
       {
         "id": "still_basin",
         "rain_shift": 5.0,
         "temp_shift_c": -6.0,
-        "vein_k": 0.6
+        "vein_k": 0.6,
+        "favours": [
+          "firn_plain",
+          "melt_pool"
+        ]
       },
       {
         "id": "stone_edge",
         "rain_shift": 5.0,
         "temp_shift_c": 2.0,
-        "vein_k": 1.5
+        "vein_k": 1.5,
+        "favours": [
+          "bare_summit",
+          "glaze_ice"
+        ]
       },
       {
         "id": "loose_snows",
         "rain_shift": 20.0,
         "temp_shift_c": 1.0,
-        "vein_k": 0.5
+        "vein_k": 0.5,
+        "favours": [
+          "firn_plain"
+        ]
       },
       {
         "id": "ice_rampart",
         "rain_shift": -5.0,
         "temp_shift_c": -1.0,
-        "vein_k": 1.0
+        "vein_k": 1.0,
+        "favours": [
+          "pressure_ridges"
+        ]
       },
       {
         "id": "mirror_ice",
         "rain_shift": -20.0,
         "temp_shift_c": -4.0,
-        "vein_k": 1.2
+        "vein_k": 1.2,
+        "favours": [
+          "glaze_ice"
+        ]
       },
       {
         "id": "melt_edge",
         "rain_shift": 10.0,
         "temp_shift_c": 5.0,
-        "vein_k": 0.9
+        "vein_k": 0.9,
+        "favours": [
+          "melt_pool",
+          "crevasses"
+        ]
       }
     ],
     "zones": [
@@ -266,7 +308,7 @@
       100.0
     ]
   },
-  "digest": "b431dc06b080",
+  "digest": "d6042aaeb30f",
   "grid": {
     "rows": 885,
     "cols": 1770,
@@ -409,73 +451,115 @@
       "id": "white_level",
       "rain_shift": -5.0,
       "temp_shift_c": -2.0,
-      "vein_k": 0.7
+      "vein_k": 0.7,
+      "favours": [
+        "firn_plain",
+        "glaze_ice"
+      ]
     },
     {
       "id": "black_teeth",
       "rain_shift": -10.0,
       "temp_shift_c": -3.0,
-      "vein_k": 1.9
+      "vein_k": 1.9,
+      "favours": [
+        "bare_summit"
+      ]
     },
     {
       "id": "broken_ice",
       "rain_shift": 0.0,
       "temp_shift_c": 0.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "pressure_ridges",
+        "crevasses"
+      ]
     },
     {
       "id": "warm_lead",
       "rain_shift": 15.0,
       "temp_shift_c": 4.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "melt_pool",
+        "glaze_ice"
+      ]
     },
     {
       "id": "wind_ridge",
       "rain_shift": -15.0,
       "temp_shift_c": -5.0,
-      "vein_k": 0.8
+      "vein_k": 0.8,
+      "favours": [
+        "sastrugi"
+      ]
     },
     {
       "id": "blue_rifts",
       "rain_shift": 0.0,
       "temp_shift_c": -2.0,
-      "vein_k": 1.1
+      "vein_k": 1.1,
+      "favours": [
+        "crevasses"
+      ]
     },
     {
       "id": "still_basin",
       "rain_shift": 5.0,
       "temp_shift_c": -6.0,
-      "vein_k": 0.6
+      "vein_k": 0.6,
+      "favours": [
+        "firn_plain",
+        "melt_pool"
+      ]
     },
     {
       "id": "stone_edge",
       "rain_shift": 5.0,
       "temp_shift_c": 2.0,
-      "vein_k": 1.5
+      "vein_k": 1.5,
+      "favours": [
+        "bare_summit",
+        "glaze_ice"
+      ]
     },
     {
       "id": "loose_snows",
       "rain_shift": 20.0,
       "temp_shift_c": 1.0,
-      "vein_k": 0.5
+      "vein_k": 0.5,
+      "favours": [
+        "firn_plain"
+      ]
     },
     {
       "id": "ice_rampart",
       "rain_shift": -5.0,
       "temp_shift_c": -1.0,
-      "vein_k": 1.0
+      "vein_k": 1.0,
+      "favours": [
+        "pressure_ridges"
+      ]
     },
     {
       "id": "mirror_ice",
       "rain_shift": -20.0,
       "temp_shift_c": -4.0,
-      "vein_k": 1.2
+      "vein_k": 1.2,
+      "favours": [
+        "glaze_ice"
+      ]
     },
     {
       "id": "melt_edge",
       "rain_shift": 10.0,
       "temp_shift_c": 5.0,
-      "vein_k": 0.9
+      "vein_k": 0.9,
+      "favours": [
+        "melt_pool",
+        "crevasses"
+      ]
     }
   ]
 }
