@@ -57,6 +57,8 @@ class Params:
     cold_c: float
     lapse_per_km: float
     ice_c: float
+    ice_rain: float  # ниже этой доли осадков холодная земля — мерзлота без шапки
+    ice_deep_c: float  # ниже этой температуры — лёд при любой сухости
     cold_c_zonal: float  # порог тундры предпросмотра, biome.bounds.cold_c
     cool_c: float
     dry: float
@@ -106,6 +108,8 @@ class Params:
             #: Лёд — свой порог, ниже тундры (владелец): шапка там, где
             #: мерзлота, а не везде, где тундра.
             ice_c=float(constants["terrain.ice_c"]),
+            ice_rain=float(constants["terrain.ice_rain"]),
+            ice_deep_c=float(constants["terrain.ice_deep_c"]),
             cold_c_zonal=float(bounds["cold_c"]),
             cool_c=float(bounds["cool_c"]),
             dry=float(bounds["dry"]),
@@ -247,18 +251,24 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     temperature = thermometer(fine)(height)
     rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt)
     zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
+    #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
+    #: мерзлота остаётся землёй. Эрозия выше считала лёд по одной температуре
+    #: — осадков до неё ещё нет; разница — сила среза на сухом холоде, и она
+    #: сознательно оставлена за льдом.
+    cold = temperature < params.ice_c
+    ice = land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))
     log("forms")
     form = forms.classify(
         fine,
         forms.Inputs(
             height_m=height, sea=sea, lake=flow.lake, river=river, area_m2=flow.area_m2,
             hardness=tect.hardness, deposit_m=done.deposit, rift=tect.rift, volcano=tect.volcano,
-            ice=done.ice, rain01=rain, relief_m=params.relief_m,
+            ice=ice, rain01=rain, relief_m=params.relief_m,
         ),
     )
     return Rasters(
         params=params, grid=fine, height_m=height, water=water, form=form,
         hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
-        deposit_m=done.deposit, uplift=tect.uplift, ice=done.ice,
+        deposit_m=done.deposit, uplift=tect.uplift, ice=ice,
     )

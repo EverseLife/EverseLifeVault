@@ -13,6 +13,8 @@
     "cold_c": -15.0,
     "lapse_per_km": 6.5,
     "ice_c": -8.0,
+    "ice_rain": 0.25,
+    "ice_deep_c": -20.0,
     "cold_c_zonal": -2.0,
     "cool_c": 5.0,
     "dry": 30.0,
@@ -25,7 +27,7 @@
     "coarse_iterations": 60,
     "fine_iterations": 24
   },
-  "digest": "6d22ad81a05c",
+  "digest": "3d428bcb8f33",
   "grid": {
     "rows": 625,
     "cols": 1250,
