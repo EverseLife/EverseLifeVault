@@ -77,9 +77,48 @@ class Bounds:
     desert_lat: float
 
 
-def temperature(lat2d: np.ndarray, height_m: np.ndarray, warm: float, cold: float, lapse_per_km: float) -> np.ndarray:
+#: Континентальность: как далеко от моря, в долях радиуса, интерьер
+#: холодеет на всю величину `Weather.continental_c`; и решётка шума
+#: местного климата — течения, заливы, чего у модели нет поимённо.
+CONTINENTAL_R = 0.5
+CLIMATE_NOISE_LATTICE = 6.0
+
+
+@dataclass(frozen=True)
+class Weather:
+    """Что кроме широты и высоты решает среднюю температуру (реестр):
+    насколько глубина материка холоднее берега и насколько гуляет
+    местный климат."""
+
+    continental_c: float
+    noise_c: float
+
+
+def temperature(
+    lat2d: np.ndarray,
+    height_m: np.ndarray,
+    warm: float,
+    cold: float,
+    lapse_per_km: float,
+    sea_m: np.ndarray | None = None,
+    radius_m: float = 1.0,
+    weather: Weather | None = None,
+    texture: np.ndarray | None = None,
+) -> np.ndarray:
+    """Средняя температура: широта, высота, глубина материка, местный шум.
+
+    Без моря и погоды — одна широта с высотой, как в игре сейчас. Глубина
+    материка холодит сильнее к полюсам (квадрат синуса широты: у экватора
+    интерьер не холоднее берега), шум — ровный по планете.
+    """
     tilt = np.sin(np.radians(lat2d))
-    return warm - (warm - cold) * tilt * tilt - lapse_per_km * np.clip(height_m, 0.0, None) / 1000.0
+    t = warm - (warm - cold) * tilt * tilt - lapse_per_km * np.clip(height_m, 0.0, None) / 1000.0
+    if weather is not None and sea_m is not None:
+        inland = np.clip(sea_m / (CONTINENTAL_R * radius_m), 0.0, 1.0)
+        t = t - weather.continental_c * inland * (0.3 + 0.7 * tilt * tilt)
+    if weather is not None and texture is not None:
+        t = t + weather.noise_c * texture
+    return t
 
 
 def wind_direction(lat: np.ndarray) -> np.ndarray:
@@ -143,6 +182,7 @@ ZONAL_NAMES = (
     "tundra", "taiga", "desert", "steppe", "semidesert", "savanna", "rainforest", "woodland", "forest",
 )
 SEMIDESERT_DRY = 1.4
+DESERT_C = 16.0
 WARM_C = 20.0
 MILD_C = 14.0
 SAVANNA_RAIN = 0.5
@@ -153,10 +193,13 @@ WOODLAND_RAIN = 0.45
 def zonal(temperature_c: np.ndarray, rain01: np.ndarray, lat2d: np.ndarray, bounds: Bounds) -> np.ndarray:
     """Код зонального биома по клеткам: индекс в `ZONAL_NAMES`."""
     t, r = temperature_c, rain01 * 100.0
+    #: Пустыню от степи в предпросмотре делит тепло, а не широта: потолок
+    #: `desert_lat` реестра рисовал прямую черту через материк (владелец
+    #: 2026-09-09). Сам ключ остаётся классификатору игры до волны климата.
     rules = (
         ("tundra", t < bounds.cold_c),
         ("taiga", t < bounds.cool_c),
-        ("desert", (r < bounds.dry) & (np.abs(lat2d) <= bounds.desert_lat)),
+        ("desert", (r < bounds.dry) & (t >= DESERT_C)),
         ("steppe", r < bounds.dry),
         ("semidesert", (r < bounds.dry * SEMIDESERT_DRY) & (t >= MILD_C)),
         ("savanna", (t >= WARM_C) & (rain01 < SAVANNA_RAIN)),

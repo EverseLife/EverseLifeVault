@@ -919,6 +919,8 @@
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,
+  "terrain.continental_c": 5,
+  "terrain.climate_noise_c": 3,
   "terrain.dry_belt_lat": 27,
   "terrain.dry_belt_width": 10,
   "terrain.dry_belt_strength": 0.4,

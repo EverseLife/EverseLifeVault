@@ -60,6 +60,8 @@ class Params:
     ice_rain: float  # ниже этой доли осадков холодная земля — мерзлота без шапки
     ice_deep_c: float  # ниже этой температуры — лёд при любой сухости
     cold_c_zonal: float  # порог тундры предпросмотра, biome.bounds.cold_c
+    continental_c: float  # на сколько глубина материка холоднее берега
+    climate_noise_c: float  # размах местных отклонений температуры
     cool_c: float
     dry: float
     desert_lat: float
@@ -111,6 +113,8 @@ class Params:
             ice_rain=float(constants["terrain.ice_rain"]),
             ice_deep_c=float(constants["terrain.ice_deep_c"]),
             cold_c_zonal=float(bounds["cold_c"]),
+            continental_c=float(constants["terrain.continental_c"]),
+            climate_noise_c=float(constants["terrain.climate_noise_c"]),
             cool_c=float(bounds["cool_c"]),
             dry=float(bounds["dry"]),
             desert_lat=float(bounds["desert_lat"]),
@@ -195,8 +199,15 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
 
-    def thermometer(grid: Grid) -> Callable[[np.ndarray], np.ndarray]:
-        return lambda h: climate.temperature(grid.lat2d, h, params.warm_c, params.cold_c, params.lapse_per_km)
+    def thermometer(grid: Grid, sea_mask: np.ndarray) -> Callable[[np.ndarray], np.ndarray]:
+        #: Расстояние до моря и шум климата — раз на сетку; высота — при каждом чтении.
+        _, sea_m = grid.nearest(sea_mask)
+        texture = noise.centred(params.seed + 91, grid.xyz, climate.CLIMATE_NOISE_LATTICE, 3)
+        weather = climate.Weather(params.continental_c, params.climate_noise_c)
+        return lambda h: climate.temperature(
+            grid.lat2d, h, params.warm_c, params.cold_c, params.lapse_per_km,
+            sea_m=sea_m, radius_m=params.radius_m, weather=weather, texture=texture,
+        )
 
     coarse = Grid.of(params.radius_m, params.step_m * params.coarse_factor)
     h_c = coarse.resample_from(height, fine)
@@ -207,7 +218,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     coarse_done = erosion.erode(
         h_c, sea_c, coarse,
         hardness=hard_c, uplift=up_c, relief_m=params.relief_m,
-        iterations=params.coarse_iterations, temperature=thermometer(coarse), ice_c=params.ice_c,
+        iterations=params.coarse_iterations, temperature=thermometer(coarse, sea_c), ice_c=params.ice_c,
     )
 
     h_f = fine.resample_from(coarse_done.height, coarse)
@@ -225,7 +236,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     done = erosion.erode(
         h_f, sea, fine,
         hardness=tect.hardness, uplift=tect.uplift, relief_m=params.relief_m,
-        iterations=params.fine_iterations, temperature=thermometer(fine), ice_c=params.ice_c,
+        iterations=params.fine_iterations, temperature=thermometer(fine, sea), ice_c=params.ice_c,
     )
     height = done.height
     flow = done.flow
@@ -248,7 +259,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
     river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
 
-    temperature = thermometer(fine)(height)
+    temperature = thermometer(fine, sea)(height)
     rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt)
     zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
     #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
