@@ -45,6 +45,8 @@ RAIN_CAP = 0.5
 DRY_BELT_LAT = 27.0
 DRY_BELT_WIDTH = 10.0
 DRY_BELT_STRENGTH = 0.4
+DRY_BELT_WANDER_DEG = 5.0
+DRY_BELT_WANDER_LATTICE = 3.0
 #: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой.
 RAIN_NOISE = 0.15
 RAIN_NOISE_LATTICE = 20.0
@@ -72,6 +74,11 @@ def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.nda
     breath = np.clip(grid.dx / LAND_EVAPORATION_M, 0.0, 1.0)
     loss = np.clip(grid.dx / LAND_LOSS_M, 0.0, 1.0)
     base = grid.dx / RAIN_BASE_M
+    #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее. Край пояса
+    #: гуляет по долготе шумом, иначе на карте лежит ровная полоса.
+    wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * DRY_BELT_WANDER_DEG
+    belt = np.exp(-(((np.abs(grid.lat2d + wander) - DRY_BELT_LAT) / DRY_BELT_WIDTH) ** 2))
+    dryness = 1.0 - DRY_BELT_STRENGTH * belt
     for step in range(2 * cols):
         col = np.where(direction > 0, step % cols, (cols - 1 - step) % cols)
         prev = (col - direction) % cols
@@ -79,7 +86,7 @@ def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.nda
         rise = np.clip(height_m[r, col], 0.0, None) - np.clip(height_m[r, prev], 0.0, None)
         lift = np.clip(rise, 0.0, None) / LIFT_REF_M
         fall = np.clip(-rise, 0.0, None) / LEE_REF_M
-        share = np.minimum(base + lift, RAIN_CAP)
+        share = np.minimum(base + lift, RAIN_CAP) * dryness[r, col]
         wet = moisture * share
         wet = np.where(here_sea, 0.0, wet)
         moisture = moisture - wet
@@ -94,9 +101,8 @@ def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.nda
         #: Осадки места — не сколько выпало на клетку, а насколько мокрый
         #: здесь воздух: дождь за клетку делится на дождь ровной земли, так
         #: что равнина читает влажность воздуха, а склон против ветра — единицу.
-        out[r, col] = np.where(here_sea, 0.0, np.minimum(wet / base, 1.0))
-    belt = 1.0 - DRY_BELT_STRENGTH * np.exp(-(((np.abs(grid.lat) - DRY_BELT_LAT) / DRY_BELT_WIDTH) ** 2))
-    scaled = np.clip(out * belt[:, None], 0.0, 1.0)
+        out[r, col] = np.where(here_sea, 0.0, np.minimum(wet / (base * dryness[r, col]), 1.0))
+    scaled = np.clip(out * dryness, 0.0, 1.0)
     texture = noise.centred(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
     return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
 

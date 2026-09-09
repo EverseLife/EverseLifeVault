@@ -203,7 +203,9 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
 
     #: Хребет — не один вал, а гряды: поднятие рябит гребенчатым шумом,
     #: чтобы вода резала его на параллельные хребты и долины между ними.
-    grain = noise.ridged(seed + 81, xyz, RIDGE_LATTICE, 2)
+    #: Шум читается в искривлённых координатах, иначе гряды ложатся вдоль
+    #: осей решётки прямыми линиями.
+    grain = noise.ridged(seed + 81, warped, RIDGE_LATTICE, 2)
     uplift = belt * (0.55 + 0.45 * grain)
     uplift = np.clip(uplift / max(float(uplift.max()), 1e-9), 0.0, 1.0)
     return Plates(

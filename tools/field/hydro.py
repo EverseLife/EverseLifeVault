@@ -32,6 +32,17 @@ from field.grid import OFFSETS, Grid
 FILL_EPS = 0.01
 #: Озеро — где заливка подняла клетку выше этого, метры.
 LAKE_DEPTH_M = 3.0
+#: Предвзятость выбора спуска: во столько раз уклон в глазах клетки может
+#: быть больше или меньше честного.
+WOBBLE = 0.6
+
+
+def _jitter(grid: Grid, salt: int = 0) -> np.ndarray:
+    """Число в [-1, 1] на клетку, одно и то же на любой машине: хеш индекса."""
+    flat = np.arange(grid.rows * grid.cols, dtype=np.int64)
+    h = (flat * 2654435761 + 97 + salt * 40503) & 0xFFFFFFFF
+    h = (h ^ (h >> 15)) * 2246822519 & 0xFFFFFFFF
+    return (h / float(0x100000000) * 2.0 - 1.0).reshape(grid.rows, grid.cols)
 
 
 @dataclass(frozen=True)
@@ -88,16 +99,26 @@ def fill(height: np.ndarray, sea: np.ndarray, grid: Grid) -> np.ndarray:
     return np.where(np.isinf(out), height, out)
 
 
-def receivers(filled: np.ndarray, grid: Grid) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Приёмник каждой клетки, уклон к нему и расстояние до него."""
+def receivers(filled: np.ndarray, grid: Grid, wobble: float = 0.0) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Приёмник каждой клетки, уклон к нему и расстояние до него.
+
+    Приёмник всегда ниже — среди восьми соседей выбирается спуск. Какой из
+    спусков, решает уклон, помноженный на `1 ± wobble` от хеша клетки и
+    направления: на гладком склоне честно самый крутой из восьми — одна и
+    та же диагональ через всю гору, а чуть предвзятый выбор ломает её в
+    русло, которое вьётся. Уклон возвращается честный.
+    """
     rows, cols = filled.shape
+    best_score = np.zeros_like(filled)
     best_slope = np.zeros_like(filled)
     best_index = np.arange(rows * cols, dtype=np.int64).reshape(rows, cols)
     best_dist = np.full(filled.shape, grid.step_m)
     for k, (dr, dc) in enumerate(OFFSETS):
         dist = grid.distances[k][:, None]
         slope = (filled - grid.shift(filled, dr, dc)) / dist
-        better = slope > best_slope
+        score = slope * (1.0 + wobble * _jitter(grid, k)) if wobble else slope
+        better = (slope > 0.0) & (score > best_score)
+        best_score = np.where(better, score, best_score)
         best_slope = np.where(better, slope, best_slope)
         best_index = np.where(better, grid.neighbour_index(dr, dc), best_index)
         best_dist = np.where(better, dist, best_dist)
@@ -117,7 +138,7 @@ def accumulate(receiver: np.ndarray, order: np.ndarray, area: np.ndarray) -> np.
 
 def route(height: np.ndarray, sea: np.ndarray, grid: Grid) -> Flow:
     filled = fill(height, sea, grid)
-    receiver, slope, distance = receivers(filled, grid)
+    receiver, slope, distance = receivers(filled, grid, WOBBLE)
     order = np.argsort(filled, axis=None)[::-1]
     area = np.repeat(grid.area_m2[:, None], grid.cols, axis=1)
     acc = accumulate(receiver, order, area)
