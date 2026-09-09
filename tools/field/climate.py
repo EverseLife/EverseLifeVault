@@ -37,6 +37,9 @@ from field.grid import Grid
 #: второго — западные (на восток), дальше — полярные восточные.
 TRADE_LAT = 30.0
 WESTERLY_LAT = 60.0
+#: Ширина перехода между поясами ветров, градусы: осадки двух маршей
+#: смешиваются в ней плавно.
+WIND_EDGE_DEG = 8.0
 #: Влага, в долях радиуса планеты: над морем воздух насыщается за
 #: `EVAPORATION_R`, над сушей отдаёт дождём с длиной `RAIN_BASE_R`, теряет
 #: влагу за `LAND_LOSS_R` и дышит — лес и озёра возвращают часть выпавшего —
@@ -131,9 +134,38 @@ def wind_direction(lat: np.ndarray) -> np.ndarray:
 def rain(
     grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int, relief_m: float, belt: DryBelt
 ) -> np.ndarray:
-    """Осадки в [0, 1] по клеткам: марш влаги по ветру, два круга вокруг планеты."""
+    """Осадки в [0, 1] по клеткам: марш влаги по ветру, два круга вокруг планеты.
+
+    Ветер не меняется по одной параллели: марш идёт дважды, на запад и на
+    восток, и в каждой клетке осадки смешиваются по её поясу — с краем,
+    гуляющим по долготе шумом, — иначе на 30° и 60° лежала бы прямая черта.
+    """
+    wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * DRY_BELT_WANDER_DEG
+    #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее.
+    in_belt = np.exp(-(((np.abs(grid.lat2d + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
+    dryness = 1.0 - belt.strength * in_belt
+    westward = _march(grid, height_m, sea, -1, relief_m, dryness)
+    eastward = _march(grid, height_m, sea, 1, relief_m, dryness)
+    shifted = np.abs(grid.lat2d + wander)
+    west_share = _smoothstep((shifted - TRADE_LAT) / WIND_EDGE_DEG) * (
+        1.0 - _smoothstep((shifted - WESTERLY_LAT) / WIND_EDGE_DEG)
+    )
+    out = westward * (1.0 - west_share) + eastward * west_share
+    scaled = np.clip(out * dryness, 0.0, 1.0)
+    texture = noise.centred(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
+    return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
+
+
+def _smoothstep(t: np.ndarray) -> np.ndarray:
+    t = np.clip(t + 0.5, 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
+def _march(
+    grid: Grid, height_m: np.ndarray, sea: np.ndarray, direction: int, relief_m: float, dryness: np.ndarray
+) -> np.ndarray:
+    """Влага, гонимая в одну сторону по всем строкам сразу: +1 на восток, -1 на запад."""
     rows, cols = height_m.shape
-    direction = wind_direction(grid.lat)
     moisture = np.full(rows, 0.5)
     out = np.zeros_like(height_m)
     r = np.arange(rows)
@@ -144,12 +176,8 @@ def rain(
     base = grid.dx / (RAIN_BASE_R * radius)
     lift_ref = LIFT_REF * relief_m
     lee_ref = LEE_REF * relief_m
-    #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее.
-    wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * DRY_BELT_WANDER_DEG
-    in_belt = np.exp(-(((np.abs(grid.lat2d + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
-    dryness = 1.0 - belt.strength * in_belt
     for step in range(2 * cols):
-        col = np.where(direction > 0, step % cols, (cols - 1 - step) % cols)
+        col = np.full(rows, step % cols if direction > 0 else (cols - 1 - step) % cols)
         prev = (col - direction) % cols
         here_sea = sea[r, col]
         rise = np.clip(height_m[r, col], 0.0, None) - np.clip(height_m[r, prev], 0.0, None)
@@ -171,9 +199,7 @@ def rain(
         #: здесь воздух: дождь за клетку делится на дождь ровной земли, так
         #: что равнина читает влажность воздуха, а склон против ветра — единицу.
         out[r, col] = np.where(here_sea, 0.0, np.minimum(wet / (base * dryness[r, col]), 1.0))
-    scaled = np.clip(out * dryness, 0.0, 1.0)
-    texture = noise.centred(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
-    return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
+    return out
 
 
 #: Предпросмотр зональных биомов: имена классов. Пороги холода и суши —
