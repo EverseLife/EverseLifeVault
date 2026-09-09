@@ -883,6 +883,8 @@
   "map.memory_places": 400,
   "map.public_delay_days": 3,
   "map.sight_km": 0.1,
+  "map.eye_m": 2,
+  "map.sight_step_m": 10,
   "travel.walk_speed_kmh": 8,
   "terrain.river_reach_km": 1,
   "road.wild_multiplier": 4,
