@@ -122,7 +122,9 @@ def temperature(
         t = t - weather.continental_c * inland * (0.3 + 0.7 * tilt * tilt)
     if weather is not None and texture is not None:
         t = t + weather.noise_c * texture
-    return t
+    #: Тёплый край реестра — потолок: местный шум не греет выше него, а
+    #: холодный край высота и глубина материка перебирают честно.
+    return np.minimum(t, warm)
 
 
 def wind_direction(lat: np.ndarray) -> np.ndarray:

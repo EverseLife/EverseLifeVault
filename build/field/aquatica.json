@@ -1,0 +1,159 @@
+{
+  "params": {
+    "planet": "aquatica",
+    "seed": 81043625,
+    "step_m": 500.0,
+    "radius_m": 99546.875,
+    "sea_share": 0.9,
+    "relief_m": 3000.0,
+    "plates": 12,
+    "continental_share": 0.5,
+    "river_area_km2": 20.0,
+    "warm_c": 35.0,
+    "cold_c": -15.0,
+    "lapse_per_km": 6.5,
+    "ice_c": -8.0,
+    "ice_rain": 0.25,
+    "ice_deep_c": -20.0,
+    "cold_c_zonal": -2.0,
+    "continental_c": 5.0,
+    "climate_noise_c": 5.0,
+    "cool_c": 5.0,
+    "dry": 30.0,
+    "desert_lat": 35.0,
+    "dry_belt_lat": 27.0,
+    "dry_belt_width": 10.0,
+    "dry_belt_strength": 0.4,
+    "version": 1,
+    "coarse_factor": 4,
+    "coarse_iterations": 60,
+    "fine_iterations": 24
+  },
+  "digest": "47e29194e64d",
+  "grid": {
+    "rows": 625,
+    "cols": 1250,
+    "step_m": 500.0,
+    "radius_m": 99546.875
+  },
+  "land_share": 0.103,
+  "height_max_m": 3000.0,
+  "forms": [
+    {
+      "id": "sea",
+      "ru": "Море",
+      "en": "Sea"
+    },
+    {
+      "id": "lake",
+      "ru": "Озеро",
+      "en": "Lake"
+    },
+    {
+      "id": "plain",
+      "ru": "Равнина",
+      "en": "Plain"
+    },
+    {
+      "id": "hills",
+      "ru": "Холмы",
+      "en": "Hills"
+    },
+    {
+      "id": "valley",
+      "ru": "Долина",
+      "en": "Valley"
+    },
+    {
+      "id": "floodplain",
+      "ru": "Пойма",
+      "en": "Floodplain"
+    },
+    {
+      "id": "delta",
+      "ru": "Дельта",
+      "en": "Delta"
+    },
+    {
+      "id": "fan",
+      "ru": "Конус выноса",
+      "en": "Alluvial fan"
+    },
+    {
+      "id": "ridge",
+      "ru": "Хребет",
+      "en": "Ridge"
+    },
+    {
+      "id": "plateau",
+      "ru": "Плато",
+      "en": "Plateau"
+    },
+    {
+      "id": "canyon",
+      "ru": "Каньон",
+      "en": "Canyon"
+    },
+    {
+      "id": "cliff",
+      "ru": "Обрыв",
+      "en": "Cliff"
+    },
+    {
+      "id": "scree",
+      "ru": "Осыпь",
+      "en": "Scree"
+    },
+    {
+      "id": "rift",
+      "ru": "Рифт",
+      "en": "Rift"
+    },
+    {
+      "id": "volcano",
+      "ru": "Вулкан",
+      "en": "Volcano"
+    },
+    {
+      "id": "glacial",
+      "ru": "Ледниковая долина",
+      "en": "Glacial valley"
+    },
+    {
+      "id": "fjord",
+      "ru": "Фьорд",
+      "en": "Fjord"
+    },
+    {
+      "id": "ice",
+      "ru": "Лёд",
+      "en": "Ice"
+    },
+    {
+      "id": "dunes",
+      "ru": "Дюны",
+      "en": "Dunes"
+    },
+    {
+      "id": "rocky_desert",
+      "ru": "Каменистая пустыня",
+      "en": "Rocky desert"
+    },
+    {
+      "id": "coast_cliff",
+      "ru": "Скальный берег",
+      "en": "Sea cliff"
+    },
+    {
+      "id": "beach",
+      "ru": "Пляж",
+      "en": "Beach"
+    }
+  ],
+  "water": [
+    "land",
+    "sea",
+    "lake",
+    "river"
+  ]
+}
