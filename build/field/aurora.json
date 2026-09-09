@@ -34,9 +34,83 @@
     "version": 2,
     "coarse_factor": 4,
     "coarse_iterations": 60,
-    "fine_iterations": 24
+    "fine_iterations": 24,
+    "provinces": [
+      {
+        "id": "white_level",
+        "rain_shift": -5.0,
+        "temp_shift_c": -2.0,
+        "vein_k": 0.7
+      },
+      {
+        "id": "black_teeth",
+        "rain_shift": -10.0,
+        "temp_shift_c": -3.0,
+        "vein_k": 1.9
+      },
+      {
+        "id": "broken_ice",
+        "rain_shift": 0.0,
+        "temp_shift_c": 0.0,
+        "vein_k": 0.8
+      },
+      {
+        "id": "warm_lead",
+        "rain_shift": 15.0,
+        "temp_shift_c": 4.0,
+        "vein_k": 0.9
+      },
+      {
+        "id": "wind_ridge",
+        "rain_shift": -15.0,
+        "temp_shift_c": -5.0,
+        "vein_k": 0.8
+      },
+      {
+        "id": "blue_rifts",
+        "rain_shift": 0.0,
+        "temp_shift_c": -2.0,
+        "vein_k": 1.1
+      },
+      {
+        "id": "still_basin",
+        "rain_shift": 5.0,
+        "temp_shift_c": -6.0,
+        "vein_k": 0.6
+      },
+      {
+        "id": "stone_edge",
+        "rain_shift": 5.0,
+        "temp_shift_c": 2.0,
+        "vein_k": 1.5
+      },
+      {
+        "id": "loose_snows",
+        "rain_shift": 20.0,
+        "temp_shift_c": 1.0,
+        "vein_k": 0.5
+      },
+      {
+        "id": "ice_rampart",
+        "rain_shift": -5.0,
+        "temp_shift_c": -1.0,
+        "vein_k": 1.0
+      },
+      {
+        "id": "mirror_ice",
+        "rain_shift": -20.0,
+        "temp_shift_c": -4.0,
+        "vein_k": 1.2
+      },
+      {
+        "id": "melt_edge",
+        "rain_shift": 10.0,
+        "temp_shift_c": 5.0,
+        "vein_k": 0.9
+      }
+    ]
   },
-  "digest": "84830d57e2da",
+  "digest": "91dd53bd0a40",
   "grid": {
     "rows": 885,
     "cols": 1770,
@@ -162,5 +236,79 @@
     "sea",
     "lake",
     "river"
+  ],
+  "provinces": [
+    {
+      "id": "white_level",
+      "rain_shift": -5.0,
+      "temp_shift_c": -2.0,
+      "vein_k": 0.7
+    },
+    {
+      "id": "black_teeth",
+      "rain_shift": -10.0,
+      "temp_shift_c": -3.0,
+      "vein_k": 1.9
+    },
+    {
+      "id": "broken_ice",
+      "rain_shift": 0.0,
+      "temp_shift_c": 0.0,
+      "vein_k": 0.8
+    },
+    {
+      "id": "warm_lead",
+      "rain_shift": 15.0,
+      "temp_shift_c": 4.0,
+      "vein_k": 0.9
+    },
+    {
+      "id": "wind_ridge",
+      "rain_shift": -15.0,
+      "temp_shift_c": -5.0,
+      "vein_k": 0.8
+    },
+    {
+      "id": "blue_rifts",
+      "rain_shift": 0.0,
+      "temp_shift_c": -2.0,
+      "vein_k": 1.1
+    },
+    {
+      "id": "still_basin",
+      "rain_shift": 5.0,
+      "temp_shift_c": -6.0,
+      "vein_k": 0.6
+    },
+    {
+      "id": "stone_edge",
+      "rain_shift": 5.0,
+      "temp_shift_c": 2.0,
+      "vein_k": 1.5
+    },
+    {
+      "id": "loose_snows",
+      "rain_shift": 20.0,
+      "temp_shift_c": 1.0,
+      "vein_k": 0.5
+    },
+    {
+      "id": "ice_rampart",
+      "rain_shift": -5.0,
+      "temp_shift_c": -1.0,
+      "vein_k": 1.0
+    },
+    {
+      "id": "mirror_ice",
+      "rain_shift": -20.0,
+      "temp_shift_c": -4.0,
+      "vein_k": 1.2
+    },
+    {
+      "id": "melt_edge",
+      "rain_shift": 10.0,
+      "temp_shift_c": 5.0,
+      "vein_k": 0.9
+    }
   ]
 }

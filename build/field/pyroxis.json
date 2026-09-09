@@ -34,9 +34,83 @@
     "version": 2,
     "coarse_factor": 4,
     "coarse_iterations": 60,
-    "fine_iterations": 24
+    "fine_iterations": 24,
+    "provinces": [
+      {
+        "id": "black_level",
+        "rain_shift": -10.0,
+        "temp_shift_c": 1.0,
+        "vein_k": 1.0
+      },
+      {
+        "id": "thorn_field",
+        "rain_shift": -5.0,
+        "temp_shift_c": 0.0,
+        "vein_k": 1.2
+      },
+      {
+        "id": "sulphur_springs",
+        "rain_shift": 5.0,
+        "temp_shift_c": 4.0,
+        "vein_k": 1.6
+      },
+      {
+        "id": "rust_cones",
+        "rain_shift": -10.0,
+        "temp_shift_c": 2.0,
+        "vein_k": 1.8
+      },
+      {
+        "id": "ash_lowland",
+        "rain_shift": 0.0,
+        "temp_shift_c": 0.0,
+        "vein_k": 0.7
+      },
+      {
+        "id": "sunken_edge",
+        "rain_shift": -5.0,
+        "temp_shift_c": -1.0,
+        "vein_k": 2.0
+      },
+      {
+        "id": "salt_bowls",
+        "rain_shift": 10.0,
+        "temp_shift_c": 1.0,
+        "vein_k": 0.9
+      },
+      {
+        "id": "hot_slope",
+        "rain_shift": -15.0,
+        "temp_shift_c": 6.0,
+        "vein_k": 1.5
+      },
+      {
+        "id": "cold_field",
+        "rain_shift": 5.0,
+        "temp_shift_c": -5.0,
+        "vein_k": 0.8
+      },
+      {
+        "id": "glass_bank",
+        "rain_shift": -10.0,
+        "temp_shift_c": 0.0,
+        "vein_k": 1.4
+      },
+      {
+        "id": "smoke_ridge",
+        "rain_shift": 0.0,
+        "temp_shift_c": 3.0,
+        "vein_k": 1.7
+      },
+      {
+        "id": "still_bowl",
+        "rain_shift": 15.0,
+        "temp_shift_c": -2.0,
+        "vein_k": 0.6
+      }
+    ]
   },
-  "digest": "c2e25c2782a3",
+  "digest": "e1c64a09568d",
   "grid": {
     "rows": 361,
     "cols": 722,
@@ -162,5 +236,79 @@
     "sea",
     "lake",
     "river"
+  ],
+  "provinces": [
+    {
+      "id": "black_level",
+      "rain_shift": -10.0,
+      "temp_shift_c": 1.0,
+      "vein_k": 1.0
+    },
+    {
+      "id": "thorn_field",
+      "rain_shift": -5.0,
+      "temp_shift_c": 0.0,
+      "vein_k": 1.2
+    },
+    {
+      "id": "sulphur_springs",
+      "rain_shift": 5.0,
+      "temp_shift_c": 4.0,
+      "vein_k": 1.6
+    },
+    {
+      "id": "rust_cones",
+      "rain_shift": -10.0,
+      "temp_shift_c": 2.0,
+      "vein_k": 1.8
+    },
+    {
+      "id": "ash_lowland",
+      "rain_shift": 0.0,
+      "temp_shift_c": 0.0,
+      "vein_k": 0.7
+    },
+    {
+      "id": "sunken_edge",
+      "rain_shift": -5.0,
+      "temp_shift_c": -1.0,
+      "vein_k": 2.0
+    },
+    {
+      "id": "salt_bowls",
+      "rain_shift": 10.0,
+      "temp_shift_c": 1.0,
+      "vein_k": 0.9
+    },
+    {
+      "id": "hot_slope",
+      "rain_shift": -15.0,
+      "temp_shift_c": 6.0,
+      "vein_k": 1.5
+    },
+    {
+      "id": "cold_field",
+      "rain_shift": 5.0,
+      "temp_shift_c": -5.0,
+      "vein_k": 0.8
+    },
+    {
+      "id": "glass_bank",
+      "rain_shift": -10.0,
+      "temp_shift_c": 0.0,
+      "vein_k": 1.4
+    },
+    {
+      "id": "smoke_ridge",
+      "rain_shift": 0.0,
+      "temp_shift_c": 3.0,
+      "vein_k": 1.7
+    },
+    {
+      "id": "still_bowl",
+      "rain_shift": 15.0,
+      "temp_shift_c": -2.0,
+      "vein_k": 0.6
+    }
   ]
 }

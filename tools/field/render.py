@@ -129,7 +129,30 @@ def layer_hardness(r: Rasters) -> np.ndarray:
     return np.where((r.water == WATER_SEA)[..., None], np.array(FORM_COLORS["sea"]), grey)
 
 
-LAYERS = {"relief": layer_relief, "forms": layer_forms, "biomes": layer_zonal, "rock": layer_hardness}
+def layer_provinces(r: Rasters) -> np.ndarray:
+    """Каждой провинции свой цвет по её коду, море тёмным, рельеф отмывкой."""
+    codes = np.arange(int(r.province.max()) + 1)
+    hue = (codes * 0.618033988749895) % 1.0
+    palette = np.stack([_hue_to_rgb(h) for h in hue]) * 255.0
+    palette[0] = FORM_COLORS["sea"]
+    rgb = palette[r.province]
+    shade = hillshade(r.grid, r.height_m)
+    return rgb * (0.6 + 0.4 * shade)[..., None]
+
+
+def _hue_to_rgb(h: float) -> np.ndarray:
+    """Мягкие цвета одной насыщенности по кругу оттенков."""
+    k = np.array([0.0, 1.0 / 3.0, 2.0 / 3.0])
+    return 0.45 + 0.4 * np.clip(np.abs(((h + k) % 1.0) * 6.0 - 3.0) - 1.0, 0.0, 1.0)
+
+
+LAYERS = {
+    "relief": layer_relief,
+    "forms": layer_forms,
+    "biomes": layer_zonal,
+    "rock": layer_hardness,
+    "provinces": layer_provinces,
+}
 
 
 def _north_up(rgb: np.ndarray) -> np.ndarray:

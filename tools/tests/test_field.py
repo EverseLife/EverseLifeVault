@@ -40,6 +40,11 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
         dry_belt_wander_deg=8.0, rain_noise=0.3, cool_c=5.0, dry=30.0,
         desert_lat=35.0, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
+        provinces=(
+            {"id": "ore_ridge", "rain_shift": -5.0, "temp_shift_c": -1.0, "vein_k": 1.8},
+            {"id": "wet_ridge", "rain_shift": 18.0, "temp_shift_c": 0.0, "vein_k": 0.8},
+            {"id": "salt_wedge", "rain_shift": -20.0, "temp_shift_c": 3.0, "vein_k": 0.9},
+        ),
     )
     base.update(overrides)
     return pipeline.Params(**base)
@@ -102,6 +107,20 @@ def test_forms_are_codes_of_the_table_and_water_is_water() -> None:
     assert census.markdown(rep).startswith("### terra")
 
 
+def test_provinces_cover_the_land_and_nothing_else() -> None:
+    """Каждая клетка суши в какой-то провинции, ни одна клетка моря — ни в
+    какой; провинций столько, сколько строк, и у каждой есть земля (план §7)."""
+    r = pipeline.build(tiny())
+    assert (r.province[r.sea] == 0).all()
+    assert (r.province[r.land] > 0).all()
+    assert [row["id"] for row in r.provinces] == ["ore_ridge", "wet_ridge", "salt_wedge"]
+    for code in range(1, len(r.provinces) + 1):
+        assert (r.province == code).any(), code
+    #: Без строк — без провинций, и поле собирается всё равно.
+    bare = pipeline.build(tiny(provinces=()))
+    assert not bare.province.any() and bare.provinces == []
+
+
 def test_the_file_reads_back_as_the_same_field(tmp_path: Path) -> None:
     r = pipeline.build(tiny())
     store.save(r, tmp_path)
@@ -109,4 +128,5 @@ def test_the_file_reads_back_as_the_same_field(tmp_path: Path) -> None:
     assert back.params == r.params
     assert np.allclose(back.height_m, r.height_m, atol=0.01)
     assert np.array_equal(back.form, r.form) and np.array_equal(back.water, r.water)
+    assert np.array_equal(back.province, r.province) and back.provinces == r.provinces
     assert back.params.digest() == r.params.digest()

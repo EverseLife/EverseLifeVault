@@ -34,9 +34,10 @@
     "version": 2,
     "coarse_factor": 4,
     "coarse_iterations": 60,
-    "fine_iterations": 24
+    "fine_iterations": 24,
+    "provinces": []
   },
-  "digest": "6bc394cbafef",
+  "digest": "d4a0ebc05d85",
   "grid": {
     "rows": 625,
     "cols": 1250,
@@ -162,5 +163,6 @@
     "sea",
     "lake",
     "river"
-  ]
+  ],
+  "provinces": []
 }

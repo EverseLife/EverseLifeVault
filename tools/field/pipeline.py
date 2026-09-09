@@ -22,7 +22,7 @@ from typing import Callable
 
 import numpy as np
 
-from field import climate, erosion, forms, hydro, noise, plates
+from field import climate, erosion, forms, hydro, noise, plates, provinces
 from field.grid import Grid
 
 #: Дно моря для картинки, доли размаха: глубина на краю шкалы основы.
@@ -79,6 +79,9 @@ class Params:
     coarse_factor: int = COARSE_FACTOR
     coarse_iterations: int = COARSE_ITERATIONS
     fine_iterations: int = FINE_ITERATIONS
+    #: Строки `data/provinces.yaml` этой планеты (план §7): в хеше паспорта,
+    #: потому что другая таблица — другие сдвиги и другое поле.
+    provinces: tuple = ()
 
     @property
     def belt(self) -> climate.DryBelt:
@@ -105,8 +108,11 @@ class Params:
         return climate.Bounds(self.cold_c_zonal, self.cool_c, self.dry, self.desert_lat)
 
     @classmethod
-    def from_constants(cls, constants: dict, planet: str, **overrides) -> Params:
-        """Числа мира из `build/constants.json`, как их читает движок."""
+    def from_constants(
+        cls, constants: dict, planet: str, provinces: list[dict] | None = None, **overrides
+    ) -> Params:
+        """Числа мира из `build/constants.json`, как их читает движок, и
+        строки провинций планеты из `build/provinces.json`."""
         planets = ("terra", "aquatica", "pyroxis", "aurora")
         seed = int(constants["terrain.seed"]) * len(planets) + planets.index(planet)
         share = float(constants["planet.land_area_share"][planet])
@@ -125,6 +131,15 @@ class Params:
             plates=int(constants["terrain.plates"]),
             continental_share=float(constants["terrain.continental_share"]),
             river_area_km2=float(constants["terrain.river_area_km2"]),
+            provinces=tuple(
+                {
+                    "id": str(row["id"]),
+                    "rain_shift": float(row.get("rain_shift", 0.0)),
+                    "temp_shift_c": float(row.get("temp_shift_c", 0.0)),
+                    "vein_k": float(row.get("vein_k", 1.0)),
+                }
+                for row in (provinces or [])
+            ),
             warm_c=float(temp["max"]),
             cold_c=float(temp["min"]),
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
@@ -176,6 +191,8 @@ class Rasters:
     temperature_c: np.ndarray
     rain: np.ndarray  # [0, 1]
     zonal: np.ndarray  # uint8, предпросмотр `climate.ZONAL_NAMES`
+    province: np.ndarray  # uint8: 0 — нет, k — строка k-1 таблицы провинций
+    provinces: list[dict]  # строки провинций планеты в порядке кодов
     plate: np.ndarray
     deposit_m: np.ndarray
     uplift: np.ndarray
@@ -292,6 +309,12 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
 
     temperature = thermometer(fine, sea)(height)
     rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
+    #: Провинции (план §7) сдвигают осадки и температуру до классификатора
+    #: (§5): характер области — в самих растрах, а не только в подписи.
+    log("provinces")
+    realm = provinces.build(fine, params.seed, land, list(params.provinces))
+    rain = np.clip(rain + provinces.shifts(realm, "rain_shift") / 100.0, 0.0, 1.0)
+    temperature = np.minimum(temperature + provinces.shifts(realm, "temp_shift_c"), params.warm_c)
     zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
     #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
     #: мерзлота остаётся землёй. Эрозия выше считала лёд по одной температуре
@@ -313,4 +336,5 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
         hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
         deposit_m=done.deposit, uplift=tect.uplift, ice=ice,
+        province=realm.raster, provinces=realm.table,
     )

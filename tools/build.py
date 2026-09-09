@@ -1999,12 +1999,46 @@ def seed_ids(plants: list[dict]) -> dict[str, str]:
     }
 
 
+def load_provinces() -> tuple[dict[str, list[dict]], list[str]]:
+    """`data/provinces.yaml`: планета -> строки провинций (план ландшафта §7).
+
+    Проверяется то, что ломает сборку поля или имя на карте: id в snake_case
+    и единственный на весь вольт, имя, числа сдвигов. Файла может не быть —
+    тогда провинций нет, и это законно до волны 3.
+    """
+    path = DATA / "provinces.yaml"
+    if not path.exists():
+        return {}, []
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    table = doc.get("provinces") or {}
+    problems: list[str] = []
+    seen: set[str] = set()
+    out: dict[str, list[dict]] = {}
+    for planet, rows in table.items():
+        out[planet] = []
+        for row in rows or []:
+            pid = str(row.get("id", ""))
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", pid):
+                problems.append(f"provinces.yaml: id «{pid}» ({planet}) не snake_case")
+            if pid in seen:
+                problems.append(f"provinces.yaml: id «{pid}» встречается дважды")
+            seen.add(pid)
+            if not row.get("name"):
+                problems.append(f"provinces.yaml: у «{pid}» нет имени")
+            for key in ("rain_shift", "temp_shift_c", "vein_k"):
+                if not isinstance(row.get(key), (int, float)):
+                    problems.append(f"provinces.yaml: у «{pid}» нет числа {key}")
+            out[planet].append(row)
+    return out, problems
+
+
 def build_renames(
     recipes_doc: dict,
     vocabulary: dict,
     plants: list[dict] = (),
     locales: dict[str, dict] | None = None,
     code_laws: list[dict] = (),
+    provinces: dict[str, list[dict]] | None = None,
 ) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
@@ -2054,6 +2088,15 @@ def build_renames(
     }
     for domain, rows in vocabulary.items():
         out[domain] = {row["name"]: row["id"] for row in rows or []}
+    #: Провинции (план ландшафта §7): имя области на карте и в сводке едет
+    #: ключом, как всякое имя вольта; свой домен, потому что «Рудный кряж» —
+    #: не товар и не закон.
+    out["provinces"] = {
+        row["name"]: row["id"]
+        for rows in (provinces or {}).values()
+        for row in rows
+        if row.get("id") and row.get("name")
+    }
     out["names_ru"] = {
         domain: {v: k for k, v in table.items()} for domain, table in out.items()
     }
@@ -2470,12 +2513,18 @@ def main() -> int:
     problems += worldfile.check_spacing(world_doc, flatten_constants(constants_doc))
     vocabulary = load_vocabulary()
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
+    provinces_doc, province_problems = load_provinces()
+    problems += province_problems
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
     #: показывать игроку `iron_ore` в готовой игре.
     locales = load_locales()
     problems += check_locales(
-        build_renames(recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"]), locales
+        build_renames(
+            recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"],
+            provinces=provinces_doc,
+        ),
+        locales,
     )
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
@@ -2678,8 +2727,13 @@ def main() -> int:
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "renames.json",
           json.dumps(build_renames(recipes_doc, vocabulary, plants, locales,
-                                   code_laws=laws_doc["code_laws"]),
+                                   code_laws=laws_doc["code_laws"],
+                                   provinces=provinces_doc),
                      ensure_ascii=False, indent=2) + "\n")
+    #: Провинции (план ландшафта §7): конвейер поля читает отсюда, сколько
+    #: областей резать на планете и чем каждая сдвигает климат.
+    write(BUILD / "provinces.json",
+          json.dumps(provinces_doc, ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")

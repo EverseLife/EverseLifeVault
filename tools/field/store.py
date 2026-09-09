@@ -41,6 +41,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         deposit_m=r.deposit_m.astype(np.float32),
         uplift=np.round(r.uplift * 255).astype(np.uint8),
         ice=r.ice.astype(np.uint8),
+        province=r.province.astype(np.uint8),
     )
     meta = {
         "params": asdict(r.params),
@@ -53,6 +54,17 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         #: поле приедет в игру (D-251); зональный предпросмотр не пишется.
         "forms": [{"id": key, "ru": ru, "en": en} for key, ru, en in forms.FORMS],
         "water": ["land", "sea", "lake", "river"],
+        #: Провинции планеты в порядке кодов растра `province` (план §7):
+        #: имена — по id из reнames вольта (D-251), здесь только числа.
+        "provinces": [
+            {
+                "id": row["id"],
+                "rain_shift": row["rain_shift"],
+                "temp_shift_c": row["temp_shift_c"],
+                "vein_k": row["vein_k"],
+            }
+            for row in r.provinces
+        ],
     }
     passport.write_text(json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
     return arrays, passport
@@ -60,7 +72,11 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
 
 def load(directory: Path, planet: str) -> Rasters:
     meta = json.loads((directory / f"{planet}.json").read_text(encoding="utf-8"))
-    params = Params(**meta["params"])
+    raw = dict(meta["params"])
+    #: JSON не знает кортежей: строки провинций возвращаются тем же кортежем,
+    #: каким они были в параметрах, иначе паспорт не равен сам себе.
+    raw["provinces"] = tuple(raw.get("provinces", []))
+    params = Params(**raw)
     grid = Grid.of(params.radius_m, params.step_m)
     with np.load(directory / f"{planet}.npz") as z:
         temperature = z["temperature_c"].astype(float)
@@ -82,4 +98,6 @@ def load(directory: Path, planet: str) -> Rasters:
             deposit_m=z["deposit_m"].astype(float),
             uplift=z["uplift"].astype(float) / 255.0,
             ice=z["ice"].astype(bool),
+            province=z["province"] if "province" in z else np.zeros(z["water"].shape, dtype=np.uint8),
+            provinces=list(meta.get("provinces", [])),
         )

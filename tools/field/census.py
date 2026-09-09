@@ -147,6 +147,13 @@ def report(r: Rasters, seed: int = 0) -> dict:
         "forms": counted,
         "missing_forms": [key for key, v in counted.items() if v["objects"] == 0 and key != "lake"],
         "zonal": zonal_share,
+        "provinces": {
+            "count": len(r.provinces),
+            "mean_area_km2": (
+                float(area[r.land].sum() / 1e6 / len(r.provinces)) if r.provinces else 0.0
+            ),
+            "unassigned_land_share": float((r.province[r.land] == 0).mean()) if r.provinces else 1.0,
+        },
         "rain_quantiles": [round(float(q), 3) for q in np.quantile(r.rain[r.land], (0.1, 0.25, 0.5, 0.75, 0.9))],
         "temperature_quantiles": [round(float(q), 1) for q in np.quantile(r.temperature_c[r.land], (0.1, 0.25, 0.5, 0.75, 0.9))],
         "walk": walk_test(r, rng),
@@ -179,6 +186,11 @@ def markdown(rep: dict) -> str:
     )
     lines.append("")
     lines.append("Зональные (предпросмотр): " + ", ".join(f"{k} {100 * v:.0f} %" for k, v in rep["zonal"].items() if v > 0.001))
+    pr = rep["provinces"]
+    lines.append(
+        f"**Провинции**: {pr['count']}, в среднем {pr['mean_area_km2']:.0f} км² суши на каждую, "
+        f"без провинции {100 * pr['unassigned_land_share']:.1f} % суши"
+    )
     lines.append(
         f"Осадки суши по квантилям 10/25/50/75/90: {rep['rain_quantiles']}; "
         f"температура: {rep['temperature_quantiles']}"

@@ -43,6 +43,14 @@ def constants() -> dict:
     return json.loads((BUILD / "constants.json").read_text(encoding="utf-8"))
 
 
+def provinces_of(planet: str) -> list[dict]:
+    """Строки провинций планеты из сборки (`data/provinces.yaml`); без файла — ни одной."""
+    path = BUILD / "provinces.json"
+    if not path.exists():
+        return []
+    return list(json.loads(path.read_text(encoding="utf-8")).get(planet) or [])
+
+
 def shown(path: Path) -> str:
     """Путь от корня вольта, если он внутри, иначе как есть."""
     try:
@@ -63,7 +71,9 @@ def params_for(args: argparse.Namespace) -> pipeline.Params:
         overrides["coarse_iterations"] = int(args.coarse_iter)
     if args.fine_iter is not None:
         overrides["fine_iterations"] = int(args.fine_iter)
-    return pipeline.Params.from_constants(constants(), args.planet, **overrides)
+    return pipeline.Params.from_constants(
+        constants(), args.planet, provinces_of(args.planet), **overrides
+    )
 
 
 def do_build(args: argparse.Namespace) -> pipeline.Rasters:
