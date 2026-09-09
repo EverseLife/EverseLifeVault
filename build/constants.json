@@ -911,6 +911,10 @@
   },
   "terrain.lapse_c": 12,
   "terrain.relief_m": 3000,
+  "terrain.step_m": 500,
+  "terrain.plates": 12,
+  "terrain.continental_share": 0.5,
+  "terrain.river_area_km2": 20,
   "map.lattice_m": 5,
   "biome.names": {
     "coast": "Берег",
