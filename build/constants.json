@@ -916,6 +916,7 @@
   "terrain.continental_share": 0.5,
   "terrain.river_area_km2": 20,
   "terrain.version": 1,
+  "terrain.ice_c": -8,
   "terrain.dry_belt_lat": 27,
   "terrain.dry_belt_width": 10,
   "terrain.dry_belt_strength": 0.4,

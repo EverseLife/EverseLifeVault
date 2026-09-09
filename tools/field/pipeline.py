@@ -57,6 +57,7 @@ class Params:
     cold_c: float
     lapse_per_km: float
     ice_c: float
+    cold_c_zonal: float  # порог тундры предпросмотра, biome.bounds.cold_c
     cool_c: float
     dry: float
     desert_lat: float
@@ -74,7 +75,7 @@ class Params:
 
     @property
     def bounds(self) -> climate.Bounds:
-        return climate.Bounds(self.ice_c, self.cool_c, self.dry, self.desert_lat)
+        return climate.Bounds(self.cold_c_zonal, self.cool_c, self.dry, self.desert_lat)
 
     @classmethod
     def from_constants(cls, constants: dict, planet: str, **overrides) -> Params:
@@ -102,7 +103,10 @@ class Params:
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
             #: переведёт волна климата — здесь только пересчёт.
             lapse_per_km=lapse_range / (relief_m / 1000.0),
-            ice_c=float(bounds["cold_c"]),
+            #: Лёд — свой порог, ниже тундры (владелец): шапка там, где
+            #: мерзлота, а не везде, где тундра.
+            ice_c=float(constants["terrain.ice_c"]),
+            cold_c_zonal=float(bounds["cold_c"]),
             cool_c=float(bounds["cool_c"]),
             dry=float(bounds["dry"]),
             desert_lat=float(bounds["desert_lat"]),
