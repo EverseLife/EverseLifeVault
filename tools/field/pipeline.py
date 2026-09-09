@@ -61,7 +61,14 @@ class Params:
     ice_deep_c: float  # ниже этой температуры — лёд при любой сухости
     cold_c_zonal: float  # порог тундры предпросмотра, biome.bounds.cold_c
     continental_c: float  # на сколько глубина материка холоднее берега
+    continental_reach_r: float  # на каком удалении от моря, доля радиуса
     climate_noise_c: float  # размах местных отклонений температуры
+    climate_noise_km: float  # и их длина волны
+    wind_trade_lat: float
+    wind_westerly_lat: float
+    wind_edge_deg: float
+    dry_belt_wander_deg: float
+    rain_noise: float
     cool_c: float
     dry: float
     desert_lat: float
@@ -75,7 +82,23 @@ class Params:
 
     @property
     def belt(self) -> climate.DryBelt:
-        return climate.DryBelt(self.dry_belt_lat, self.dry_belt_width, self.dry_belt_strength)
+        return climate.DryBelt(
+            self.dry_belt_lat,
+            self.dry_belt_width,
+            self.dry_belt_strength,
+            self.dry_belt_wander_deg,
+            self.rain_noise,
+        )
+
+    @property
+    def winds(self) -> climate.Winds:
+        return climate.Winds(self.wind_trade_lat, self.wind_westerly_lat, self.wind_edge_deg)
+
+    @property
+    def weather(self) -> climate.Weather:
+        return climate.Weather(
+            self.continental_c, self.continental_reach_r, self.climate_noise_c, self.climate_noise_km
+        )
 
     @property
     def bounds(self) -> climate.Bounds:
@@ -114,7 +137,14 @@ class Params:
             ice_deep_c=float(constants["terrain.ice_deep_c"]),
             cold_c_zonal=float(bounds["cold_c"]),
             continental_c=float(constants["terrain.continental_c"]),
+            continental_reach_r=float(constants["terrain.continental_reach_r"]),
             climate_noise_c=float(constants["terrain.climate_noise_c"]),
+            climate_noise_km=float(constants["terrain.climate_noise_km"]),
+            wind_trade_lat=float(constants["terrain.wind_belts"]["trade_lat"]),
+            wind_westerly_lat=float(constants["terrain.wind_belts"]["westerly_lat"]),
+            wind_edge_deg=float(constants["terrain.wind_belts"]["edge_deg"]),
+            dry_belt_wander_deg=float(constants["terrain.dry_belt_wander_deg"]),
+            rain_noise=float(constants["terrain.rain_noise"]),
             cool_c=float(bounds["cool_c"]),
             dry=float(bounds["dry"]),
             desert_lat=float(bounds["desert_lat"]),
@@ -202,8 +232,9 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     def thermometer(grid: Grid, sea_mask: np.ndarray) -> Callable[[np.ndarray], np.ndarray]:
         #: Расстояние до моря и шум климата — раз на сетку; высота — при каждом чтении.
         _, sea_m = grid.nearest(sea_mask)
-        texture = noise.centred(params.seed + 91, grid.xyz, climate.CLIMATE_NOISE_LATTICE, 3)
-        weather = climate.Weather(params.continental_c, params.climate_noise_c)
+        lattice = noise.lattice_for(params.radius_m, params.climate_noise_km * 1000.0)
+        texture = noise.centred(params.seed + 91, grid.xyz, lattice, 3)
+        weather = params.weather
         return lambda h: climate.temperature(
             grid.lat2d, h, params.warm_c, params.cold_c, params.lapse_per_km,
             sea_m=sea_m, radius_m=params.radius_m, weather=weather, texture=texture,
@@ -260,7 +291,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
 
     temperature = thermometer(fine, sea)(height)
-    rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt)
+    rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
     zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
     #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
     #: мерзлота остаётся землёй. Эрозия выше считала лёд по одной температуре

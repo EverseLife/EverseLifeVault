@@ -30,8 +30,11 @@ import landscape  # noqa: E402
 WORLD = ROOT / "data" / "world.yaml"
 FIELD = ROOT / "build" / "field"
 CAPITAL = "terra.capital"
-#: Столица не выше этой широты: обитаемый край (`map.city_lat_max` в реестре — 60).
-CAPITAL_LAT_MAX = 50.0
+#: Столица не выше этой доли `map.city_lat_max` реестра: не на самом краю
+#: обитаемых широт, а с запасом на город вокруг.
+CAPITAL_LAT_SHARE = 0.8
+#: Сколько раз перебирать выборку мест, прежде чем сдаться.
+SITE_TRIES = 6
 
 
 def pinned() -> list[dict]:
@@ -59,9 +62,14 @@ def main() -> int:
         if not fix:
             continue
         if pin["key"] == CAPITAL:
+            lat_max = CAPITAL_LAT_SHARE * float(landscape.constants()["map.city_lat_max"])
             lat, lon = landscape.best_site(rasters)
-            while abs(lat) > CAPITAL_LAT_MAX:
-                lat, lon = landscape.best_site(rasters, samples=6000)
+            for k in range(SITE_TRIES):
+                if abs(lat) <= lat_max:
+                    break
+                lat, lon = landscape.best_site(rasters, samples=3000 * (k + 2))
+            else:
+                raise SystemExit(f"{pin['key']}: лучшее место всё выше {lat_max:.0f}° — выбирать руками")
         else:
             lat, lon = landscape.nearest_land(rasters, pin["lat"], pin["lon"])
         old = f"place: {{lat: {pin['lat']}, lon: {pin['lon']}}}"

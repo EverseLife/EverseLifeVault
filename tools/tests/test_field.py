@@ -35,7 +35,9 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=20.0,
         warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
-        cold_c_zonal=-2.0, continental_c=5.0, climate_noise_c=3.0, cool_c=5.0, dry=30.0,
+        cold_c_zonal=-2.0, continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
+        climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,
+        dry_belt_wander_deg=8.0, rain_noise=0.3, cool_c=5.0, dry=30.0,
         desert_lat=35.0, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
     )

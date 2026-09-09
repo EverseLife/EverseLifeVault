@@ -33,13 +33,6 @@ import numpy as np
 from field import noise
 from field.grid import Grid
 
-#: Пояса ветров по широте, градусы: до первого — пассаты (на запад), до
-#: второго — западные (на восток), дальше — полярные восточные.
-TRADE_LAT = 30.0
-WESTERLY_LAT = 60.0
-#: Ширина перехода между поясами ветров, градусы: осадки двух маршей
-#: смешиваются в ней плавно.
-WIND_EDGE_DEG = 8.0
 #: Влага, в долях радиуса планеты: над морем воздух насыщается за
 #: `EVAPORATION_R`, над сушей отдаёт дождём с длиной `RAIN_BASE_R`, теряет
 #: влагу за `LAND_LOSS_R` и дышит — лес и озёра возвращают часть выпавшего —
@@ -53,22 +46,34 @@ RAIN_BASE_R = 1.5
 LIFT_REF = 0.67
 LEE_REF = 0.5
 RAIN_CAP = 0.5
-#: Край сухого пояса гуляет по долготе шумом, иначе на карте лежит полоса.
-DRY_BELT_WANDER_DEG = 8.0
+#: Решётки шумов: края сухого пояса и осадков. Их размах — в реестре
+#: (`terrain.dry_belt_wander_deg`, `terrain.rain_noise`), это подбирает
+#: владелец по рендеру; решётка — устройство шума.
 DRY_BELT_WANDER_LATTICE = 6.0
-#: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой
-#: и край сухого пояса не шёл ровной чертой.
-RAIN_NOISE = 0.3
 RAIN_NOISE_LATTICE = 40.0
 
 
 @dataclass(frozen=True)
 class DryBelt:
-    """Сухой пояс ячейки Хэдли: широта середины, полуширина, сила (реестр)."""
+    """Сухой пояс ячейки Хэдли: широта середины, полуширина, сила, размах
+    блуждания края; и доля шума в осадках (всё реестр)."""
 
     lat: float
     width: float
     strength: float
+    wander_deg: float
+    rain_noise: float
+
+
+@dataclass(frozen=True)
+class Winds:
+    """Пояса ветров (реестр `terrain.wind_belts`): до `trade_lat` пассаты на
+    запад, до `westerly_lat` западные на восток, дальше полярные восточные;
+    на `edge_deg` по краю осадки двух маршей смешиваются."""
+
+    trade_lat: float
+    westerly_lat: float
+    edge_deg: float
 
 
 @dataclass(frozen=True)
@@ -81,21 +86,16 @@ class Bounds:
     desert_lat: float
 
 
-#: Континентальность: как далеко от моря, в долях радиуса, интерьер
-#: холодеет на всю величину `Weather.continental_c`; и решётка шума
-#: местного климата — течения, заливы, чего у модели нет поимённо.
-CONTINENTAL_R = 0.5
-CLIMATE_NOISE_LATTICE = 10.0
-
-
 @dataclass(frozen=True)
 class Weather:
     """Что кроме широты и высоты решает среднюю температуру (реестр):
-    насколько глубина материка холоднее берега и насколько гуляет
-    местный климат."""
+    насколько глубина материка холоднее берега и на каком удалении от моря
+    (доля радиуса), насколько и на какой длине волны гуляет местный климат."""
 
     continental_c: float
+    continental_reach_r: float
     noise_c: float
+    noise_km: float
 
 
 def temperature(
@@ -118,7 +118,7 @@ def temperature(
     tilt = np.sin(np.radians(lat2d))
     t = warm - (warm - cold) * tilt * tilt - lapse_per_km * np.clip(height_m, 0.0, None) / 1000.0
     if weather is not None and sea_m is not None:
-        inland = np.clip(sea_m / (CONTINENTAL_R * radius_m), 0.0, 1.0)
+        inland = np.clip(sea_m / (weather.continental_reach_r * radius_m), 0.0, 1.0)
         t = t - weather.continental_c * inland * (0.3 + 0.7 * tilt * tilt)
     if weather is not None and texture is not None:
         t = t + weather.noise_c * texture
@@ -127,14 +127,14 @@ def temperature(
     return np.minimum(t, warm)
 
 
-def wind_direction(lat: np.ndarray) -> np.ndarray:
-    """+1 — воздух идёт на восток (столбцы растут), -1 — на запад."""
-    a = np.abs(lat)
-    return np.where(a < TRADE_LAT, -1, np.where(a < WESTERLY_LAT, 1, -1)).astype(int)
-
-
 def rain(
-    grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int, relief_m: float, belt: DryBelt
+    grid: Grid,
+    height_m: np.ndarray,
+    sea: np.ndarray,
+    seed: int,
+    relief_m: float,
+    belt: DryBelt,
+    winds: Winds,
 ) -> np.ndarray:
     """Осадки в [0, 1] по клеткам: марш влаги по ветру, два круга вокруг планеты.
 
@@ -142,20 +142,21 @@ def rain(
     восток, и в каждой клетке осадки смешиваются по её поясу — с краем,
     гуляющим по долготе шумом, — иначе на 30° и 60° лежала бы прямая черта.
     """
-    wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * DRY_BELT_WANDER_DEG
+    wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * belt.wander_deg
     #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее.
     in_belt = np.exp(-(((np.abs(grid.lat2d + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
     dryness = 1.0 - belt.strength * in_belt
     westward = _march(grid, height_m, sea, -1, relief_m, dryness)
     eastward = _march(grid, height_m, sea, 1, relief_m, dryness)
     shifted = np.abs(grid.lat2d + wander)
-    west_share = _smoothstep((shifted - TRADE_LAT) / WIND_EDGE_DEG) * (
-        1.0 - _smoothstep((shifted - WESTERLY_LAT) / WIND_EDGE_DEG)
+    edge = max(winds.edge_deg, 1e-9)
+    west_share = _smoothstep((shifted - winds.trade_lat) / edge) * (
+        1.0 - _smoothstep((shifted - winds.westerly_lat) / edge)
     )
     out = westward * (1.0 - west_share) + eastward * west_share
     scaled = np.clip(out * dryness, 0.0, 1.0)
     texture = noise.centred(seed + 51, grid.xyz, RAIN_NOISE_LATTICE, 3)
-    return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
+    return np.clip(scaled * (1.0 + belt.rain_noise * texture), 0.0, 1.0)
 
 
 def _smoothstep(t: np.ndarray) -> np.ndarray:
