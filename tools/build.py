@@ -2333,6 +2333,40 @@ REFS_GONE = "документ ссылается на снятую конста�
 LINKS_DEAD = "ссылка ведёт в никуда"
 RECORDS_UNKNOWN = "названо решение или вопрос, которого нет"
 STATUS_MISSING = "документ без распознанного статуса"
+FIELD_STALE = "поле планеты собрано под другие числа"
+
+
+def check_field_freshness(constants: dict) -> list[str]:
+    """Поле в `build/field/` — производное реестра (план ландшафта §4.8): его
+    паспорт несёт хеш параметров, и поле, собранное под другие зерно, шаг или
+    долю моря, обманет и картинку, и, когда поле приедет в игру, движок.
+    Предупреждение, а не проблема: пока движок поле не читает, ломается
+    только линейка. Без numpy — молчит: сборка без него обходится."""
+    field_dir = BUILD / "field"
+    if not field_dir.exists():
+        return []
+    try:
+        from field.pipeline import Params  # noqa: PLC0415 -- только при наличии поля
+    except ImportError:
+        return []
+    found = []
+    for passport in sorted(field_dir.glob("*.json")):
+        planet = passport.stem
+        try:
+            meta = json.loads(passport.read_text(encoding="utf-8"))
+            expected = Params.from_constants(constants, planet).digest()
+        except (KeyError, ValueError, TypeError) as why:
+            found.append(
+                f"{planet}: паспорт не читается ({why}); "
+                f"пересобери: python tools/landscape.py build --planet {planet}"
+            )
+            continue
+        if meta.get("digest") != expected:
+            found.append(
+                f"{planet}: в паспорте {meta.get('digest')}, реестр даёт {expected}; "
+                f"пересобери: python tools/landscape.py build --planet {planet}"
+            )
+    return found
 
 
 def by_kind(found: list[tuple[str, str]]) -> list[tuple[str, list[str]]]:
@@ -2425,6 +2459,7 @@ def main() -> int:
     warnings += [(LINKS_DEAD, one) for one in check_doc_links()]
     warnings += [(RECORDS_UNKNOWN, one) for one in check_named_records()]
     warnings += [(STATUS_MISSING, one) for one in check_statuses()]
+    warnings += [(FIELD_STALE, one) for one in check_field_freshness(flatten_constants(constants_doc))]
     problems += check_building_types(constants_doc, recipes_doc)
     problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()

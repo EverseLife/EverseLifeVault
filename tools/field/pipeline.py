@@ -109,6 +109,7 @@ class Rasters:
     hardness: np.ndarray  # [0.25, 1]
     area_km2: np.ndarray  # площадь стока
     wet_m: np.ndarray  # до ближайшей воды, метры, не дальше WET_MAX_M
+    river_m: np.ndarray  # до ближайшей реки или озера, метры, не дальше WET_MAX_M
     temperature_c: np.ndarray
     rain: np.ndarray  # [0, 1]
     zonal: np.ndarray  # uint8, предпросмотр `climate.ZONAL_NAMES`
@@ -212,6 +213,9 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     water[river] = WATER_RIVER
     wet_cells = fine.cells_for_metres(WET_MAX_M)
     wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.step_m
+    #: Пресная вода отдельно: «у реки» и «у моря» — разные вещи для узла (D-321).
+    fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
+    river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
 
     temperature = thermometer(fine)(height)
     rain = climate.rain(fine, height, sea, params.seed)
@@ -227,7 +231,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     )
     return Rasters(
         params=params, grid=fine, height_m=height, water=water, form=form,
-        hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m,
+        hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
         deposit_m=done.deposit, uplift=tect.uplift, ice=done.ice,
     )
