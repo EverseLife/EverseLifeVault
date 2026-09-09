@@ -35,15 +35,21 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=20.0,
         warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
-        cold_c_zonal=-2.0, continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
+        continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
         climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,
-        dry_belt_wander_deg=8.0, rain_noise=0.3, cool_c=5.0, dry=30.0,
-        desert_lat=35.0, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
+        dry_belt_wander_deg=8.0, rain_noise=0.3, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
         provinces=(
             {"id": "ore_ridge", "rain_shift": -5.0, "temp_shift_c": -1.0, "vein_k": 1.8},
             {"id": "wet_ridge", "rain_shift": 18.0, "temp_shift_c": 0.0, "vein_k": 0.8},
             {"id": "salt_wedge", "rain_shift": -20.0, "temp_shift_c": 3.0, "vein_k": 0.9},
+        ),
+        rain_range=(0.0, 100.0),
+        zones=(
+            {"biome": "tundra", "temp": [-60.0, -2.0], "rain": [0.0, 100.0]},
+            {"biome": "taiga", "temp": [-2.0, 5.0], "rain": [0.0, 100.0]},
+            {"biome": "steppe", "temp": [5.0, 60.0], "rain": [0.0, 30.0]},
+            {"biome": "forest", "temp": [5.0, 60.0], "rain": [30.0, 100.0]},
         ),
     )
     base.update(overrides)

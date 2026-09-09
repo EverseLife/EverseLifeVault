@@ -18,10 +18,10 @@
 Где сухой пояс и насколько он сушит — числа мира, они в реестре
 (`terrain.dry_belt_*`); пояса ветров — устройство циркуляции, они здесь.
 
-Зональная таблица биомов здесь — **предпросмотр** для рендера и переписи:
-пороги берутся из `biome.bounds` реестра, а четыре класса, которых в
-`biome.names` пока нет, ждут таблицы **biome.zonal** волны климата (§5). В
-файл поля предпросмотр не пишется.
+Зональный биом — по таблице `biome.zonal` реестра (§5, волна 4): та же,
+что читает игра, так что рендер и перепись показывают то, что увидит игрок.
+Растр в файл поля не пишется — игра классифицирует сама, поверх него ещё
+азональный слой (`biome.azonal`), лёд и горная черта.
 """
 
 from __future__ import annotations
@@ -77,13 +77,15 @@ class Winds:
 
 
 @dataclass(frozen=True)
-class Bounds:
-    """Пороги классов из `biome.bounds` реестра (D-321)."""
+class Zone:
+    """Строка `biome.zonal` реестра: прямоугольник диаграммы Уиттекера.
+    Нижний край входит, верхний нет, кроме верхнего края плоскости."""
 
-    cold_c: float
-    cool_c: float
-    dry: float  # на шкале site.rain_range, 0..100
-    desert_lat: float
+    biome: str
+    temp_min: float
+    temp_max: float
+    rain_min: float  # на шкале site.rain_range, 0..100
+    rain_max: float
 
 
 @dataclass(frozen=True)
@@ -205,44 +207,36 @@ def _march(
     return out
 
 
-#: Предпросмотр зональных биомов: имена классов. Пороги холода и суши —
-#: реестра (`Bounds`); пороги четырёх классов, которых в реестре нет, —
-#: черновик под таблицу **biome.zonal**, в долях от `dry` и в градусах.
-ZONAL_NAMES = (
-    "tundra", "taiga", "desert", "steppe", "semidesert", "savanna", "rainforest", "woodland", "forest",
-)
-SEMIDESERT_DRY = 1.4
-DESERT_C = 20.0
-DESERT_COLD_C = 4.0
-WARM_C = 20.0
-MILD_C = 14.0
-SAVANNA_RAIN = 0.5
-RAINFOREST_RAIN = 0.65
-WOODLAND_RAIN = 0.45
+def zonal_names(zones: tuple[Zone, ...]) -> list[str]:
+    """Биомы таблицы в порядке первого появления: коды растра `zonal`."""
+    out: list[str] = []
+    for zone in zones:
+        if zone.biome not in out:
+            out.append(zone.biome)
+    return out
 
 
-def zonal(temperature_c: np.ndarray, rain01: np.ndarray, lat2d: np.ndarray, bounds: Bounds) -> np.ndarray:
-    """Код зонального биома по клеткам: индекс в `ZONAL_NAMES`."""
-    t, r = temperature_c, rain01 * 100.0
-    #: Пустыню от степи в предпросмотре делит тепло, а не широта: потолок
-    #: `desert_lat` реестра рисовал прямую черту через материк (владелец
-    #: 2026-09-09). Сам ключ остаётся классификатору игры до волны климата.
-    rules = (
-        ("tundra", t < bounds.cold_c),
-        ("taiga", t < bounds.cool_c),
-        #: Чем холоднее, тем суше должно быть, чтобы читаться пустыней:
-        #: граница зависит от обоих, а не режется одной изотермой.
-        ("desert", r < bounds.dry * np.clip((t - DESERT_COLD_C) / (DESERT_C - DESERT_COLD_C), 0.0, 1.0)),
-        ("steppe", r < bounds.dry),
-        ("semidesert", (r < bounds.dry * SEMIDESERT_DRY) & (t >= MILD_C)),
-        ("savanna", (t >= WARM_C) & (rain01 < SAVANNA_RAIN)),
-        ("rainforest", (t >= WARM_C) & (rain01 >= RAINFOREST_RAIN)),
-        ("woodland", (t >= MILD_C) & (rain01 < WOODLAND_RAIN)),
-    )
-    out = np.full(t.shape, ZONAL_NAMES.index("forest"), dtype=np.uint8)
-    done = np.zeros(t.shape, dtype=bool)
-    for name, hit in rules:
-        take = hit & ~done
-        out[take] = ZONAL_NAMES.index(name)
-        done |= take
+def zonal(
+    temperature_c: np.ndarray,
+    rain01: np.ndarray,
+    zones: tuple[Zone, ...],
+    rain_range: tuple[float, float] = (0.0, 100.0),
+) -> np.ndarray:
+    """Код зонального биома по клеткам по таблице `biome.zonal` реестра —
+    той же, что читает игра (`engine/biome.zonal`, волна 4): индекс в
+    `zonal_names(zones)`. Осадки [0, 1] переводятся на шкалу узла
+    (`site.rain_range`), как это делает `engine/terrain.climate_at`. Нижний
+    край строки входит, верхний нет, кроме верхнего края плоскости; точка
+    за плоскостью прижимается к её краю."""
+    names = zonal_names(zones)
+    top_t, top_r = max(z.temp_max for z in zones), max(z.rain_max for z in zones)
+    t = np.clip(temperature_c, min(z.temp_min for z in zones), top_t)
+    rain = rain_range[0] + (rain_range[1] - rain_range[0]) * rain01
+    r = np.clip(rain, min(z.rain_min for z in zones), top_r)
+    out = np.full(t.shape, 255, dtype=np.uint8)
+    for zone in zones:
+        in_t = (t >= zone.temp_min) & ((t < zone.temp_max) | ((t == top_t) & (zone.temp_max == top_t)))
+        in_r = (r >= zone.rain_min) & ((r < zone.rain_max) | ((r == top_r) & (zone.rain_max == top_r)))
+        take = in_t & in_r & (out == 255)
+        out[take] = names.index(zone.biome)
     return out

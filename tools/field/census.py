@@ -135,7 +135,7 @@ def report(r: Rasters, seed: int = 0) -> dict:
     area = np.repeat(r.grid.area_m2[:, None], r.grid.cols, axis=1)
     zonal_share = {
         name: float(area[(r.zonal == code) & r.land].sum() / max(area[r.land].sum(), 1.0))
-        for code, name in enumerate(climate.ZONAL_NAMES)
+        for code, name in enumerate(climate.zonal_names(r.params.zonal))
     }
     counted = shares(r)
     return {
@@ -185,7 +185,7 @@ def markdown(rep: dict) -> str:
         f"одна-две формы у {100 * n['one_or_two_forms_share']:.0f} %, вода рядом у {100 * n['with_water_share']:.0f} %"
     )
     lines.append("")
-    lines.append("Зональные (предпросмотр): " + ", ".join(f"{k} {100 * v:.0f} %" for k, v in rep["zonal"].items() if v > 0.001))
+    lines.append("Зональные (`biome.zonal`): " + ", ".join(f"{k} {100 * v:.0f} %" for k, v in rep["zonal"].items() if v > 0.001))
     pr = rep["provinces"]
     lines.append(
         f"**Провинции**: {pr['count']}, в среднем {pr['mean_area_km2']:.0f} км² суши на каждую, "

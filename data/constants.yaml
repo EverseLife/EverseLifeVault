@@ -2842,7 +2842,7 @@ groups:
           (снят 2026-09-09, дополнение D-323), когда поле приехало в игру
         decision: 90-production/12
       - key: terrain.version
-        value: 2
+        value: 3
         unit: версия
         note: >-
           Версия алгоритма поля рядом с зерном (план §4.8, OQ-149): правка
@@ -2856,8 +2856,8 @@ groups:
         unit: "°C"
         note: >-
           Ниже этой средней температуры земля подо льдом: шапка, где вода не
-          режет, а лёд выпахивает (план §4.2, §4.9). Отдельно от
-          `biome.bounds.cold_c` (−2, порог тундры): тундра остаётся тундрой,
+          режет, а лёд выпахивает (план §4.2, §4.9). Отдельно от порога
+          тундры в `biome.zonal`: тундра остаётся тундрой,
           а лёд начинается там, где мерзлота, — владелец 2026-09-09: лёд от
           порога тундры накрывал четверть суши и был скучен. При
           `site.temp_range` −15…35 линия льда на уровне моря — около 68°
@@ -2930,9 +2930,9 @@ groups:
         unit: "°"
         note: >-
           Широта середины сухого пояса — нисходящего воздуха ячейки Хэдли
-          (план §4.2): здесь ложатся пустыни на подветренной стороне. Не
-          путать с `biome.bounds.desert_lat` — потолком широты, выше которого
-          сушь читается степью, а не пустыней
+          (план §4.2): здесь ложатся пустыни на подветренной стороне. Пустыню
+          от степи делит не широта, а тепло и сушь в `biome.zonal` (волна 4):
+          прямой черты через материк нет
         decision: 90-production/12
       - key: terrain.dry_belt_width
         value: 10
@@ -2956,32 +2956,70 @@ groups:
         note: Шаг решётки планеты, к которой прижимается точка разведки; ключ узла — ячейка решётки, поэтому найденное одинаково для всех (D-237)
         decision: D-321
       - key: biome.names
-        value: {coast: Берег, floodplain: Пойма, forest: Лес, steppe: Степь, desert: Пустыня, taiga: Тайга, tundra: Тундра, marsh: Болото, foothills: Предгорье, alpine: Горный склон, ice: Ледяное поле, cinder: Чёрное поле}
-        note: "Слово о найденном узле в отказах и сводке; сам узел безымянен — его тип показывает знак на карте (владелец 2026-09-06)"
+        value: {coast: Берег, floodplain: Пойма, forest: Лес, steppe: Степь, desert: Пустыня, taiga: Тайга, tundra: Тундра, marsh: Болото, foothills: Предгорье, alpine: Горный склон, ice: Ледяное поле, cinder: Чёрное поле, rainforest: Дождевой лес, savanna: Саванна, semidesert: Полупустыня, woodland: Сухолесье}
+        note: "Слово о найденном узле в отказах и сводке; сам узел безымянен — его тип показывает знак на карте (владелец 2026-09-06). Шестнадцать классов с волной 4 плана ландшафта: четыре зональных (дождевой лес, саванна, полупустыня, сухолесье) добавлены под словарь 10-world/08"
         decision: D-321
       - key: biome.reach_m
-        value: {coast: {min: 5, max: 20}, floodplain: {min: 5, max: 20}, forest: {min: 5, max: 20}, steppe: {min: 10, max: 30}, desert: {min: 20, max: 80}, taiga: {min: 10, max: 30}, tundra: {min: 20, max: 80}, marsh: {min: 5, max: 20}, foothills: {min: 10, max: 50}, alpine: {min: 20, max: 100}, ice: {min: 20, max: 80}, cinder: {min: 10, max: 60}}
+        value: {coast: {min: 5, max: 20}, floodplain: {min: 5, max: 20}, forest: {min: 5, max: 20}, steppe: {min: 10, max: 30}, desert: {min: 20, max: 80}, taiga: {min: 10, max: 30}, tundra: {min: 20, max: 80}, marsh: {min: 5, max: 20}, foothills: {min: 10, max: 50}, alpine: {min: 20, max: 100}, ice: {min: 20, max: 80}, cinder: {min: 10, max: 60}, rainforest: {min: 5, max: 20}, savanna: {min: 10, max: 40}, semidesert: {min: 15, max: 60}, woodland: {min: 5, max: 25}}
         unit: м
-        note: "Как близко и как далеко можно разведать из узла этого биома (владелец 2026-09-06: равнина 5–20 м, горы 20–100 м)"
+        note: "Как близко и как далеко можно разведать из узла этого биома (владелец 2026-09-06: равнина 5–20 м, горы 20–100 м); четыре новых класса — стартовые калибровки по словарю 10-world/08"
         decision: D-321
       - key: biome.swing_c
-        value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, cinder: 15}
+        value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, cinder: 15, rainforest: 4, savanna: 12, semidesert: 16, woodland: 8}
         unit: °C
         note: Суточный перепад температуры узла (`temperature_swing`) — днём на половину теплее средней, ночью на половину холоднее; пустыня жарка днём и холодна ночью
         decision: D-321
       - key: biome.marks
-        value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}}
+        value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}, rainforest: {woods: 100, stones: 5, meadow: 0}, savanna: {woods: 25, stones: 15, meadow: 70}, semidesert: {woods: 5, stones: 35, meadow: 20}, woodland: {woods: 60, stones: 15, meadow: 35}}
         unit: "% мест"
         note: Доля найденных мест биома с лесом, камнями и лугом; заменяет `ground.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений
         decision: D-321
       - key: biome.vein_k
-        value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5}
+        value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5, rainforest: 0.6, savanna: 0.8, semidesert: 1.0, woodland: 0.8}
         unit: раз
-        note: Множитель `ground.vein_share` по биому; заменил `terrain.mountain_vein_k` — жилы в горах вдвое чаще, как и было
+        note: Множитель `ground.vein_share` по биому; заменил `terrain.mountain_vein_k` — жилы в горах вдвое чаще, как и было. Сверху него — множитель провинции (`data/provinces.yaml`, волна 3)
+        decision: D-321
+      - key: biome.zonal
+        value:
+          frozen: {biome: tundra, temp: [-60, -2], rain: [0, 100]}
+          boreal: {biome: taiga, temp: [-2, 5], rain: [0, 100]}
+          cool_dry: {biome: steppe, temp: [5, 14], rain: [0, 20]}
+          cool_open: {biome: woodland, temp: [5, 14], rain: [20, 45]}
+          cool_wet: {biome: forest, temp: [5, 14], rain: [45, 100]}
+          mild_dry: {biome: semidesert, temp: [14, 20], rain: [0, 12]}
+          mild_grass: {biome: steppe, temp: [14, 20], rain: [12, 25]}
+          mild_open: {biome: woodland, temp: [14, 20], rain: [25, 45]}
+          mild_wet: {biome: forest, temp: [14, 20], rain: [45, 100]}
+          hot_dry: {biome: desert, temp: [20, 60], rain: [0, 12]}
+          hot_scrub: {biome: semidesert, temp: [20, 60], rain: [12, 30]}
+          hot_grass: {biome: savanna, temp: [20, 60], rain: [30, 55]}
+          hot_wood: {biome: forest, temp: [20, 60], rain: [55, 75]}
+          hot_rain: {biome: rainforest, temp: [20, 60], rain: [75, 100]}
+        note: >-
+          Зональный биом — прямоугольник на диаграмме Уиттекера (план
+          ландшафта §5, волна 4): средняя температура, °C, и осадки по
+          шкале `site.rain_range`; нижний край входит, верхний нет,
+          кроме самого верхнего. Сборка вольта проверяет, что прямоугольники
+          покрывают всю шкалу осадков и температуры с запасом на высоту,
+          глубину материка и местный шум без дыр и наложений: точка без
+          класса — узел без биома, точка с двумя — тот же порядок веток,
+          что был лестницей `if`. Новая строка — новый
+          класс без правки кода. Числа — стартовая калибровка по земной
+          диаграмме, правятся по переписи поля
+        decision: D-321
+      - key: biome.azonal
+        value: {ridge: alpine, cliff: alpine, scree: alpine, volcano: alpine, glacial: alpine, canyon: foothills, hills: foothills, fan: foothills, floodplain: floodplain, delta: floodplain, valley: floodplain, beach: coast, coast_cliff: coast, fjord: coast, dunes: desert, ice: ice}
+        note: >-
+          Азональный слой (план §5): форма рельефа из поля, которая бьёт
+          климат, — форма → биом. Форма без строки читается зонально по
+          `biome.zonal`. Выше всего — горная черта поля (`terrain.mountain_share`)
+          и лёд поля: они читаются раньше таблицы. Болото и берег без формы —
+          по `biome.bounds`. Каменистая пустыня (`rocky_desert`) строки не
+          имеет намеренно: в холоде она читается зонально, дюны — всегда пустыня
         decision: D-321
       - key: biome.bounds
-        value: {cold_c: -2, cool_c: 5, dry: 30, wet: 38, desert_lat: 35, coast_km: 3, hills_relief: 0.25, marsh_relief: 0.15}
-        note: "Границы классов поля: средняя ниже cold_c — тундра, ниже cool_c — тайга; осадки (шкала site.rain_range) ниже dry в широтах до desert_lat — пустыня, иначе степь; выше wet в низине ниже marsh_relief — болото; берег — ближе coast_km к морю; предгорье — рельеф выше hills_relief; горы — высокогорье; Аврора — лёд, Пироксис — чёрное поле"
+        value: {wet: 38, coast_km: 3, marsh_relief: 0.15}
+        note: "Пороги азонального слоя, у которых нет формы: осадки выше wet в низине ниже marsh_relief — болото; берег — ближе coast_km к морю. Холод, сушь и широта пустыни ушли в `biome.zonal` (волна 4), предгорье и горы — в `biome.azonal` и горную черту поля"
         decision: D-321
       - key: complex.chance
         value: {aurora: {ice: 20}, terra: {floodplain: 15, alpine: 15, desert: 10}}

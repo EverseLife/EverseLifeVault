@@ -35,6 +35,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         area_km2=r.area_km2.astype(np.float32),
         wet_m=np.clip(r.wet_m, 0, 65535).astype(np.uint16),
         river_m=np.clip(r.river_m, 0, 65535).astype(np.uint16),
+        sea_m=np.clip(r.sea_m, 0, 65535).astype(np.uint16),
         temperature_c=np.clip(np.round(r.temperature_c), -128, 127).astype(np.int8),
         rain=np.round(r.rain * 255).astype(np.uint8),
         plate=r.plate.astype(np.int16),
@@ -50,10 +51,11 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         "land_share": round(r.land_share(), 4),
         "height_max_m": round(float(r.height_m.max()), 1),
         #: Смысл кодов растров — в паспорте, а не только в коде: файл поля
-        #: читается сам по себе. Таблица форм переедет в данные вольта, когда
-        #: поле приедет в игру (D-251); зональный предпросмотр не пишется.
+        #: читается сам по себе. Таблица форм переедет в данные вольта (D-251).
         "forms": [{"id": key, "ru": ru, "en": en} for key, ru, en in forms.FORMS],
         "water": ["land", "sea", "lake", "river"],
+        #: Растр `zonal` в файл не пишется: игра читает `biome.zonal` сама.
+        "zonal": climate.zonal_names(r.params.zonal),
         #: Провинции планеты в порядке кодов растра `province` (план §7):
         #: имена — по id из reнames вольта (D-251), здесь только числа.
         "provinces": [
@@ -76,6 +78,8 @@ def load(directory: Path, planet: str) -> Rasters:
     #: JSON не знает кортежей: строки провинций возвращаются тем же кортежем,
     #: каким они были в параметрах, иначе паспорт не равен сам себе.
     raw["provinces"] = tuple(raw.get("provinces", []))
+    raw["zones"] = tuple(raw.get("zones", []))
+    raw["rain_range"] = tuple(raw.get("rain_range", (0.0, 100.0)))
     params = Params(**raw)
     grid = Grid.of(params.radius_m, params.step_m)
     with np.load(directory / f"{planet}.npz") as z:
@@ -93,7 +97,8 @@ def load(directory: Path, planet: str) -> Rasters:
             river_m=z["river_m"].astype(float),
             temperature_c=temperature,
             rain=rain01,
-            zonal=climate.zonal(temperature, rain01, grid.lat2d, params.bounds),
+            zonal=climate.zonal(temperature, rain01, params.zonal, params.rain_range),
+            sea_m=z["sea_m"].astype(float),
             plate=z["plate"],
             deposit_m=z["deposit_m"].astype(float),
             uplift=z["uplift"].astype(float) / 255.0,

@@ -2378,6 +2378,75 @@ RECORDS_UNKNOWN = "названо решение или вопрос, котор
 STATUS_MISSING = "документ без распознанного статуса"
 FIELD_STALE = "поле планеты собрано под другие числа"
 
+def check_zonal(constants: dict) -> list[str]:
+    """`biome.zonal` покрывает плоскость без дыр и без наложений (план §5):
+    точка без класса — узел без биома, точка с двумя — порядок строк
+    становится той же ложью, что порядок веток `if`. Нижний край строки
+    входит, верхний — нет, кроме верхнего края плоскости. Плоскость —
+    шкала `site.rain_range` и температуры от самого холодного края строк
+    до самого тёплого; строки обязаны дотянуться до `site.temp_range` с
+    запасом вниз на высоту, глубину материка и местный шум — столько
+    поле отнимает у холодного края (`tools/field/climate.py`). Ключи
+    `biome.azonal` — формы конвейера (`tools/field/forms.py`), пока
+    таблица форм живёт в коде."""
+    table = constants.get("biome.zonal")
+    if not isinstance(table, dict):
+        return []
+    names = constants.get("biome.names") or {}
+    problems: list[str] = []
+    rows = []
+    for label, row in table.items():
+        try:
+            biome = str(row["biome"])
+            t0, t1 = (float(v) for v in row["temp"])
+            r0, r1 = (float(v) for v in row["rain"])
+        except (KeyError, TypeError, ValueError):
+            problems.append(f"biome.zonal: строка «{label}» не {{biome, temp: [a, b], rain: [a, b]}}")
+            continue
+        if biome not in names:
+            problems.append(f"biome.zonal: «{label}» называет биом «{biome}», которого нет в biome.names")
+        if t0 >= t1 or r0 >= r1:
+            problems.append(f"biome.zonal: у «{label}» пустой прямоугольник")
+        rows.append((label, t0, t1, r0, r1))
+    from field import forms  # noqa: PLC0415 -- сборка не зависит от конвейера иначе
+
+    known_forms = {key for key, _, _ in forms.FORMS}
+    for form, biome in (constants.get("biome.azonal") or {}).items():
+        if biome not in names:
+            problems.append(f"biome.azonal: форма «{form}» ведёт в биом «{biome}», которого нет в biome.names")
+        if form not in known_forms:
+            problems.append(f"biome.azonal: формы «{form}» нет в таблице форм конвейера")
+    if problems or not rows:
+        return problems
+    rain_range = constants.get("site.rain_range") or {}
+    temp_range = constants.get("site.temp_range") or {}
+    rain_lo, rain_hi = int(rain_range.get("min", 0)), int(rain_range.get("max", 100))
+    temp_lo, temp_hi = int(min(r[1] for r in rows)), int(max(r[2] for r in rows))
+    margin = sum(float(constants.get(key) or 0.0) for key in ("terrain.lapse_c", "terrain.continental_c", "terrain.climate_noise_c"))
+    if temp_lo > float(temp_range.get("min", 0.0)) - margin:
+        problems.append(f"biome.zonal: холодный край строк {temp_lo} °C, а поле опускается до {float(temp_range.get('min', 0.0)) - margin:.0f} °C")
+    if temp_hi < float(temp_range.get("max", 0.0)):
+        problems.append(f"biome.zonal: тёплый край строк {temp_hi} °C ниже site.temp_range.max")
+    gaps: list[str] = []
+    overlaps: list[str] = []
+    for t in range(temp_lo, temp_hi + 1):
+        for r in range(rain_lo, rain_hi + 1):
+            hits = [
+                label
+                for label, t0, t1, r0, r1 in rows
+                if (t0 <= t < t1 or (t == temp_hi and t1 >= t))
+                and (r0 <= r < r1 or (r == rain_hi and r1 >= r))
+            ]
+            if not hits and len(gaps) < 5:
+                gaps.append(f"{t} °C, осадки {r}")
+            if len(hits) > 1 and len(overlaps) < 5:
+                overlaps.append(f"{t} °C, осадки {r}: {', '.join(hits)}")
+    if gaps:
+        problems.append("biome.zonal: без класса — " + "; ".join(gaps) + " …")
+    if overlaps:
+        problems.append("biome.zonal: два класса — " + "; ".join(overlaps) + " …")
+    return problems
+
 
 def check_field_freshness(constants: dict) -> list[str]:
     """Поле в `build/field/` — производное реестра (план ландшафта §4.8): его
@@ -2393,11 +2462,14 @@ def check_field_freshness(constants: dict) -> list[str]:
     except ImportError:
         return []
     found = []
+    #: Строки провинций входят в хеш (план §7): без них реестр «давал» другой
+    #: хеш каждой планете с провинциями, и предупреждение не гасло никогда.
+    provinces, _ = load_provinces()
     for passport in sorted(field_dir.glob("*.json")):
         planet = passport.stem
         try:
             meta = json.loads(passport.read_text(encoding="utf-8"))
-            expected = Params.from_constants(constants, planet).digest()
+            expected = Params.from_constants(constants, planet, provinces.get(planet)).digest()
         except (KeyError, ValueError, TypeError) as why:
             found.append(
                 f"{planet}: паспорт не читается ({why}); "
@@ -2515,6 +2587,7 @@ def main() -> int:
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
     provinces_doc, province_problems = load_provinces()
     problems += province_problems
+    problems += check_zonal(flatten_constants(constants_doc))
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
     #: показывать игроку `iron_ore` в готовой игре.

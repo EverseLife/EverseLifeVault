@@ -903,7 +903,7 @@
   "terrain.plates": 12,
   "terrain.continental_share": 0.5,
   "terrain.river_area_km2": 20,
-  "terrain.version": 2,
+  "terrain.version": 3,
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,
@@ -934,7 +934,11 @@
     "foothills": "Предгорье",
     "alpine": "Горный склон",
     "ice": "Ледяное поле",
-    "cinder": "Чёрное поле"
+    "cinder": "Чёрное поле",
+    "rainforest": "Дождевой лес",
+    "savanna": "Саванна",
+    "semidesert": "Полупустыня",
+    "woodland": "Сухолесье"
   },
   "biome.reach_m": {
     "coast": {
@@ -984,6 +988,22 @@
     "cinder": {
       "min": 10,
       "max": 60
+    },
+    "rainforest": {
+      "min": 5,
+      "max": 20
+    },
+    "savanna": {
+      "min": 10,
+      "max": 40
+    },
+    "semidesert": {
+      "min": 15,
+      "max": 60
+    },
+    "woodland": {
+      "min": 5,
+      "max": 25
     }
   },
   "biome.swing_c": {
@@ -998,7 +1018,11 @@
     "foothills": 9,
     "alpine": 12,
     "ice": 6,
-    "cinder": 15
+    "cinder": 15,
+    "rainforest": 4,
+    "savanna": 12,
+    "semidesert": 16,
+    "woodland": 8
   },
   "biome.marks": {
     "coast": {
@@ -1060,6 +1084,26 @@
       "woods": 0,
       "stones": 80,
       "meadow": 0
+    },
+    "rainforest": {
+      "woods": 100,
+      "stones": 5,
+      "meadow": 0
+    },
+    "savanna": {
+      "woods": 25,
+      "stones": 15,
+      "meadow": 70
+    },
+    "semidesert": {
+      "woods": 5,
+      "stones": 35,
+      "meadow": 20
+    },
+    "woodland": {
+      "woods": 60,
+      "stones": 15,
+      "meadow": 35
     }
   },
   "biome.vein_k": {
@@ -1074,16 +1118,189 @@
     "foothills": 1.5,
     "alpine": 2.0,
     "ice": 1.5,
-    "cinder": 1.5
+    "cinder": 1.5,
+    "rainforest": 0.6,
+    "savanna": 0.8,
+    "semidesert": 1.0,
+    "woodland": 0.8
+  },
+  "biome.zonal": {
+    "frozen": {
+      "biome": "tundra",
+      "temp": [
+        -60,
+        -2
+      ],
+      "rain": [
+        0,
+        100
+      ]
+    },
+    "boreal": {
+      "biome": "taiga",
+      "temp": [
+        -2,
+        5
+      ],
+      "rain": [
+        0,
+        100
+      ]
+    },
+    "cool_dry": {
+      "biome": "steppe",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        0,
+        20
+      ]
+    },
+    "cool_open": {
+      "biome": "woodland",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        20,
+        45
+      ]
+    },
+    "cool_wet": {
+      "biome": "forest",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        45,
+        100
+      ]
+    },
+    "mild_dry": {
+      "biome": "semidesert",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        0,
+        12
+      ]
+    },
+    "mild_grass": {
+      "biome": "steppe",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        12,
+        25
+      ]
+    },
+    "mild_open": {
+      "biome": "woodland",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        25,
+        45
+      ]
+    },
+    "mild_wet": {
+      "biome": "forest",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        45,
+        100
+      ]
+    },
+    "hot_dry": {
+      "biome": "desert",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        0,
+        12
+      ]
+    },
+    "hot_scrub": {
+      "biome": "semidesert",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        12,
+        30
+      ]
+    },
+    "hot_grass": {
+      "biome": "savanna",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        30,
+        55
+      ]
+    },
+    "hot_wood": {
+      "biome": "forest",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        55,
+        75
+      ]
+    },
+    "hot_rain": {
+      "biome": "rainforest",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        75,
+        100
+      ]
+    }
+  },
+  "biome.azonal": {
+    "ridge": "alpine",
+    "cliff": "alpine",
+    "scree": "alpine",
+    "volcano": "alpine",
+    "glacial": "alpine",
+    "canyon": "foothills",
+    "hills": "foothills",
+    "fan": "foothills",
+    "floodplain": "floodplain",
+    "delta": "floodplain",
+    "valley": "floodplain",
+    "beach": "coast",
+    "coast_cliff": "coast",
+    "fjord": "coast",
+    "dunes": "desert",
+    "ice": "ice"
   },
   "biome.bounds": {
-    "cold_c": -2,
-    "cool_c": 5,
-    "dry": 30,
     "wet": 38,
-    "desert_lat": 35,
     "coast_km": 3,
-    "hills_relief": 0.25,
     "marsh_relief": 0.15
   },
   "complex.chance": {

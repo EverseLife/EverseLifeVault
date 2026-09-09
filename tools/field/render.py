@@ -5,7 +5,7 @@
 
 CPU-растр отклонён для клиента (§15), здесь он инструмент разработки: тремя
 кадрами — планета, область, город — и несколькими слоями — отмывка с
-гипсометрией и водой, формы, породa, предпросмотр биомов — судят, вышло ли
+гипсометрией и водой, формы, породa, зональные биомы — судят, вышло ли
 поле разнообразным, до того как хоть строчка уедет в игру.
 
 PNG пишется своими руками через zlib: в среде сборки нет PIL, а формат
@@ -57,6 +57,8 @@ ZONAL_COLORS = {
     "steppe": (200, 190, 90), "savanna": (190, 170, 60), "rainforest": (20, 100, 40), "woodland": (120, 150, 60),
     "forest": (60, 130, 60),
 }
+#: Класс без цвета и клетка вне таблицы — розовым, чтобы бросалось в глаза.
+ZONAL_UNKNOWN = (255, 0, 255)
 
 
 def png(rgb: np.ndarray, path: Path) -> None:
@@ -115,8 +117,9 @@ def layer_forms(r: Rasters) -> np.ndarray:
 
 
 def layer_zonal(r: Rasters) -> np.ndarray:
-    table = np.array([ZONAL_COLORS[name] for name in climate.ZONAL_NAMES], dtype=float)
-    rgb = table[r.zonal]
+    names = climate.zonal_names(r.params.zonal)
+    table = np.array([ZONAL_COLORS.get(name, ZONAL_UNKNOWN) for name in names] + [ZONAL_UNKNOWN], dtype=float)
+    rgb = table[np.minimum(r.zonal, len(names))]
     rgb = np.where((r.water == WATER_SEA)[..., None], np.array(FORM_COLORS["sea"]), rgb)
     rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(LAKE), rgb)
     rgb = np.where((r.ice & (r.water != WATER_SEA))[..., None], np.array(ICE), rgb)

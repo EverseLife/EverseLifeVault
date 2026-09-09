@@ -15,7 +15,6 @@
     "ice_c": -8.0,
     "ice_rain": 0.25,
     "ice_deep_c": -20.0,
-    "cold_c_zonal": -2.0,
     "continental_c": 5.0,
     "continental_reach_r": 0.5,
     "climate_noise_c": 5.0,
@@ -25,19 +24,176 @@
     "wind_edge_deg": 8.0,
     "dry_belt_wander_deg": 8.0,
     "rain_noise": 0.3,
-    "cool_c": 5.0,
-    "dry": 30.0,
-    "desert_lat": 35.0,
     "dry_belt_lat": 27.0,
     "dry_belt_width": 10.0,
     "dry_belt_strength": 0.4,
-    "version": 2,
+    "version": 3,
     "coarse_factor": 4,
     "coarse_iterations": 60,
     "fine_iterations": 24,
-    "provinces": []
+    "provinces": [],
+    "zones": [
+      {
+        "biome": "tundra",
+        "temp": [
+          -60.0,
+          -2.0
+        ],
+        "rain": [
+          0.0,
+          100.0
+        ]
+      },
+      {
+        "biome": "taiga",
+        "temp": [
+          -2.0,
+          5.0
+        ],
+        "rain": [
+          0.0,
+          100.0
+        ]
+      },
+      {
+        "biome": "steppe",
+        "temp": [
+          5.0,
+          14.0
+        ],
+        "rain": [
+          0.0,
+          20.0
+        ]
+      },
+      {
+        "biome": "woodland",
+        "temp": [
+          5.0,
+          14.0
+        ],
+        "rain": [
+          20.0,
+          45.0
+        ]
+      },
+      {
+        "biome": "forest",
+        "temp": [
+          5.0,
+          14.0
+        ],
+        "rain": [
+          45.0,
+          100.0
+        ]
+      },
+      {
+        "biome": "semidesert",
+        "temp": [
+          14.0,
+          20.0
+        ],
+        "rain": [
+          0.0,
+          12.0
+        ]
+      },
+      {
+        "biome": "steppe",
+        "temp": [
+          14.0,
+          20.0
+        ],
+        "rain": [
+          12.0,
+          25.0
+        ]
+      },
+      {
+        "biome": "woodland",
+        "temp": [
+          14.0,
+          20.0
+        ],
+        "rain": [
+          25.0,
+          45.0
+        ]
+      },
+      {
+        "biome": "forest",
+        "temp": [
+          14.0,
+          20.0
+        ],
+        "rain": [
+          45.0,
+          100.0
+        ]
+      },
+      {
+        "biome": "desert",
+        "temp": [
+          20.0,
+          60.0
+        ],
+        "rain": [
+          0.0,
+          12.0
+        ]
+      },
+      {
+        "biome": "semidesert",
+        "temp": [
+          20.0,
+          60.0
+        ],
+        "rain": [
+          12.0,
+          30.0
+        ]
+      },
+      {
+        "biome": "savanna",
+        "temp": [
+          20.0,
+          60.0
+        ],
+        "rain": [
+          30.0,
+          55.0
+        ]
+      },
+      {
+        "biome": "forest",
+        "temp": [
+          20.0,
+          60.0
+        ],
+        "rain": [
+          55.0,
+          75.0
+        ]
+      },
+      {
+        "biome": "rainforest",
+        "temp": [
+          20.0,
+          60.0
+        ],
+        "rain": [
+          75.0,
+          100.0
+        ]
+      }
+    ],
+    "rain_range": [
+      0.0,
+      100.0
+    ]
   },
-  "digest": "d4a0ebc05d85",
+  "digest": "b853549569e0",
   "grid": {
     "rows": 625,
     "cols": 1250,
@@ -163,6 +319,17 @@
     "sea",
     "lake",
     "river"
+  ],
+  "zonal": [
+    "tundra",
+    "taiga",
+    "steppe",
+    "woodland",
+    "forest",
+    "semidesert",
+    "desert",
+    "savanna",
+    "rainforest"
   ],
   "provinces": []
 }

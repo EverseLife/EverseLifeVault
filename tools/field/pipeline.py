@@ -59,7 +59,6 @@ class Params:
     ice_c: float
     ice_rain: float  # ниже этой доли осадков холодная земля — мерзлота без шапки
     ice_deep_c: float  # ниже этой температуры — лёд при любой сухости
-    cold_c_zonal: float  # порог тундры предпросмотра, biome.bounds.cold_c
     continental_c: float  # на сколько глубина материка холоднее берега
     continental_reach_r: float  # на каком удалении от моря, доля радиуса
     climate_noise_c: float  # размах местных отклонений температуры
@@ -69,9 +68,6 @@ class Params:
     wind_edge_deg: float
     dry_belt_wander_deg: float
     rain_noise: float
-    cool_c: float
-    dry: float
-    desert_lat: float
     dry_belt_lat: float
     dry_belt_width: float
     dry_belt_strength: float
@@ -82,6 +78,11 @@ class Params:
     #: Строки `data/provinces.yaml` этой планеты (план §7): в хеше паспорта,
     #: потому что другая таблица — другие сдвиги и другое поле.
     provinces: tuple = ()
+    #: Строки `biome.zonal` реестра (план §5, волна 4): та же таблица, что
+    #: читает игра; в хеше паспорта, потому что она решает растр `zonal`.
+    zones: tuple = ()
+    #: Шкала осадков узла (`site.rain_range`): края строк `biome.zonal` — на ней.
+    rain_range: tuple = (0.0, 100.0)
 
     @property
     def belt(self) -> climate.DryBelt:
@@ -104,8 +105,11 @@ class Params:
         )
 
     @property
-    def bounds(self) -> climate.Bounds:
-        return climate.Bounds(self.cold_c_zonal, self.cool_c, self.dry, self.desert_lat)
+    def zonal(self) -> tuple[climate.Zone, ...]:
+        return tuple(
+            climate.Zone(str(row["biome"]), *(float(v) for v in row["temp"]), *(float(v) for v in row["rain"]))
+            for row in self.zones
+        )
 
     @classmethod
     def from_constants(
@@ -120,7 +124,6 @@ class Params:
         relief_m = float(constants["terrain.relief_m"])
         temp = constants["site.temp_range"]
         lapse_range = float(constants["terrain.lapse_c"])
-        bounds = constants["biome.bounds"]
         params = cls(
             planet=planet,
             seed=seed,
@@ -140,6 +143,11 @@ class Params:
                 }
                 for row in (provinces or [])
             ),
+            zones=tuple(
+                {"biome": str(row["biome"]), "temp": [float(v) for v in row["temp"]], "rain": [float(v) for v in row["rain"]]}
+                for row in constants["biome.zonal"].values()
+            ),
+            rain_range=(float(constants["site.rain_range"]["min"]), float(constants["site.rain_range"]["max"])),
             warm_c=float(temp["max"]),
             cold_c=float(temp["min"]),
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
@@ -150,7 +158,6 @@ class Params:
             ice_c=float(constants["terrain.ice_c"]),
             ice_rain=float(constants["terrain.ice_rain"]),
             ice_deep_c=float(constants["terrain.ice_deep_c"]),
-            cold_c_zonal=float(bounds["cold_c"]),
             continental_c=float(constants["terrain.continental_c"]),
             continental_reach_r=float(constants["terrain.continental_reach_r"]),
             climate_noise_c=float(constants["terrain.climate_noise_c"]),
@@ -160,9 +167,6 @@ class Params:
             wind_edge_deg=float(constants["terrain.wind_belts"]["edge_deg"]),
             dry_belt_wander_deg=float(constants["terrain.dry_belt_wander_deg"]),
             rain_noise=float(constants["terrain.rain_noise"]),
-            cool_c=float(bounds["cool_c"]),
-            dry=float(bounds["dry"]),
-            desert_lat=float(bounds["desert_lat"]),
             dry_belt_lat=float(constants["terrain.dry_belt_lat"]),
             dry_belt_width=float(constants["terrain.dry_belt_width"]),
             dry_belt_strength=float(constants["terrain.dry_belt_strength"]),
@@ -173,7 +177,10 @@ class Params:
         return replace(params, **overrides) if overrides else params
 
     def digest(self) -> str:
-        text = json.dumps(asdict(self), sort_keys=True)
+        #: Таблица биомов и её шкала в хеш не входят: растр `zonal` в файл
+        #: не пишется, и правка таблицы не должна требовать пересборки поля.
+        fields = {k: v for k, v in asdict(self).items() if k not in ("zones", "rain_range")}
+        text = json.dumps(fields, sort_keys=True)
         return hashlib.sha1(text.encode("utf-8")).hexdigest()[:12]
 
 
@@ -190,7 +197,8 @@ class Rasters:
     river_m: np.ndarray  # до ближайшей реки или озера, метры, не дальше WET_MAX_M
     temperature_c: np.ndarray
     rain: np.ndarray  # [0, 1]
-    zonal: np.ndarray  # uint8, предпросмотр `climate.ZONAL_NAMES`
+    zonal: np.ndarray  # uint8, индекс в `climate.zonal_names(params.zonal)`
+    sea_m: np.ndarray  # до ближайшего моря, метры, не дальше WET_MAX_M
     province: np.ndarray  # uint8: 0 — нет, k — строка k-1 таблицы провинций
     provinces: list[dict]  # строки провинций планеты в порядке кодов
     plate: np.ndarray
@@ -246,9 +254,12 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
 
-    def thermometer(grid: Grid, sea_mask: np.ndarray) -> Callable[[np.ndarray], np.ndarray]:
+    def thermometer(
+        grid: Grid, sea_mask: np.ndarray, sea_m: np.ndarray | None = None
+    ) -> Callable[[np.ndarray], np.ndarray]:
         #: Расстояние до моря и шум климата — раз на сетку; высота — при каждом чтении.
-        _, sea_m = grid.nearest(sea_mask)
+        if sea_m is None:
+            _, sea_m = grid.nearest(sea_mask)
         lattice = noise.lattice_for(params.radius_m, params.climate_noise_km * 1000.0)
         texture = noise.centred(params.seed + 91, grid.xyz, lattice, 3)
         weather = params.weather
@@ -307,7 +318,10 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
     river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
 
-    temperature = thermometer(fine, sea)(height)
+    #: До моря — и термометру (глубина материка), и файлу: «у моря» для узла
+    #: (D-321) читается из растра, а не восемью лучами по высотам.
+    _, sea_m = fine.nearest(sea)
+    temperature = thermometer(fine, sea, sea_m)(height)
     rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
     #: Провинции (план §7) сдвигают осадки и температуру до классификатора
     #: (§5): характер области — в самих растрах, а не только в подписи.
@@ -315,7 +329,10 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     realm = provinces.build(fine, params.seed, land, list(params.provinces))
     rain = np.clip(rain + provinces.shifts(realm, "rain_shift") / 100.0, 0.0, 1.0)
     temperature = np.minimum(temperature + provinces.shifts(realm, "temp_shift_c"), params.warm_c)
-    zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
+    #: Классификатор читает растры такими, какими их хранит файл (целые
+    #: градусы, осадки в 1/255): рендер судит то, что получит узел, а не
+    #: то, что видел конвейер до записи.
+    zonal = climate.zonal(np.round(temperature), np.round(rain * 255.0) / 255.0, params.zonal, params.rain_range)
     #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
     #: мерзлота остаётся землёй. Эрозия выше считала лёд по одной температуре
     #: — осадков до неё ещё нет; разница — сила среза на сухом холоде, и она
@@ -335,6 +352,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
         params=params, grid=fine, height_m=height, water=water, form=form,
         hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
+        sea_m=np.minimum(sea_m, WET_MAX_R * params.radius_m),
         deposit_m=done.deposit, uplift=tect.uplift, ice=ice,
         province=realm.raster, provinces=realm.table,
     )
