@@ -470,6 +470,115 @@ law_options:
   build_permit.everyone: everyone
   build_permit.nobody: nobody
 
+# Facets of the field (landscape plan wave 7): the face of a biome one
+# stands in. The Russian name is in data/facets.yaml.
+facets:
+  alder_bottom: Alder bottom
+  alkali_flat: Alkali flat
+  alpine_meadow: Alpine meadow
+  ash_flat: Ash flat
+  bald_top: Bald top
+  bare_patch: Bare patch
+  bare_summit: Bare summit
+  bog_ridge: Bog ridge
+  bottomland_wood: Bottomland wood
+  boulder_field: Boulder field
+  boulder_run: Boulder run
+  brush: Brush
+  burn: Burn
+  cinder_cone: Cinder cone
+  cirque: Cirque
+  clay_pan: Clay pan
+  cliff: Cliff
+  clinker: Rough lava
+  collapse_trench: Collapse pit
+  crag: Crag
+  crest: Crest
+  crevasses: Crevasse field
+  deadfall: Deadfall
+  dry_hollow: Dry hollow
+  dry_lake: Dry lake
+  dry_wash: Dry wash
+  dune: Dune
+  dune_ridge: Dune ridge
+  dwarf_scrub: Dwarf scrub
+  edge: Edge
+  feather_grass: Feather grass
+  fen_hollow: Fen hollow
+  firn_plain: Firn plain
+  forest_glade: Forest glade
+  frost_mound: Frost mound
+  glade: Glade
+  glaze_ice: Bare ice
+  glen: Glen
+  grove: Grove
+  grove_island: Grove island
+  gully: Gully
+  hillside: Hillside
+  hollow: Hollow
+  hot_ground: Steam vents
+  hummocks: Hummocks
+  jungle_bottom: Wet hollow
+  jungle_deadfall: Log tangle
+  jungle_gap: Sun gap
+  jungle_ridge: Ridge
+  jungle_scarp: Scarp
+  jungle_thicket: Deep jungle
+  knoll: Knoll
+  lagoon: Lagoon
+  lava_basin: Lava basin
+  levee_ridge: Levee ridge
+  liman: Wet swale
+  long_rise: Long rise
+  marsh_wood: Marsh wood
+  melt_pool: Melt pool
+  mesa: Mesa
+  moss_bog: Moss bog
+  moss_flat: Moss flat
+  oak_stand: Oak stand
+  oasis: Oasis
+  open_wood: Open wood
+  outcrop: Outcrop
+  oxbow: Oxbow
+  pan: Pan
+  piedmont_wood: Piedmont wood
+  pine_wood: Pine wood
+  pressure_ridges: Pressure ridges
+  quagmire: Quagmire
+  ravine: Ravine
+  reed_beds: Reed beds
+  riverside_wood: Riverside wood
+  rock_face: Rock face
+  rubble: Rubble
+  saddle: Saddle
+  salt_flat: Salt flat
+  sandbar: Sandbar
+  sandy_shore: Sandy shore
+  sastrugi: Sastrugi
+  saxaul: Saxaul stand
+  scree: Talus
+  scree_slope: Scree slope
+  scrub: Scrub
+  shelf: Shelf
+  shingle: Shingle
+  shore_wood: Shore wood
+  smooth_lava: Smooth lava
+  snowfield: Snowfield
+  spruce_stand: Spruce stand
+  steep_bank: Steep bank
+  steep_gully: Steep gully
+  stony_flat: Stony flat
+  stony_ground: Stony ground
+  stony_rise: Stony rise
+  swamp_wood: Swamp wood
+  tall_grass: Tall grass
+  thicket: Thicket
+  tidal_flat: Salt meadow
+  water_meadow: Water meadow
+  willow_brake: Willow brake
+  windthrow: Windthrow
+  wormwood_flat: Wormwood flat
+
 provinces:
   alder_glen: Alder Glen
   ash_lowland: Ash Lowland

@@ -3017,6 +3017,28 @@ groups:
           по `biome.bounds`. Каменистая пустыня (`rocky_desert`) строки не
           имеет намеренно: в холоде она читается зонально, дюны — всегда пустыня
         decision: D-321
+      - key: biome.facet_axes
+        value: {wave_m: 200, slope_full: 0.2, wet_km: 4, patch_km: 1, soft_edge: 0.25}
+        note: >-
+          Оси, по которым выбирается фацет — грань биома, в которой стоишь
+          (план ландшафта §6, словарь 10-world/08; строки — `data/facets.yaml`).
+          `wave_m` — сторона клетки мозаики: две находки в трёхстах метрах
+          читаются по-разному, в двадцати — обычно одинаково, и это записано
+          честно (владелец 2026-09-09: остаётся триста). Остальные три —
+          откалиброваны по тому, что даёт поле в 500 м, иначе коробки словаря
+          недостижимы и доли не работают: `slope_full` 0,2 — уклон в метрах на
+          метр, считающийся единицей крутизны (медиана суши Терры 0,016, сотая
+          доля круче 0,217); `wet_km` 4 — дальше этого близость воды нуль
+          (медиана до воды 1,6 км, десятая доля дальше 4,5); `patch_km` —
+          пятно, внутри которого меряется высота точки: 0 — дно ложбины, 1 —
+          макушка бугра. `soft_edge` — насколько далеко за своей коробкой
+          фацет ещё встречается: коробки словаря нарисованы рукой и не мостят
+          куб, да и земля одного биома не расходится по всему кубу (в лесу
+          нигде не круто), поэтому коробка — не ворота, а склонность: внутри
+          неё фацет берёт всю свою долю, за ней тает. Числа мира, а не
+          картинки: от них зависит, какой фацет достанется узлу, а с ним метки
+          места, шанс жилы, дальность разведки и суточный размах
+        decision: D-321
       - key: biome.bounds
         value: {wet: 38, coast_km: 3, marsh_relief: 0.15}
         note: "Пороги азонального слоя, у которых нет формы: осадки выше wet в низине ниже marsh_relief — болото; берег — ближе coast_km к морю. Холод, сушь и широта пустыни ушли в `biome.zonal` (волна 4), предгорье и горы — в `biome.azonal` и горную черту поля"
@@ -3032,7 +3054,7 @@ groups:
           forerunner_outpost: {planet: aurora, biome: ice, weight: 3, nodes: [{role: hall, name: Зал, finds: архив}, {role: quarters, name: Квартира, finds: квартира}, {role: quarters, name: Квартира, finds: квартира}]}
           lost_city: {planet: aurora, biome: ice, weight: 1, city: true}
           river_bend: {planet: terra, biome: floodplain, weight: 1, nodes: [{role: ford, name: Брод, ford: true}, {role: fishing, name: Рыбное место, water: river}]}
-          mountain_pass: {planet: terra, biome: alpine, weight: 1, nodes: [{role: saddle, name: Седловина}, {role: slope, name: Склон, vein: true}]}
+          mountain_pass: {planet: terra, biome: alpine, weight: 1, nodes: [{role: saddle, name: Перевал}, {role: slope, name: Склон, vein: true}]}
           oasis: {planet: terra, biome: desert, weight: 1, nodes: [{role: spring, name: Источник, water: river}, {role: grove, name: Пальмовая роща, woods: true}]}
         note: "Схемы комплексов: узлы схемы встают на решётку рядом с найденным по тем же правилам места, содержимое склада — по `ruins.room_finds`; `lost_city` — город Предтеч D-232 со всеми помещениями, открытыми с рождения (заменяет `ruins.lost_cities`)"
         decision: D-321

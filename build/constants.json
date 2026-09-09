@@ -1298,6 +1298,13 @@
     "dunes": "desert",
     "ice": "ice"
   },
+  "biome.facet_axes": {
+    "wave_m": 200,
+    "slope_full": 0.2,
+    "wet_km": 4,
+    "patch_km": 1,
+    "soft_edge": 0.25
+  },
   "biome.bounds": {
     "wet": 38,
     "coast_km": 3,
@@ -1393,7 +1400,7 @@
       "nodes": [
         {
           "role": "saddle",
-          "name": "Седловина"
+          "name": "Перевал"
         },
         {
           "role": "slope",

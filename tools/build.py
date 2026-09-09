@@ -1999,6 +1999,98 @@ def seed_ids(plants: list[dict]) -> dict[str, str]:
     }
 
 
+def load_facets() -> tuple[dict[str, list[dict]], list[str]]:
+    """`data/facets.yaml`: биом -> строки фацетов (план ландшафта §6).
+
+    Проверяется то, что ломает выбор фацета или подпись на карте: id в
+    snake_case и единственный на весь вольт, имя не длиннее подписи, доли
+    биома в сумме сто, коробка `where` внутри нуля и единицы, метки и
+    множители — числа. Файла может не быть — тогда фацетов нет, и это
+    законно до волны 7.
+    """
+    path = DATA / "facets.yaml"
+    if not path.exists():
+        return {}, []
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    table = doc.get("facets") or {}
+    problems: list[str] = []
+    seen: set[str] = set()
+    out: dict[str, list[dict]] = {}
+    for biome, rows in table.items():
+        out[biome] = []
+        for row in rows or []:
+            fid = str(row.get("id", ""))
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", fid):
+                problems.append(f"facets.yaml: id «{fid}» ({biome}) не snake_case")
+            if fid in seen:
+                problems.append(f"facets.yaml: id «{fid}» встречается дважды")
+            seen.add(fid)
+            name = str(row.get("name") or "")
+            if not name:
+                problems.append(f"facets.yaml: у «{fid}» нет имени")
+            elif len(name) > FACET_NAME_LIMIT:
+                problems.append(
+                    f"facets.yaml: имя «{name}» длиннее {FACET_NAME_LIMIT} знаков — не ляжет подписью"
+                )
+            if not isinstance(row.get("share"), (int, float)):
+                problems.append(f"facets.yaml: у «{fid}» нет доли share")
+            for key in ("vein_k", "reach_k", "swing_k"):
+                if not isinstance(row.get(key), (int, float)) or float(row[key]) <= 0:
+                    problems.append(f"facets.yaml: у «{fid}» нет положительного {key}")
+            where = row.get("where") or {}
+            for axis in FACET_AXES:
+                span = where.get(axis)
+                if (
+                    not isinstance(span, list)
+                    or len(span) != 2
+                    or not all(isinstance(v, (int, float)) for v in span)
+                    or not 0 <= span[0] < span[1] <= 1
+                ):
+                    problems.append(f"facets.yaml: у «{fid}» ось {axis} не отрезок внутри 0…1")
+            marks = row.get("marks") or {}
+            for mark in ("woods", "stones", "meadow"):
+                share = marks.get(mark)
+                if not isinstance(share, (int, float)) or not 0 <= float(share) <= FACET_SHARE_FULL:
+                    problems.append(f"facets.yaml: у «{fid}» метка {mark} не доля 0…100")
+            out[biome].append(row)
+        total = sum(float(row.get("share") or 0) for row in out[biome])
+        if out[biome] and round(total, 3) != FACET_SHARE_FULL:
+            problems.append(f"facets.yaml: доли биома «{biome}» дают {total:g}, а не 100")
+    return out, problems
+
+
+#: Имя фацета ложится подписью на карту (словарь 10-world/08).
+FACET_NAME_LIMIT = 18
+#: Доли фацетов биома в сумме, и потолок доли метки, в процентах.
+FACET_SHARE_FULL = 100
+FACET_AXES = ("slope", "wet", "high")
+
+
+def check_facets(constants: dict, facets: dict[str, list[dict]]) -> list[str]:
+    """Фацеты стоят под биомами реестра, и у каждого биома они есть: узел
+    биома без фацетов остался бы без лица (план §6)."""
+    if not facets:
+        return []
+    names = constants.get("biome.names") or {}
+    problems = [
+        f"facets.yaml: биом «{biome}», которого нет в biome.names"
+        for biome in facets
+        if biome not in names
+    ]
+    problems += [
+        f"biome.names: у биома «{biome}» нет ни одного фацета в facets.yaml"
+        for biome in names
+        if not facets.get(biome)
+    ]
+    axes = constants.get("biome.facet_axes") or {}
+    problems += [
+        f"biome.facet_axes: нет положительной оси {axis}"
+        for axis in ("wave_m", "slope_full", "wet_km", "patch_km", "soft_edge")
+        if not isinstance(axes.get(axis), (int, float)) or float(axes[axis]) <= 0
+    ]
+    return problems
+
+
 def load_provinces() -> tuple[dict[str, list[dict]], list[str]]:
     """`data/provinces.yaml`: планета -> строки провинций (план ландшафта §7).
 
@@ -2039,6 +2131,7 @@ def build_renames(
     locales: dict[str, dict] | None = None,
     code_laws: list[dict] = (),
     provinces: dict[str, list[dict]] | None = None,
+    facets: dict[str, list[dict]] | None = None,
 ) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
@@ -2094,6 +2187,14 @@ def build_renames(
     out["provinces"] = {
         row["name"]: row["id"]
         for rows in (provinces or {}).values()
+        for row in rows
+        if row.get("id") and row.get("name")
+    }
+    #: Фацеты (план ландшафта §6): имя грани биома на карте и в окне узла.
+    #: Свой домен рядом с провинциями — «Опушка» не товар и не область.
+    out["facets"] = {
+        row["name"]: row["id"]
+        for rows in (facets or {}).values()
         for row in rows
         if row.get("id") and row.get("name")
     }
@@ -2587,6 +2688,9 @@ def main() -> int:
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
     provinces_doc, province_problems = load_provinces()
     problems += province_problems
+    facets_doc, facet_problems = load_facets()
+    problems += facet_problems
+    problems += check_facets(flatten_constants(constants_doc), facets_doc)
     problems += check_zonal(flatten_constants(constants_doc))
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
@@ -2596,6 +2700,7 @@ def main() -> int:
         build_renames(
             recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"],
             provinces=provinces_doc,
+            facets=facets_doc,
         ),
         locales,
     )
@@ -2801,12 +2906,14 @@ def main() -> int:
     write(BUILD / "renames.json",
           json.dumps(build_renames(recipes_doc, vocabulary, plants, locales,
                                    code_laws=laws_doc["code_laws"],
-                                   provinces=provinces_doc),
+                                   provinces=provinces_doc, facets=facets_doc),
                      ensure_ascii=False, indent=2) + "\n")
     #: Провинции (план ландшафта §7): конвейер поля читает отсюда, сколько
     #: областей резать на планете и чем каждая сдвигает климат.
     write(BUILD / "provinces.json",
           json.dumps(provinces_doc, ensure_ascii=False, indent=2) + "\n")
+    write(BUILD / "facets.json",
+          json.dumps({"facets": facets_doc}, ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")
