@@ -34,7 +34,8 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
     base = dict(
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=20.0,
-        warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-2.0,
+        warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-2.0, cool_c=5.0, dry=30.0,
+        desert_lat=35.0, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
     )
     base.update(overrides)

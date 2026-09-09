@@ -25,21 +25,19 @@ import numpy as np
 from field import climate, erosion, forms, hydro, noise, plates
 from field.grid import Grid
 
-#: Версия алгоритма поля (план §4.8, OQ-149): правка процесса — новая версия,
-#: и файл с другой версией — другой мир.
-VERSION = 1
-#: Дно моря для картинки, метры: глубина ниже уровня моря на краю шкалы основы.
-SEA_DEPTH_M = 2000.0
+#: Дно моря для картинки, доли размаха: глубина на краю шкалы основы.
+SEA_DEPTH = 0.67
 #: Грубая сетка эрозии: во сколько раз крупнее шаг и сколько итераций там и там.
 COARSE_FACTOR = 4
 COARSE_ITERATIONS = 60
 FINE_ITERATIONS = 24
 #: Мелочь под грубой сеткой, когда высота переезжает на тонкую: амплитуда в
-#: долях размаха и длина волны в метрах; на твёрдой породе шум гребенчатый.
+#: долях размаха и длина волны в долях радиуса; на твёрдой породе шум
+#: гребенчатый.
 DETAIL_AMPLITUDE = 0.015
-DETAIL_WAVELENGTH_M = 6_000.0
-#: Дальше этого «близость воды» не считается, метры.
-WET_MAX_M = 5_000.0
+DETAIL_WAVELENGTH_R = 0.06
+#: Дальше этого «близость воды» не считается, доля радиуса.
+WET_MAX_R = 0.05
 
 WATER_LAND, WATER_SEA, WATER_LAKE, WATER_RIVER = 0, 1, 2, 3
 
@@ -59,10 +57,24 @@ class Params:
     cold_c: float
     lapse_per_km: float
     ice_c: float
+    cool_c: float
+    dry: float
+    desert_lat: float
+    dry_belt_lat: float
+    dry_belt_width: float
+    dry_belt_strength: float
+    version: int
     coarse_factor: int = COARSE_FACTOR
     coarse_iterations: int = COARSE_ITERATIONS
     fine_iterations: int = FINE_ITERATIONS
-    version: int = VERSION
+
+    @property
+    def belt(self) -> climate.DryBelt:
+        return climate.DryBelt(self.dry_belt_lat, self.dry_belt_width, self.dry_belt_strength)
+
+    @property
+    def bounds(self) -> climate.Bounds:
+        return climate.Bounds(self.ice_c, self.cool_c, self.dry, self.desert_lat)
 
     @classmethod
     def from_constants(cls, constants: dict, planet: str, **overrides) -> Params:
@@ -91,6 +103,15 @@ class Params:
             #: переведёт волна климата — здесь только пересчёт.
             lapse_per_km=lapse_range / (relief_m / 1000.0),
             ice_c=float(bounds["cold_c"]),
+            cool_c=float(bounds["cool_c"]),
+            dry=float(bounds["dry"]),
+            desert_lat=float(bounds["desert_lat"]),
+            dry_belt_lat=float(constants["terrain.dry_belt_lat"]),
+            dry_belt_width=float(constants["terrain.dry_belt_width"]),
+            dry_belt_strength=float(constants["terrain.dry_belt_strength"]),
+            #: Версия алгоритма поля (план §4.8, OQ-149): правка процесса —
+            #: новая версия в реестре, и файл с другой версией — другой мир.
+            version=int(constants["terrain.version"]),
         )
         return replace(params, **overrides) if overrides else params
 
@@ -153,7 +174,9 @@ def _to_metres(
         level = _weighted_quantile(base, weights, sea_share)
     top = max(float(base.max()) - level, 1e-9)
     bottom = max(level - float(base.min()), 1e-9)
-    height = np.where(base >= level, (base - level) / top * relief_m, (base - level) / bottom * SEA_DEPTH_M)
+    height = np.where(
+        base >= level, (base - level) / top * relief_m, (base - level) / bottom * SEA_DEPTH * relief_m
+    )
     return height, base < level
 
 
@@ -183,7 +206,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: Берег — слово основы, не грубой эрозии: клетка моря остаётся под водой,
     #: клетка суши — над ней, как бы ни легла билинейная интерполяция.
     h_f = np.where(sea, np.minimum(h_f, -1.0), np.maximum(h_f, 0.5))
-    lattice = noise.lattice_for(params.radius_m, DETAIL_WAVELENGTH_M)
+    lattice = noise.lattice_for(params.radius_m, DETAIL_WAVELENGTH_R * params.radius_m)
     smooth = noise.centred(params.seed + 61, fine.xyz, lattice, 3)
     sharp = noise.ridged(params.seed + 71, fine.xyz, lattice, 3) * 2.0 - 1.0
     weight = np.clip((tect.hardness - 0.5) / 0.5, 0.0, 1.0)
@@ -211,15 +234,15 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     water[sea] = WATER_SEA
     water[flow.lake] = WATER_LAKE
     water[river] = WATER_RIVER
-    wet_cells = fine.cells_for_metres(WET_MAX_M)
+    wet_cells = fine.cells_for_metres(WET_MAX_R * params.radius_m)
     wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.step_m
     #: Пресная вода отдельно: «у реки» и «у моря» — разные вещи для узла (D-321).
     fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
     river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
 
     temperature = thermometer(fine)(height)
-    rain = climate.rain(fine, height, sea, params.seed)
-    zonal = climate.zonal(temperature, rain)
+    rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt)
+    zonal = climate.zonal(temperature, rain, fine.lat2d, params.bounds)
     log("forms")
     form = forms.classify(
         fine,

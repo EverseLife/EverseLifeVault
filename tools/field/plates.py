@@ -42,11 +42,13 @@ INTERIOR_LATTICE = 3.0
 INTERIOR_AMPLITUDE = 0.16
 FINE_LATTICE = 14.0
 FINE_AMPLITUDE = 0.05
-#: Хребет схождения: полуширина пояса в метрах и его высота в долях.
-BELT_WIDTH_M = 25_000.0
+#: Длины — доли радиуса планеты (план §3): хребет в четверть радиуса шириной
+#: — та же гора на Терре и на Авроре, а не 25 км на обеих.
+#: Хребет схождения: полуширина пояса и его высота в долях.
+BELT_WIDTH_R = 0.25
 BELT_HEIGHT = 0.45
 #: Рифт расхождения: полуширина и глубина; плечи стоят на удвоенной ширине.
-RIFT_WIDTH_M = 12_000.0
+RIFT_WIDTH_R = 0.12
 RIFT_DEPTH = 0.22
 #: Гряды внутри пояса: решётка гребенчатого шума (клеток поперёк диаметра).
 RIDGE_LATTICE = 28.0
@@ -61,13 +63,13 @@ HARD_NOISE = 0.15
 HARD_LATTICE = 10.0
 HARD_FLOOR, HARD_CEIL = 0.25, 1.0
 #: Дуга вулканов: на каком расстоянии за границей погружения и с каким шагом.
-ARC_OFFSET_M = 40_000.0
-ARC_SPACING_CELLS = 9
+ARC_OFFSET_R = 0.4
+ARC_SPACING_R = 0.045
 HOTSPOTS = 3
-CONE_RADIUS_M = 6_000.0
+CONE_RADIUS_R = 0.06
 CONE_HEIGHT = 0.22
 #: Дальше этого от границы влияние плит не считается.
-REACH_M = 120_000.0
+REACH_R = 1.2
 
 
 @dataclass(frozen=True)
@@ -139,7 +141,7 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     conv_at_boundary = np.where(boundary, np.sum(relative * normal, axis=-1), 0.0)
     #: На двух сторонах одной границы схождение читается одинаково: нормали
     #: противоположны, и относительные скорости тоже.
-    reach = grid.cells_for_metres(REACH_M)
+    reach = grid.cells_for_metres(REACH_R * grid.radius_m)
     convergence, dist_cells = grid.spread(conv_at_boundary, boundary, reach)
     boundary_m = dist_cells * grid.step_m
     #: Чья плита по ту сторону — чтобы знать, где океан ныряет под материк.
@@ -147,8 +149,8 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     other_continental = continental[other_side.astype(int)]
     cell_continental = continental[own]
 
-    belt_w = BELT_WIDTH_M
-    rift_w = RIFT_WIDTH_M
+    belt_w = BELT_WIDTH_R * grid.radius_m
+    rift_w = RIFT_WIDTH_R * grid.radius_m
     converging = np.clip(convergence, 0.0, None)
     diverging = np.clip(-convergence, 0.0, None)
     belt = converging * np.exp(-((boundary_m / belt_w) ** 2))
@@ -166,15 +168,16 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     #: Дуга вулканов над погружением: своя плита материковая, чужая — океан.
     subduction = converging > 0.15
     arc_band = subduction & cell_continental & ~other_continental
-    arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_M) <= grid.step_m * 0.75)
+    arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_R * grid.radius_m) <= grid.step_m * 0.75)
     cones = np.zeros(plate.shape, dtype=bool)
     rows_idx, cols_idx = np.nonzero(arc_line)
     #: Конусы вдоль дуги с шагом: клетки дуги в случайном порядке, каждая
-    #: следующая не ближе `ARC_SPACING_CELLS` к уже взятым.
+    #: следующая не ближе шага дуги к уже взятым.
+    spacing = grid.cells_for_metres(ARC_SPACING_R * grid.radius_m)
     taken: list[tuple[int, int]] = []
     for k in rng.permutation(rows_idx.size).tolist():
         r, c = int(rows_idx[k]), int(cols_idx[k])
-        if all(max(abs(r - tr), min(abs(c - tc), grid.cols - abs(c - tc))) >= ARC_SPACING_CELLS for tr, tc in taken):
+        if all(max(abs(r - tr), min(abs(c - tc), grid.cols - abs(c - tc))) >= spacing for tr, tc in taken):
             taken.append((r, c))
             cones[r, c] = True
     #: Горячие точки — на будущей суше: уровень моря режется потом, здесь
@@ -184,7 +187,7 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     if candidates.size:
         for flat in rng.choice(candidates, size=min(HOTSPOTS, candidates.size), replace=False):
             cones.flat[flat] = True
-    cone_r = grid.cells_for_metres(CONE_RADIUS_M)
+    cone_r = grid.cells_for_metres(CONE_RADIUS_R * grid.radius_m)
     cone_dist = grid.dilate_distance(cones, cone_r)
     volcano = np.clip(1.0 - cone_dist / cone_r, 0.0, 1.0)
     base += CONE_HEIGHT * volcano**2

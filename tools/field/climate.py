@@ -11,11 +11,22 @@
 подветренной стороне, дождевой лес на наветренном склоне и степь в глубине
 материка, без единой нарисованной рукой границы.
 
+Длины здесь — **доли радиуса планеты**, высоты — доли размаха рельефа (план
+§3): земные интуиции про глубину материка и дождевую тень на планете в
+шестьдесят раз меньше Земли переносятся долями, а не километрами, и один
+конвейер даёт Акватике тот же климат, что Терре, а не случайность масштаба.
+Где сухой пояс и насколько он сушит — числа мира, они в реестре
+(`terrain.dry_belt_*`); пояса ветров — устройство циркуляции, они здесь.
+
 Зональная таблица биомов здесь — **предпросмотр** для рендера и переписи:
-настоящая едет в вольт таблицей **biome.zonal** волной климата (§5).
+пороги берутся из `biome.bounds` реестра, а четыре класса, которых в
+`biome.names` пока нет, ждут таблицы **biome.zonal** волны климата (§5). В
+файл поля предпросмотр не пишется.
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
 
 import numpy as np
 
@@ -26,30 +37,44 @@ from field.grid import Grid
 #: второго — западные (на восток), дальше — полярные восточные.
 TRADE_LAT = 30.0
 WESTERLY_LAT = 60.0
-#: Влага — в метрах пути, не в клетках, чтобы сетка и планета не меняли
-#: климата (план §3): над морем воздух насыщается за `EVAPORATION_M`, над
-#: ровной сушей отдаёт дождём и теряет влагу с такими же длинами;
-#: орографический дождь — на единицу подъёма (м/м) вдоль ветра.
-EVAPORATION_M = 15_000.0
-#: Суша тоже дышит: лес и озёра возвращают влагу в воздух, медленнее моря.
-LAND_EVAPORATION_M = 200_000.0
-LAND_LOSS_M = 400_000.0
-RAIN_BASE_M = 150_000.0
+#: Влага, в долях радиуса планеты: над морем воздух насыщается за
+#: `EVAPORATION_R`, над сушей отдаёт дождём с длиной `RAIN_BASE_R`, теряет
+#: влагу за `LAND_LOSS_R` и дышит — лес и озёра возвращают часть выпавшего —
+#: за `LAND_EVAPORATION_R`.
+EVAPORATION_R = 0.15
+LAND_EVAPORATION_R = 2.0
+LAND_LOSS_R = 4.0
+RAIN_BASE_R = 1.5
 #: Подъём вдоль ветра, выжимающий всю влагу, и спуск, высушивающий дождь
-#: за хребтом, — в метрах высоты.
-LIFT_REF_M = 2_000.0
-LEE_REF_M = 1_500.0
+#: за хребтом, — в долях размаха рельефа.
+LIFT_REF = 0.67
+LEE_REF = 0.5
 RAIN_CAP = 0.5
-#: Сухой пояс — нисходящий воздух ячейки Хэдли: широта середины, полуширина
-#: в градусах и насколько он сушит.
-DRY_BELT_LAT = 27.0
-DRY_BELT_WIDTH = 10.0
-DRY_BELT_STRENGTH = 0.4
+#: Край сухого пояса гуляет по долготе шумом, иначе на карте лежит полоса.
 DRY_BELT_WANDER_DEG = 5.0
 DRY_BELT_WANDER_LATTICE = 3.0
 #: Доля шума в осадках: чтобы одинаковая равнина не была одинаково мокрой.
 RAIN_NOISE = 0.15
 RAIN_NOISE_LATTICE = 20.0
+
+
+@dataclass(frozen=True)
+class DryBelt:
+    """Сухой пояс ячейки Хэдли: широта середины, полуширина, сила (реестр)."""
+
+    lat: float
+    width: float
+    strength: float
+
+
+@dataclass(frozen=True)
+class Bounds:
+    """Пороги классов из `biome.bounds` реестра (D-321)."""
+
+    cold_c: float
+    cool_c: float
+    dry: float  # на шкале site.rain_range, 0..100
+    desert_lat: float
 
 
 def temperature(lat2d: np.ndarray, height_m: np.ndarray, warm: float, cold: float, lapse_per_km: float) -> np.ndarray:
@@ -63,29 +88,33 @@ def wind_direction(lat: np.ndarray) -> np.ndarray:
     return np.where(a < TRADE_LAT, -1, np.where(a < WESTERLY_LAT, 1, -1)).astype(int)
 
 
-def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.ndarray:
+def rain(
+    grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int, relief_m: float, belt: DryBelt
+) -> np.ndarray:
     """Осадки в [0, 1] по клеткам: марш влаги по ветру, два круга вокруг планеты."""
     rows, cols = height_m.shape
     direction = wind_direction(grid.lat)
     moisture = np.full(rows, 0.5)
     out = np.zeros_like(height_m)
     r = np.arange(rows)
-    evaporation = np.clip(grid.dx / EVAPORATION_M, 0.0, 1.0)
-    breath = np.clip(grid.dx / LAND_EVAPORATION_M, 0.0, 1.0)
-    loss = np.clip(grid.dx / LAND_LOSS_M, 0.0, 1.0)
-    base = grid.dx / RAIN_BASE_M
-    #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее. Край пояса
-    #: гуляет по долготе шумом, иначе на карте лежит ровная полоса.
+    radius = grid.radius_m
+    evaporation = np.clip(grid.dx / (EVAPORATION_R * radius), 0.0, 1.0)
+    breath = np.clip(grid.dx / (LAND_EVAPORATION_R * radius), 0.0, 1.0)
+    loss = np.clip(grid.dx / (LAND_LOSS_R * radius), 0.0, 1.0)
+    base = grid.dx / (RAIN_BASE_R * radius)
+    lift_ref = LIFT_REF * relief_m
+    lee_ref = LEE_REF * relief_m
+    #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее.
     wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * DRY_BELT_WANDER_DEG
-    belt = np.exp(-(((np.abs(grid.lat2d + wander) - DRY_BELT_LAT) / DRY_BELT_WIDTH) ** 2))
-    dryness = 1.0 - DRY_BELT_STRENGTH * belt
+    in_belt = np.exp(-(((np.abs(grid.lat2d + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
+    dryness = 1.0 - belt.strength * in_belt
     for step in range(2 * cols):
         col = np.where(direction > 0, step % cols, (cols - 1 - step) % cols)
         prev = (col - direction) % cols
         here_sea = sea[r, col]
         rise = np.clip(height_m[r, col], 0.0, None) - np.clip(height_m[r, prev], 0.0, None)
-        lift = np.clip(rise, 0.0, None) / LIFT_REF_M
-        fall = np.clip(-rise, 0.0, None) / LEE_REF_M
+        lift = np.clip(rise, 0.0, None) / lift_ref
+        fall = np.clip(-rise, 0.0, None) / lee_ref
         share = np.minimum(base + lift, RAIN_CAP) * dryness[r, col]
         wet = moisture * share
         wet = np.where(here_sea, 0.0, wet)
@@ -107,28 +136,37 @@ def rain(grid: Grid, height_m: np.ndarray, sea: np.ndarray, seed: int) -> np.nda
     return np.clip(scaled * (1.0 + RAIN_NOISE * texture), 0.0, 1.0)
 
 
-#: Предпросмотр зональных биомов: коды и пороги. Оси — температура, °C, и
-#: осадки в [0, 1]. Не таблица вольта, а черновик под её проверку.
-ZONAL = (
-    ("tundra", lambda t, r: t < -2.0),
-    ("taiga", lambda t, r: t < 5.0),
-    ("desert", lambda t, r: (r < 0.12) & (t >= 18.0)),
-    ("semidesert", lambda t, r: (r < 0.2) & (t >= 12.0)),
-    ("steppe", lambda t, r: r < 0.3),
-    ("savanna", lambda t, r: (t >= 20.0) & (r < 0.5)),
-    ("rainforest", lambda t, r: (t >= 20.0) & (r >= 0.65)),
-    ("woodland", lambda t, r: (t >= 14.0) & (r < 0.45)),
-    ("forest", lambda t, r: np.ones_like(t, dtype=bool)),
+#: Предпросмотр зональных биомов: имена классов. Пороги холода и суши —
+#: реестра (`Bounds`); пороги четырёх классов, которых в реестре нет, —
+#: черновик под таблицу **biome.zonal**, в долях от `dry` и в градусах.
+ZONAL_NAMES = (
+    "tundra", "taiga", "desert", "steppe", "semidesert", "savanna", "rainforest", "woodland", "forest",
 )
-ZONAL_NAMES = tuple(name for name, _ in ZONAL)
+SEMIDESERT_DRY = 1.4
+WARM_C = 20.0
+MILD_C = 14.0
+SAVANNA_RAIN = 0.5
+RAINFOREST_RAIN = 0.65
+WOODLAND_RAIN = 0.45
 
 
-def zonal(temperature_c: np.ndarray, rain01: np.ndarray) -> np.ndarray:
+def zonal(temperature_c: np.ndarray, rain01: np.ndarray, lat2d: np.ndarray, bounds: Bounds) -> np.ndarray:
     """Код зонального биома по клеткам: индекс в `ZONAL_NAMES`."""
-    out = np.full(temperature_c.shape, len(ZONAL) - 1, dtype=np.uint8)
-    done = np.zeros(temperature_c.shape, dtype=bool)
-    for code, (_, rule) in enumerate(ZONAL):
-        hit = rule(temperature_c, rain01) & ~done
-        out[hit] = code
-        done |= hit
+    t, r = temperature_c, rain01 * 100.0
+    rules = (
+        ("tundra", t < bounds.cold_c),
+        ("taiga", t < bounds.cool_c),
+        ("desert", (r < bounds.dry) & (np.abs(lat2d) <= bounds.desert_lat)),
+        ("steppe", r < bounds.dry),
+        ("semidesert", (r < bounds.dry * SEMIDESERT_DRY) & (t >= MILD_C)),
+        ("savanna", (t >= WARM_C) & (rain01 < SAVANNA_RAIN)),
+        ("rainforest", (t >= WARM_C) & (rain01 >= RAINFOREST_RAIN)),
+        ("woodland", (t >= MILD_C) & (rain01 < WOODLAND_RAIN)),
+    )
+    out = np.full(t.shape, ZONAL_NAMES.index("forest"), dtype=np.uint8)
+    done = np.zeros(t.shape, dtype=bool)
+    for name, hit in rules:
+        take = hit & ~done
+        out[take] = ZONAL_NAMES.index(name)
+        done |= take
     return out

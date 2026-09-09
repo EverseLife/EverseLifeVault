@@ -909,12 +909,16 @@
     "pyroxis": 0,
     "aurora": 6
   },
-  "terrain.lapse_c": 12,
+  "terrain.lapse_c": 19.5,
   "terrain.relief_m": 3000,
   "terrain.step_m": 500,
   "terrain.plates": 12,
   "terrain.continental_share": 0.5,
   "terrain.river_area_km2": 20,
+  "terrain.version": 1,
+  "terrain.dry_belt_lat": 27,
+  "terrain.dry_belt_width": 10,
+  "terrain.dry_belt_strength": 0.4,
   "map.lattice_m": 5,
   "biome.names": {
     "coast": "Берег",

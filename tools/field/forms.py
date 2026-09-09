@@ -52,9 +52,13 @@ NAMES_RU = {key: ru for key, ru, _ in FORMS}
 NAMES_EN = {key: en for key, _, en in FORMS}
 WATER = (CODE["sea"], CODE["lake"])
 
-#: Пороги. Высоты — доли размаха рельефа, уклоны — м/м, окно — метры.
-WINDOW_M = 1_000.0
-CLIFF_SLOPE = 0.45
+#: Пороги. Высоты — доли размаха рельефа, уклоны — м/м, окно — доля радиуса.
+WINDOW_R = 0.01
+#: Обрыв — твёрдая порода выше угла естественного откоса (план §4.3): порог
+#: — та же граница осыпания, что у эрозии (`erosion.SLIDE_*`), в этой доле.
+#: Мягкая порода такого склона не держит и обрывом не бывает.
+CLIFF_SHARE = 0.85
+SLIDE_BASE, SLIDE_PER_HARDNESS = 0.35, 1.2
 CANYON_RELIEF = 0.07
 CANYON_DROP = 0.05
 CANYON_HARDNESS = 0.6
@@ -73,7 +77,7 @@ FLOOD_HEIGHT = 0.2
 FAN_DEPOSIT = 0.003
 FAN_SLOPE = (0.012, 0.08)
 DELTA_DEPOSIT = 0.006
-COAST_CELLS_M = 1_000.0
+COAST_R = 0.01
 COAST_CLIFF_SLOPE = 0.15
 COAST_CLIFF_HARDNESS = 0.88
 RIFT_SHARE = 0.4
@@ -105,7 +109,7 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
     h = i.height_m / i.relief_m
     land = ~i.sea
     slope = grid.slope(i.height_m)
-    window = grid.cells_for_metres(WINDOW_M)
+    window = grid.cells_for_metres(WINDOW_R * grid.radius_m)
     local = grid.local_range(i.height_m, window) / i.relief_m
     top = i.height_m.copy()
     bottom = i.height_m.copy()
@@ -118,7 +122,7 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
     above_floor = (i.height_m - bottom) / i.relief_m
     below_top = (top - i.height_m) / i.relief_m
     deposit = i.deposit_m / i.relief_m
-    coast_cells = grid.cells_for_metres(COAST_CELLS_M)
+    coast_cells = grid.cells_for_metres(COAST_R * grid.radius_m)
     near_sea = grid.dilate_distance(i.sea, coast_cells) < coast_cells
     near_sea &= land
 
@@ -145,7 +149,7 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
     for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
         wall |= grid.shift(canyon_floor, dr, dc)
     put("canyon", canyon_floor | (wall & (slope >= CANYON_WALL_SLOPE)))
-    cliff = slope >= CLIFF_SLOPE
+    cliff = slope >= CLIFF_SHARE * (SLIDE_BASE + SLIDE_PER_HARDNESS * i.hardness)
     put("cliff", cliff)
     under = np.zeros_like(cliff)
     for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
