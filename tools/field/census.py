@@ -12,7 +12,10 @@
 * **соседство** — для тысячи случайных точек: сколько разных форм и есть
   ли вода в двух километрах вокруг, дневная разведка вокруг дома.
 
-Всё — по растрам поля, без карты и без игры.
+Всё — по растрам поля, без карты и без игры. Прогулка и соседство ходят
+**по сфере** (D-328): шаг — столько-то метров в такую-то сторону, а не
+столько-то индексов, — потому что у равноплощадной сетки индекс соседа сам
+по себе ничего не говорит о том, где сосед лежит.
 """
 
 from __future__ import annotations
@@ -21,8 +24,8 @@ import math
 
 import numpy as np
 
-from field import climate, forms
-from field.grid import OFFSETS, Grid
+from field import climate, forms, healpix
+from field.grid import WAYS, Grid
 from field.pipeline import WATER_LAND, Rasters
 
 WALKS = 1000
@@ -34,18 +37,17 @@ WALK_BAR = 3.0
 
 
 def components(mask: np.ndarray, grid: Grid) -> int:
-    """Число связных компонент маски (восемь соседей, заворот по долготе):
-    метка — наименьший плоский индекс компоненты, разносится волной со
-    сжатием путей, так что и длинный хребет сходится за десятки шагов."""
+    """Число связных компонент маски: метка — наименьший номер клетки
+    компоненты, разносится волной со сжатием путей, так что и длинный
+    хребет сходится за десятки шагов."""
     if not mask.any():
         return 0
-    flat = np.arange(mask.size, dtype=np.int64).reshape(mask.shape)
-    label = np.where(mask, flat, flat)
+    label = np.arange(grid.count, dtype=np.int64)
     for _ in range(10_000):
         before = label
-        for dr, dc in OFFSETS:
-            near = grid.shift(label, dr, dc)
-            near_mask = grid.shift(mask, dr, dc)
+        for k in range(WAYS):
+            near = grid.shift(label, k)
+            near_mask = grid.shift(mask, k)
             label = np.where(mask & near_mask, np.minimum(label, near), label)
         #: Сжатие до упора: метка метки, пока не перестанет меняться. Так
         #: волна идёт не по клетке за шаг, а по компоненте за несколько.
@@ -60,64 +62,80 @@ def components(mask: np.ndarray, grid: Grid) -> int:
 
 
 def shares(r: Rasters) -> dict[str, dict[str, float | int]]:
-    area = np.repeat(r.grid.area_m2[:, None], r.grid.cols, axis=1)
-    land_area = float(area[r.land].sum())
+    #: Доля площади — это доля клеток: сетка равноплощадная (D-328).
+    land_cells = float(r.land.sum())
     out: dict[str, dict[str, float | int]] = {}
     for key, _, _ in forms.FORMS:
         mask = r.form == forms.CODE[key]
         if key in ("sea",):
             continue
-        share = float(area[mask].sum() / land_area) if land_area else 0.0
+        share = float(mask.sum() / land_cells) if land_cells else 0.0
         out[key] = {"share": share, "objects": components(mask, r.grid) if mask.any() else 0}
     return out
 
 
-def _sample_land(r: Rasters, rng: np.random.Generator, n: int) -> tuple[np.ndarray, np.ndarray]:
+def _sample_land(r: Rasters, rng: np.random.Generator, n: int) -> np.ndarray:
     land = np.flatnonzero(r.water == WATER_LAND)
-    pick = rng.choice(land, size=min(n, land.size), replace=False)
-    return pick // r.grid.cols, pick % r.grid.cols
+    return rng.choice(land, size=min(n, land.size), replace=False)
+
+
+def _disc(side_m: float, radius_m: float) -> tuple[np.ndarray, np.ndarray]:
+    """Пробы по кругу радиусом `radius_m`: кольцами через полклетки, и по
+    кольцу — тоже через полклетки, чтобы ни одна клетка круга не осталась
+    непроверенной. Круг по земле, а не квадрат по индексам."""
+    grain = side_m / 2.0
+    #: Середина всегда: круг мельче клетки — это сама клетка, а не пустота.
+    spans, turns = [np.zeros(1)], [np.zeros(1)]
+    reach = grain
+    while reach <= radius_m + 1e-9:
+        many = max(6, int(round(2.0 * math.pi * reach / grain)))
+        spans.append(np.full(many, reach))
+        turns.append(np.arange(many) * (2.0 * math.pi / many))
+        reach += grain
+    return np.concatenate(spans), np.concatenate(turns)
 
 
 def walk_test(r: Rasters, rng: np.random.Generator) -> dict[str, float]:
-    rows, cols = _sample_land(r, rng, WALKS)
-    steps = max(2, int(round(WALK_M / r.grid.step_m)))
-    form_changes, zonal_changes, still = [], [], 0
-    for row, col in zip(rows.tolist(), cols.tolist()):
-        bearing = rng.uniform(0, 2 * math.pi)
-        dr, dc = math.cos(bearing), math.sin(bearing)
-        seen_f, seen_z, prev_f, prev_z = 0, 0, int(r.form[row, col]), int(r.zonal[row, col])
-        for k in range(1, steps + 1):
-            rr = int(np.clip(round(row + dr * k), 0, r.grid.rows - 1))
-            cc = int(round(col + dc * k)) % r.grid.cols
-            f, z = int(r.form[rr, cc]), int(r.zonal[rr, cc])
-            if f != prev_f:
-                seen_f += 1
-                prev_f = f
-            if z != prev_z:
-                seen_z += 1
-                prev_z = z
-        form_changes.append(seen_f)
-        zonal_changes.append(seen_z)
-        still += seen_f == 0
+    """Час хода по прямой: сколько раз сменились форма и биом.
+
+    Прямая — дуга большого круга, и шаг по ней в полклетки: на сетке из
+    ромбов шаг в целую клетку иногда перескакивал бы через соседа.
+    """
+    start = _sample_land(r, rng, WALKS)
+    steps = max(2, int(round(2.0 * WALK_M / r.grid.side_m)))
+    lat, lon = r.grid.lat[start], r.grid.lon[start]
+    bearing = rng.uniform(0, 2 * math.pi, size=start.size)
+    seen = np.zeros((2, start.size), dtype=np.int64)
+    previous = np.stack([r.form[start], r.zonal[start]]).astype(np.int64)
+    for k in range(1, steps + 1):
+        at = r.grid.cell(
+            *healpix.offset(lat, lon, r.grid.radius_m, WALK_M * k / steps, bearing)
+        )
+        now = np.stack([r.form[at], r.zonal[at]]).astype(np.int64)
+        seen += now != previous
+        previous = now
     return {
-        "walks": len(form_changes),
-        "form_changes_mean": float(np.mean(form_changes)),
-        "zonal_changes_mean": float(np.mean(zonal_changes)),
-        "walks_without_change": still,
+        "walks": int(start.size),
+        "form_changes_mean": float(seen[0].mean()),
+        "zonal_changes_mean": float(seen[1].mean()),
+        "walks_without_change": int((seen[0] == 0).sum()),
         "bar": WALK_BAR,
     }
 
 
 def neighbourhood_test(r: Rasters, rng: np.random.Generator) -> dict[str, float]:
-    rows, cols = _sample_land(r, rng, NEIGHBOURHOODS)
-    radius = max(1, int(round(NEIGHBOURHOOD_M / r.grid.step_m)))
-    offsets = [(dr, dc) for dr in range(-radius, radius + 1) for dc in range(-radius, radius + 1) if dr * dr + dc * dc <= radius * radius]
+    """Дневная разведка вокруг дома: сколько форм и есть ли вода в круге."""
+    start = _sample_land(r, rng, NEIGHBOURHOODS)
+    spans, turns = _disc(r.grid.side_m, NEIGHBOURHOOD_M)
+    lat, lon = r.grid.lat[start][:, None], r.grid.lon[start][:, None]
+    around = r.grid.cell(
+        *healpix.offset(lat, lon, r.grid.radius_m, spans[None, :], turns[None, :])
+    )
     distinct, watered = [], 0
-    for row, col in zip(rows.tolist(), cols.tolist()):
-        rr = np.clip(row + np.array([o[0] for o in offsets]), 0, r.grid.rows - 1)
-        cc = (col + np.array([o[1] for o in offsets])) % r.grid.cols
-        block_forms = r.form[rr, cc]
-        block_water = r.water[rr, cc]
+    for row in range(start.size):
+        block = np.unique(around[row])
+        block_forms = r.form[block]
+        block_water = r.water[block]
         distinct.append(int(np.unique(block_forms[block_water == WATER_LAND]).size))
         watered += bool((block_water != WATER_LAND).any())
     counts = np.bincount(distinct, minlength=4)
@@ -132,16 +150,16 @@ def neighbourhood_test(r: Rasters, rng: np.random.Generator) -> dict[str, float]
 
 def report(r: Rasters, seed: int = 0) -> dict:
     rng = np.random.default_rng(seed)
-    area = np.repeat(r.grid.area_m2[:, None], r.grid.cols, axis=1)
+    land_cells = max(float(r.land.sum()), 1.0)
     zonal_share = {
-        name: float(area[(r.zonal == code) & r.land].sum() / max(area[r.land].sum(), 1.0))
+        name: float(((r.zonal == code) & r.land).sum() / land_cells)
         for code, name in enumerate(climate.zonal_names(r.params.zonal))
     }
     counted = shares(r)
     return {
         "planet": r.params.planet,
-        "step_m": r.grid.step_m,
-        "cells": int(r.grid.rows * r.grid.cols),
+        "step_m": r.grid.side_m,
+        "cells": int(r.grid.count),
         "land_share": r.land_share(),
         "height_max_m": float(r.height_m.max()),
         "forms": counted,
@@ -150,7 +168,9 @@ def report(r: Rasters, seed: int = 0) -> dict:
         "provinces": {
             "count": len(r.provinces),
             "mean_area_km2": (
-                float(area[r.land].sum() / 1e6 / len(r.provinces)) if r.provinces else 0.0
+                float(land_cells * r.grid.area_m2 / 1e6 / len(r.provinces))
+                if r.provinces
+                else 0.0
             ),
             "unassigned_land_share": float((r.province[r.land] == 0).mean()) if r.provinces else 1.0,
         },

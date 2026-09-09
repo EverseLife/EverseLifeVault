@@ -20,7 +20,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from field.grid import Grid
+from field.grid import WAYS, Grid
 
 #: Коды форм. Порядок кодов — не приоритет, приоритет ниже в `classify`.
 FORMS: tuple[tuple[str, str, str], ...] = (
@@ -115,9 +115,9 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
     bottom = i.height_m.copy()
     for _ in range(window):
         t, b = top.copy(), bottom.copy()
-        for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
-            t = np.maximum(t, grid.shift(top, dr, dc))
-            b = np.minimum(b, grid.shift(bottom, dr, dc))
+        for k in range(WAYS):
+            t = np.maximum(t, grid.shift(top, k))
+            b = np.minimum(b, grid.shift(bottom, k))
         top, bottom = t, b
     above_floor = (i.height_m - bottom) / i.relief_m
     below_top = (top - i.height_m) / i.relief_m
@@ -146,14 +146,14 @@ def classify(grid: Grid, i: Inputs) -> np.ndarray:
         i.river & (local >= CANYON_RELIEF) & (below_top >= CANYON_DROP) & (i.hardness >= CANYON_HARDNESS)
     )
     wall = np.zeros_like(canyon_floor)
-    for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
-        wall |= grid.shift(canyon_floor, dr, dc)
+    for k in range(WAYS):
+        wall |= grid.shift(canyon_floor, k)
     put("canyon", canyon_floor | (wall & (slope >= CANYON_WALL_SLOPE)))
     cliff = slope >= CLIFF_SHARE * (SLIDE_BASE + SLIDE_PER_HARDNESS * i.hardness)
     put("cliff", cliff)
     under = np.zeros_like(cliff)
-    for dr, dc in ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)):
-        under |= grid.shift(cliff, dr, dc) & (grid.shift(i.height_m, dr, dc) > i.height_m)
+    for k in range(WAYS):
+        under |= grid.shift(cliff, k) & (grid.shift(i.height_m, k) > i.height_m)
     put("scree", under & land)
     put("delta", near_sea & (deposit >= DELTA_DEPOSIT) & i.river)
     put("coast_cliff", near_sea & ((slope >= COAST_CLIFF_SLOPE) | (i.hardness >= COAST_CLIFF_HARDNESS)))

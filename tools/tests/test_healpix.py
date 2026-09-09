@@ -172,3 +172,57 @@ def test_the_rings_are_rings_of_one_latitude() -> None:
     rings = np.unique(np.round(lat, 6))
     #: Колец ровно `4 nside - 1`, как обещает статья.
     assert len(rings) == 4 * nside - 1
+
+
+@pytest.mark.parametrize("nside", (2, 3, 8, 13))
+def test_the_rings_are_whole_and_run_by_longitude(nside: int) -> None:
+    """Кольцо — замкнутый пояс клеток по долготе: марш влаги (§4.2) идёт по
+    нему, и если места в кольце перепутаны, влага пойдёт скачками."""
+    lat, lon = healpix.centres(nside)
+    ring, place = healpix.pix2ring(nside, np.arange(healpix.npix(nside)))
+    lengths = healpix.ring_lengths(nside)
+    assert len(lengths) == 4 * nside - 1
+    assert lengths.sum() == healpix.npix(nside)
+    for r, length in enumerate(lengths.tolist()):
+        here = np.flatnonzero(ring == r)
+        assert len(here) == length
+        #: Места в кольце — ровно 0..длина-1, без пропусков и повторов.
+        assert sorted(place[here].tolist()) == list(range(length))
+        #: Широта у кольца одна, а долгота растёт вместе с местом.
+        assert np.ptp(lat[here]) < 1e-9
+        by_place = here[np.argsort(place[here])]
+        #: По кругу: долгота растёт и один раз переходит через антимеридиан.
+        turn = np.diff(np.r_[lon[by_place], lon[by_place][0]]) % 360.0
+        assert np.all(turn > 0) and abs(turn.sum() - 360.0) < 1e-9
+
+
+def test_the_ring_table_lays_every_cell_out_by_longitude() -> None:
+    """Таблица колец — то, по чему шагает марш: столбец таблицы это один шаг
+    ветра во всех поясах сразу, а короткое полярное кольцо обходится по кругу."""
+    nside = 8
+    table, lengths = healpix.ring_table(nside)
+    assert table.shape == (4 * nside - 1, 4 * nside)
+    #: Каждая клетка планеты стоит в таблице, и стоит в своём кольце.
+    ring, place = healpix.pix2ring(nside, np.arange(healpix.npix(nside)))
+    assert np.array_equal(table[ring, place], np.arange(healpix.npix(nside)))
+    #: Место за длиной кольца — то же кольцо по кругу, а не чужая клетка.
+    for r, length in enumerate(lengths.tolist()):
+        seats = np.arange(table.shape[1])
+        assert np.array_equal(table[r], table[r, seats % length])
+
+
+def test_a_step_over_the_sphere_lands_where_it_should() -> None:
+    """Шаг по дуге — точная формула большого круга: у полюса приближение
+    делится на косинус широты и уводит шаг на другую сторону планеты."""
+    lat = np.array([0.0, 45.0, 89.9, -89.9])
+    lon = np.array([0.0, 30.0, 100.0, -170.0])
+    for bearing in (0.0, math.pi / 3, math.pi, 1.75 * math.pi):
+        to_lat, to_lon = healpix.offset(lat, lon, TERRA_R, 5_000.0, bearing)
+        one = healpix._xyz(lat, lon)
+        two = healpix._xyz(to_lat, to_lon)
+        metres = TERRA_R * np.arccos(np.clip((one * two).sum(axis=0), -1.0, 1.0))
+        assert np.allclose(metres, 5_000.0, atol=1e-3)
+    #: На север от самого полюса — за полюс, а не в бесконечность.
+    to_lat, to_lon = healpix.offset(np.array([89.99]), np.array([0.0]), TERRA_R, 50_000.0, 0.0)
+    assert np.isfinite(to_lat).all() and np.isfinite(to_lon).all()
+    assert abs(float(to_lat[0])) <= 90.0

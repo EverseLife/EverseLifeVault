@@ -10,6 +10,12 @@ CPU-растр отклонён для клиента (§15), здесь он и
 
 PNG пишется своими руками через zlib: в среде сборки нет PIL, а формат
 на одну картинку без сжатия хитростей умещается в тридцать строк.
+
+Растр поля — плоский ряд равноплощадных клеток (D-328), и картинка из него
+не вырезается, а **проецируется**: каждому пикселю кадра отвечает точка
+сферы, а точке — клетка. Планета целиком идёт равнопромежуточной проекцией,
+как и раньше; область и город — окном в честных метрах вокруг точки, севером
+вверх, и потому больше не растягиваются к полюсу.
 """
 
 from __future__ import annotations
@@ -20,7 +26,7 @@ from pathlib import Path
 
 import numpy as np
 
-from field import climate, forms
+from field import climate, forms, healpix
 from field.grid import Grid
 from field.pipeline import WATER_LAKE, WATER_RIVER, WATER_SEA, Rasters
 
@@ -158,30 +164,31 @@ LAYERS = {
 }
 
 
-def _north_up(rgb: np.ndarray) -> np.ndarray:
-    return rgb[::-1]
+def globe(cell_rgb: np.ndarray, grid: Grid, wide: int) -> np.ndarray:
+    """Планета целиком: равнопромежуточная проекция, север вверху."""
+    tall = max(1, wide // 2)
+    lon = -180.0 + (np.arange(wide) + 0.5) * (360.0 / wide)
+    lat = 90.0 - (np.arange(tall) + 0.5) * (180.0 / tall)
+    return cell_rgb[grid.cell(lat[:, None], lon[None, :])]
 
 
-def crop(rgb: np.ndarray, grid: Grid, lat: float, lon: float, width_km: float, height_km: float) -> np.ndarray:
-    """Вырезка вокруг точки, километры в клетки по широте места; с заворотом по долготе."""
-    row, col = grid.cell(lat, lon)
-    half_rows = max(2, int(round(height_km * 1000.0 / (2 * grid.step_m))))
-    half_cols = max(2, int(round(width_km * 1000.0 / (2 * grid.dx[row]))))
-    rows = np.clip(np.arange(row - half_rows, row + half_rows + 1), 0, grid.rows - 1)
-    cols = (np.arange(col - half_cols, col + half_cols + 1)) % grid.cols
-    return rgb[rows][:, cols]
+def frame(
+    cell_rgb: np.ndarray, grid: Grid, at: tuple[float, float], width_m: float, height_m: float, wide: int
+) -> np.ndarray:
+    """Окно вокруг точки в честных метрах, север вверху.
 
-
-def upscale(rgb: np.ndarray, times: int) -> np.ndarray:
-    return np.repeat(np.repeat(rgb, times, axis=0), times, axis=1)
-
-
-def downscale(rgb: np.ndarray, max_width: int) -> np.ndarray:
-    step = max(1, int(np.ceil(rgb.shape[1] / max_width)))
-    if step == 1:
-        return rgb
-    h, w = rgb.shape[0] // step * step, rgb.shape[1] // step * step
-    return rgb[:h, :w].reshape(h // step, step, w // step, step, 3).mean(axis=(1, 3))
+    Пиксель — точка на сфере в стольких-то метрах и такую-то сторону от
+    середины кадра, а не смещение по индексам: на равноплощадной сетке у
+    индекса нет направления, а у метров и румба — есть, и одно и то же окно
+    в 60 км на экваторе и у полюса выходит одним и тем же куском земли.
+    """
+    tall = max(1, int(round(wide * height_m / width_m)))
+    east = ((np.arange(wide) + 0.5) / wide - 0.5) * width_m
+    north = (0.5 - (np.arange(tall) + 0.5) / tall) * height_m
+    span = np.hypot(east[None, :], north[:, None])
+    bearing = np.arctan2(east[None, :], north[:, None])
+    lat, lon = healpix.offset(at[0], at[1], grid.radius_m, span, bearing)
+    return cell_rgb[grid.cell(lat, lon)]
 
 
 def to_bytes(rgb: np.ndarray) -> np.ndarray:
@@ -193,12 +200,14 @@ def render_all(r: Rasters, out: Path, focus: tuple[float, float], planet_width: 
     written: list[Path] = []
     name = r.params.planet
     for layer, paint in LAYERS.items():
-        rgb = paint(r)
-        whole = to_bytes(_north_up(downscale(rgb, planet_width)))
-        region = to_bytes(_north_up(upscale(crop(rgb, r.grid, *focus, 60.0, 40.0), max(1, 900 // max(1, int(60_000 / r.grid.step_m))))))
-        city = to_bytes(_north_up(upscale(crop(rgb, r.grid, *focus, 6.0, 4.0), max(1, 900 // max(1, int(6_000 / r.grid.step_m))))))
-        for frame, image in (("planet", whole), ("region", region), ("city", city)):
-            path = out / f"{name}_{frame}_{layer}.png"
-            png(image, path)
+        cell_rgb = paint(r)
+        frames = (
+            ("planet", globe(cell_rgb, r.grid, planet_width)),
+            ("region", frame(cell_rgb, r.grid, focus, 60_000.0, 40_000.0, 900)),
+            ("city", frame(cell_rgb, r.grid, focus, 6_000.0, 4_000.0, 900)),
+        )
+        for kind, image in frames:
+            path = out / f"{name}_{kind}_{layer}.png"
+            png(to_bytes(image), path)
             written.append(path)
     return written

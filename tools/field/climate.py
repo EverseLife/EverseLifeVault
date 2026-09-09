@@ -101,7 +101,7 @@ class Weather:
 
 
 def temperature(
-    lat2d: np.ndarray,
+    lat: np.ndarray,
     height_m: np.ndarray,
     warm: float,
     cold: float,
@@ -117,7 +117,7 @@ def temperature(
     материка холодит сильнее к полюсам (квадрат синуса широты: у экватора
     интерьер не холоднее берега), шум — ровный по планете.
     """
-    tilt = np.sin(np.radians(lat2d))
+    tilt = np.sin(np.radians(lat))
     t = warm - (warm - cold) * tilt * tilt - lapse_per_km * np.clip(height_m, 0.0, None) / 1000.0
     if weather is not None and sea_m is not None:
         inland = np.clip(sea_m / (weather.continental_reach_r * radius_m), 0.0, 1.0)
@@ -146,11 +146,11 @@ def rain(
     """
     wander = noise.centred(seed + 53, grid.xyz, DRY_BELT_WANDER_LATTICE, 2) * belt.wander_deg
     #: Сухой пояс — нисходящий воздух: в нём дождь за шаг слабее.
-    in_belt = np.exp(-(((np.abs(grid.lat2d + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
+    in_belt = np.exp(-(((np.abs(grid.lat + wander) - belt.lat) / max(belt.width, 1e-9)) ** 2))
     dryness = 1.0 - belt.strength * in_belt
     westward = _march(grid, height_m, sea, -1, relief_m, dryness)
     eastward = _march(grid, height_m, sea, 1, relief_m, dryness)
-    shifted = np.abs(grid.lat2d + wander)
+    shifted = np.abs(grid.lat + wander)
     edge = max(winds.edge_deg, 1e-9)
     west_share = _smoothstep((shifted - winds.trade_lat) / edge) * (
         1.0 - _smoothstep((shifted - winds.westerly_lat) / edge)
@@ -169,26 +169,38 @@ def _smoothstep(t: np.ndarray) -> np.ndarray:
 def _march(
     grid: Grid, height_m: np.ndarray, sea: np.ndarray, direction: int, relief_m: float, dryness: np.ndarray
 ) -> np.ndarray:
-    """Влага, гонимая в одну сторону по всем строкам сразу: +1 на восток, -1 на запад."""
-    rows, cols = height_m.shape
-    moisture = np.full(rows, 0.5)
-    out = np.zeros_like(height_m)
-    r = np.arange(rows)
+    """Влага, гонимая в одну сторону по всем кольцам сразу: +1 на восток, -1 на запад.
+
+    Кольцо равной широты — это и есть параллель, по которой дует ветер, и
+    ради него сетка выбрана HEALPix, а не икосферой (D-328): у икосферы
+    замкнутого пояса клеток нет вовсе. Кольца разной длины — полярное из
+    четырёх клеток, экваториальное из `4 nside`, — и каждое идёт по кругу
+    своим шагом: короткое кольцо и по земле короче, ветер обходит его чаще.
+    """
+    table, lengths = grid.rings
+    rings, wide = table.shape
+    seats = np.arange(rings)
+    lat = grid.lat[table[:, 0]]
+    #: Шаг вдоль кольца — его длина по земле, делённая на число клеток.
+    along = 2.0 * np.pi * grid.radius_m * np.cos(np.radians(lat)) / lengths
+    moisture = np.full(rings, 0.5)
+    out = np.zeros(grid.count)
     radius = grid.radius_m
-    evaporation = np.clip(grid.dx / (EVAPORATION_R * radius), 0.0, 1.0)
-    breath = np.clip(grid.dx / (LAND_EVAPORATION_R * radius), 0.0, 1.0)
-    loss = np.clip(grid.dx / (LAND_LOSS_R * radius), 0.0, 1.0)
-    base = grid.dx / (RAIN_BASE_R * radius)
+    evaporation = np.clip(along / (EVAPORATION_R * radius), 0.0, 1.0)
+    breath = np.clip(along / (LAND_EVAPORATION_R * radius), 0.0, 1.0)
+    loss = np.clip(along / (LAND_LOSS_R * radius), 0.0, 1.0)
+    base = along / (RAIN_BASE_R * radius)
     lift_ref = LIFT_REF * relief_m
     lee_ref = LEE_REF * relief_m
-    for step in range(2 * cols):
-        col = np.full(rows, step % cols if direction > 0 else (cols - 1 - step) % cols)
-        prev = (col - direction) % cols
-        here_sea = sea[r, col]
-        rise = np.clip(height_m[r, col], 0.0, None) - np.clip(height_m[r, prev], 0.0, None)
+    for step in range(2 * wide):
+        walk = step if direction > 0 else -step - 1
+        here = table[seats, walk % lengths]
+        back = table[seats, (walk - direction) % lengths]
+        here_sea = sea[here]
+        rise = np.clip(height_m[here], 0.0, None) - np.clip(height_m[back], 0.0, None)
         lift = np.clip(rise, 0.0, None) / lift_ref
         fall = np.clip(-rise, 0.0, None) / lee_ref
-        share = np.minimum(base + lift, RAIN_CAP) * dryness[r, col]
+        share = np.minimum(base + lift, RAIN_CAP) * dryness[here]
         wet = moisture * share
         wet = np.where(here_sea, 0.0, wet)
         moisture = moisture - wet
@@ -197,13 +209,13 @@ def _march(
         moisture = np.where(
             here_sea,
             moisture + evaporation * (1.0 - moisture),
-            moisture * (1.0 - loss) + breath * (1.0 - moisture) * out[r, prev],
+            moisture * (1.0 - loss) + breath * (1.0 - moisture) * out[back],
         )
         moisture = np.clip(moisture, 0.0, 1.0)
         #: Осадки места — не сколько выпало на клетку, а насколько мокрый
         #: здесь воздух: дождь за клетку делится на дождь ровной земли, так
         #: что равнина читает влажность воздуха, а склон против ветра — единицу.
-        out[r, col] = np.where(here_sea, 0.0, np.minimum(wet / (base * dryness[r, col]), 1.0))
+        out[here] = np.where(here_sea, 0.0, np.minimum(wet / (base * dryness[here]), 1.0))
     return out
 
 

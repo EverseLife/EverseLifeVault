@@ -42,25 +42,24 @@ class Provinces:
 
 def build(grid: Grid, seed: int, land: np.ndarray, table: list[dict]) -> Provinces:
     count = len(table)
-    raster = np.zeros(land.shape, dtype=np.uint8)
+    raster = np.zeros(grid.count, dtype=np.uint8)
     if count == 0 or not land.any():
         return Provinces(raster=raster, table=list(table))
     assert count < 256, "провинций больше, чем кодов в байте"
     rng = np.random.default_rng(seed + 101)
     xyz = grid.xyz
-    area = np.repeat(grid.area_m2[:, None], grid.cols, axis=1)
-    land_area = float(area[land].sum())
+    land_area = grid.area_m2 * float(land.sum())
     spacing = SPACING_SHARE * (land_area / count) ** 0.5
     #: Центры: случайные клетки суши с отступом; отступ ослабляется, если
     #: суша слишком дробная, чтобы вместить их все.
-    candidates = np.flatnonzero(land.ravel())
+    candidates = np.flatnonzero(land)
     centres: list[np.ndarray] = []
     min_cos = np.cos(spacing / grid.radius_m)
     while len(centres) < count:
         placed = False
         for _ in range(TRIES):
             flat = int(rng.choice(candidates))
-            point = xyz.reshape(-1, 3)[flat]
+            point = xyz[flat]
             if all(float(point @ c) < min_cos for c in centres):
                 centres.append(point)
                 placed = True
@@ -73,8 +72,8 @@ def build(grid: Grid, seed: int, land: np.ndarray, table: list[dict]) -> Provinc
     )
     warped = xyz + WARP_AMPLITUDE * warp
     warped /= np.maximum(np.linalg.norm(warped, axis=-1, keepdims=True), 1e-12)
-    best = np.full(land.shape, -1.0)
-    nearest = np.zeros(land.shape, dtype=np.int32)
+    best = np.full(grid.count, -1.0)
+    nearest = np.zeros(grid.count, dtype=np.int32)
     for k in range(count):
         dot = warped @ seeds[k]
         better = dot > best

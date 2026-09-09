@@ -26,7 +26,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from field import noise
-from field.grid import OFFSETS, Grid
+from field.grid import WAYS, Grid
 
 #: Во сколько раз материковая плита стоит выше океанической — до шума и хребтов.
 CONTINENT_BASE = (0.55, 0.70)
@@ -116,20 +116,20 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
         [noise.centred(seed + 11 + i, xyz, WARP_LATTICE, 3) for i in range(3)], axis=-1
     )
     warped = _unit(xyz + WARP_AMPLITUDE * warp)
-    dots = np.einsum("rcx,px->prc", warped, centres)
+    dots = np.einsum("cx,px->pc", warped, centres)
     plate = np.argmax(dots, axis=0).astype(np.int16)
     #: Основа — не ступенька на границе, а плавный переход между плитами:
     #: веса софтмакса по близости к центрам, ширина перехода `BASE_BLEND`
     #: в косинусах угла. Хребет делает схождение, а не разница высот плит.
     weight = np.exp((dots - dots.max(axis=0, keepdims=True)) / BASE_BLEND)
     weight /= weight.sum(axis=0, keepdims=True)
-    blended_base = np.einsum("prc,p->rc", weight, base_of)
+    blended_base = np.einsum("pc,p->c", weight, base_of)
 
     #: Граница: сосед из другой плиты. Нормаль к границе — от своего центра к
     #: чужому, спроецированная на касательную плоскость клетки.
     other = np.full(plate.shape, -1, dtype=np.int16)
-    for dr, dc in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-        near = grid.shift(plate, dr, dc)
+    for k in range(WAYS):
+        near = grid.shift(plate, k)
         other = np.where((other < 0) & (near != plate), near, other)
     boundary = other >= 0
     own = plate.astype(int)
@@ -143,7 +143,7 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     #: противоположны, и относительные скорости тоже.
     reach = grid.cells_for_metres(REACH_R * grid.radius_m)
     convergence, dist_cells = grid.spread(conv_at_boundary, boundary, reach)
-    boundary_m = dist_cells * grid.step_m
+    boundary_m = dist_cells * grid.side_m
     #: Чья плита по ту сторону — чтобы знать, где океан ныряет под материк.
     other_side, _ = grid.spread(oth.astype(float), boundary, reach)
     other_continental = continental[other_side.astype(int)]
@@ -168,25 +168,27 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     #: Дуга вулканов над погружением: своя плита материковая, чужая — океан.
     subduction = converging > 0.15
     arc_band = subduction & cell_continental & ~other_continental
-    arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_R * grid.radius_m) <= grid.step_m * 0.75)
+    arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_R * grid.radius_m) <= grid.side_m * 0.75)
     cones = np.zeros(plate.shape, dtype=bool)
-    rows_idx, cols_idx = np.nonzero(arc_line)
     #: Конусы вдоль дуги с шагом: клетки дуги в случайном порядке, каждая
-    #: следующая не ближе шага дуги к уже взятым.
-    spacing = grid.cells_for_metres(ARC_SPACING_R * grid.radius_m)
-    taken: list[tuple[int, int]] = []
-    for k in rng.permutation(rows_idx.size).tolist():
-        r, c = int(rows_idx[k]), int(cols_idx[k])
-        if all(max(abs(r - tr), min(abs(c - tc), grid.cols - abs(c - tc))) >= spacing for tr, tc in taken):
-            taken.append((r, c))
-            cones[r, c] = True
+    #: следующая не ближе шага дуги к уже взятым. Расстояние — по дуге, а не
+    #: по индексам: у равноплощадной сетки индекс соседа ни о чём не говорит.
+    on_arc = np.flatnonzero(arc_line)
+    spacing = np.cos(ARC_SPACING_R * grid.radius_m / grid.radius_m)
+    taken: list[np.ndarray] = []
+    for pick in rng.permutation(on_arc.size).tolist():
+        flat = int(on_arc[pick])
+        point = grid.xyz[flat]
+        if all(float(point @ t) < spacing for t in taken):
+            taken.append(point)
+            cones[flat] = True
     #: Горячие точки — на будущей суше: уровень моря режется потом, здесь
     #: он прикинут по той же доле, чтобы вулкан не ушёл на дно.
     level = float(np.quantile(base, sea_share)) if 0.0 < sea_share < 1.0 else float(base.min()) - 1.0
     candidates = np.flatnonzero(base >= level)
     if candidates.size:
         for flat in rng.choice(candidates, size=min(HOTSPOTS, candidates.size), replace=False):
-            cones.flat[flat] = True
+            cones[flat] = True
     cone_r = grid.cells_for_metres(CONE_RADIUS_R * grid.radius_m)
     cone_dist = grid.dilate_distance(cones, cone_r)
     volcano = np.clip(1.0 - cone_dist / cone_r, 0.0, 1.0)
@@ -224,4 +226,4 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     )
 
 
-__all__ = ["Plates", "build", "OFFSETS"]
+__all__ = ["Plates", "build"]

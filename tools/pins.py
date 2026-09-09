@@ -53,8 +53,7 @@ def main() -> int:
     problems = 0
     for pin in pinned():
         rasters = store.load(FIELD, pin["planet"])
-        row, col = rasters.grid.cell(pin["lat"], pin["lon"])
-        on_land = bool(rasters.land[row, col])
+        on_land = bool(rasters.land[int(rasters.grid.cell(pin["lat"], pin["lon"]))])
         print(f"{pin['key']}: {pin['lat']:.2f}, {pin['lon']:.2f} -> {'суша' if on_land else 'МОРЕ'}")
         if on_land:
             continue

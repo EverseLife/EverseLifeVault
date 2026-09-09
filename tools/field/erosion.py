@@ -89,7 +89,8 @@ def erode(
     итерацию, потому что гора, которую срезали, теплеет."""
     h = height.astype(float).copy()
     deposit = np.zeros_like(h)
-    area = np.repeat(grid.area_m2[:, None], grid.cols, axis=1)
+    #: Площадь клетки — число: сетка равноплощадная (D-328).
+    area = grid.area_m2
     land = ~sea
     flow = hydro.route(h, sea, grid)
     ice = np.zeros_like(sea)
@@ -116,7 +117,7 @@ def erode(
 
         slope = grid.slope(h)
         limit = SLIDE_BASE + SLIDE_PER_HARDNESS * hardness
-        scale = (DIFFUSION_STEP_M / grid.step_m) ** 2
+        scale = (DIFFUSION_STEP_M / grid.side_m) ** 2
         kd = DIFFUSION * scale / hardness + np.where(slope > limit, SLIDE_DIFFUSION, 0.0)
         kd = np.where(ice, kd * ICE_DIFFUSION, kd)
         h = np.where(land, h + kd * grid.laplacian(h), h)

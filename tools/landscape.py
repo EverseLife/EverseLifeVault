@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS))
 
-from field import census, pipeline, render, store  # noqa: E402
+from field import census, healpix, pipeline, render, store  # noqa: E402
 
 BUILD = ROOT / "build"
 FIELD = BUILD / "field"
@@ -113,43 +113,47 @@ def do_render(args: argparse.Namespace, rasters: pipeline.Rasters | None = None)
 
 def best_site(rasters: pipeline.Rasters, samples: int = 3000) -> tuple[float, float]:
     """Где поселенец поставил бы город: умеренно, вода рядом, форм вокруг
-    много (план §9.8). Лучшая из случайной выборки клеток суши по этой мере."""
+    много (план §9.8). Лучшая из случайной выборки клеток суши по этой мере.
+
+    Круг вокруг клетки — круг по земле: на равноплощадной сетке (D-328)
+    окрестность набирается пробами по сфере, а не квадратом индексов.
+    """
     grid = rasters.grid
     rng = np.random.default_rng(0)
     land = np.flatnonzero(rasters.water == pipeline.WATER_LAND)
     pick = rng.choice(land, size=min(samples, land.size), replace=False)
-    radius = grid.cells_for_metres(3000.0)
-    offsets = [(dr, dc) for dr in range(-radius, radius + 1) for dc in range(-radius, radius + 1) if dr * dr + dc * dc <= radius * radius]
-    drs = np.array([o[0] for o in offsets])
-    dcs = np.array([o[1] for o in offsets])
-    best, best_score = (0, 0), -1e9
-    for flat in pick.tolist():
-        row, col = divmod(flat, grid.cols)
-        rr = np.clip(row + drs, 0, grid.rows - 1)
-        cc = (col + dcs) % grid.cols
-        block_forms = rasters.form[rr, cc]
-        block_water = rasters.water[rr, cc]
+    spans, turns = census._disc(grid.side_m, 3000.0)
+    around = grid.cell(
+        *healpix.offset(
+            grid.lat[pick][:, None], grid.lon[pick][:, None], grid.radius_m,
+            spans[None, :], turns[None, :],
+        )
+    )
+    best, best_score = int(pick[0]), -1e9
+    for k, flat in enumerate(pick.tolist()):
+        block = np.unique(around[k])
+        block_forms = rasters.form[block]
+        block_water = rasters.water[block]
         distinct = np.unique(block_forms[block_water == pipeline.WATER_LAND]).size
         water = float((block_water != pipeline.WATER_LAND).mean())
-        warmth = float(rasters.temperature_c[row, col])
-        score = distinct + 4.0 * min(water, 0.25) - abs(warmth - 14.0) / 4.0 - 3.0 * float(rasters.ice[row, col])
+        warmth = float(rasters.temperature_c[flat])
+        score = distinct + 4.0 * min(water, 0.25) - abs(warmth - 14.0) / 4.0 - 3.0 * float(rasters.ice[flat])
         if score > best_score:
-            best, best_score = (row, col), score
-    return float(grid.lat[best[0]]), float(grid.lon[best[1]])
+            best, best_score = flat, score
+    return float(grid.lat[best]), float(grid.lon[best])
 
 
 def nearest_land(rasters: pipeline.Rasters, lat: float, lon: float) -> tuple[float, float]:
     """Точка кадра, сдвинутая на ближайшую сушу: новое поле не обязано
     класть сушу туда, где стояла столица старого."""
     grid = rasters.grid
-    row, col = grid.cell(lat, lon)
-    if rasters.land[row, col]:
+    here = int(grid.cell(lat, lon))
+    if rasters.land[here]:
         return lat, lon
-    land_rows, land_cols = np.nonzero(rasters.land)
-    dlat = np.radians(grid.lat[land_rows] - lat)
-    dlon = np.radians(((grid.lon[land_cols] - lon + 180.0) % 360.0) - 180.0) * np.cos(np.radians(lat))
-    best = int(np.argmin(dlat * dlat + dlon * dlon))
-    return float(grid.lat[land_rows[best]]), float(grid.lon[land_cols[best]])
+    land = np.flatnonzero(rasters.land)
+    point = healpix._xyz(np.array([lat]), np.array([lon]))[:, 0]
+    best = int(land[np.argmax(grid.xyz[land] @ point)])
+    return float(grid.lat[best]), float(grid.lon[best])
 
 
 def do_scan(args: argparse.Namespace) -> None:

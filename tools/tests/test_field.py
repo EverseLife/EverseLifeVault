@@ -35,7 +35,7 @@ from field.grid import Grid  # noqa: E402
 def tiny(seed: int = 5, **overrides) -> pipeline.Params:
     base = dict(
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
-        relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=20.0,
+        relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=300.0,
         warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
         continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
         climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,
@@ -61,16 +61,94 @@ def tiny(seed: int = 5, **overrides) -> pipeline.Params:
     return pipeline.Params(**base)
 
 
-def test_grid_is_metres_and_wraps() -> None:
+def test_the_cell_is_the_same_everywhere_pole_and_equator() -> None:
+    """То, ради чего сетка сменилась на HEALPix (D-328): клетка у полюса
+    такая же, как на экваторе. У прежней сетки ширина клетки падала
+    косинусом широты, и полюс приходилось лечить полом и сжатием."""
     grid = Grid.of(99_600.0, 500.0)
-    assert grid.rows == round(np.pi * 99_600.0 / 500.0) and grid.cols == 2 * grid.rows
-    assert grid.dx[grid.rows // 2] == pytest.approx(500.0, rel=1e-3)
-    assert grid.dx[0] < grid.dx[grid.rows // 2], "у полюса клетка уже"
-    a = np.arange(grid.rows * grid.cols, dtype=float).reshape(grid.rows, grid.cols)
-    east = grid.shift(a, 0, 1)
-    assert east[0, -1] == a[0, 0], "по долготе сетка замкнута"
-    north = grid.shift(a, 1, 0)
-    assert north[-1, 0] == a[-1, 0], "через полюс ничего не течёт: край повторяет себя"
+    assert grid.side_m == pytest.approx(500.0, rel=0.005)
+    assert grid.count == 12 * grid.nside**2
+    #: Расстояние до соседа — везде около стороны клетки, а не вдвое меньше
+    #: у полюса: берётся десятая часть самых полярных клеток и весь экватор.
+    polar = np.argsort(np.abs(grid.lat))[-grid.count // 10 :]
+    belt = np.argsort(np.abs(grid.lat))[: grid.count // 10]
+    for where in (polar, belt):
+        real = np.where(grid.near[:, where] != where, grid.distances[:, where], np.nan)
+        assert np.nanmin(real) > 0.5 * grid.side_m
+        assert np.nanmax(real) < 2.0 * grid.side_m
+
+
+def test_a_neighbour_is_a_gather_and_the_way_back_is_the_same_way() -> None:
+    """`shift` на равноплощадной сетке — выборка по таблице соседей, а не
+    прокрутка массива; и если А видит Б, то Б видит А, иначе сток течёт
+    в клетку, которая о нём не знает."""
+    grid = Grid.of(99_600.0, 12_000.0)
+    a = np.arange(grid.count, dtype=float)
+    for k in range(grid.near.shape[0]):
+        assert np.array_equal(grid.shift(a, k), a[grid.near[k]])
+    sets = [set(grid.near[:, p].tolist()) - {p} for p in range(grid.count)]
+    for p, mine in enumerate(sets):
+        assert all(p in sets[q] for q in mine)
+    assert (grid.ways >= 7).all()
+
+
+def test_the_slope_of_a_known_field_is_the_slope_it_should_be() -> None:
+    """Наклон на сетке без строк и столбцов решается параболой по соседям.
+    Поле `A·z` (`z` — та самая ось сферы) имеет известный градиент —
+    `A·cos(широты)/R` на север и ноль на восток, — и известную кривизну.
+
+    Мера тут не для красоты: у клеток на стыках базовых граней соседей
+    девять, а не восемь, и плоскость по такому набору ловила кривизну поля
+    в наклон — до 4 % ошибки на этих клетках при долях процента на всех
+    остальных. Это шов по рёбрам граней той же природы, что полярная рябь,
+    из-за которой сетку и меняли (D-328), и порог здесь стоит там, где
+    парабола, а не там, где плоскость.
+    """
+    grid = Grid.of(99_600.0, 6_000.0)
+    amplitude = 3_000.0
+    height = amplitude * np.sin(np.radians(grid.lat))
+    east, north = grid.gradient(height)
+    want = amplitude * np.cos(np.radians(grid.lat)) / grid.radius_m
+    assert np.abs(north - want).max() < 0.001 * np.abs(want).max()
+    assert np.abs(east).max() < 0.001 * np.abs(want).max()
+    #: Кривизна ровного поля — ноль, а не мусор на стыках граней; кривизна
+    #: `A·z` на сфере — `-2A·z/R²`, в тех же долях, в каких её брала прежняя
+    #: сетка средним по восьми соседям (`3/8` квадрата стороны).
+    assert np.abs(grid.laplacian(np.full(grid.count, 7.0))).max() < 1e-9
+    curve = 0.375 * grid.side_m**2 * (-2.0 * height / grid.radius_m**2)
+    assert np.abs(grid.laplacian(height) - curve).max() < 0.01 * np.abs(curve).max()
+
+
+def test_the_nearest_source_is_the_nearest_source() -> None:
+    """Прыжковая заливка ищет ближайший источник шагами по сфере. Ответ
+    сверяется перебором: на этой сетке он ещё по карману."""
+    grid = Grid.of(99_600.0, 12_000.0)
+    rng = np.random.default_rng(3)
+    source = np.zeros(grid.count, dtype=bool)
+    source[rng.choice(grid.count, size=12, replace=False)] = True
+    _, metres = grid.nearest(source)
+    seeds = grid.xyz[source]
+    cosine = np.clip(grid.xyz @ seeds.T, -1.0, 1.0)
+    honest = np.arccos(cosine).min(axis=1) * grid.radius_m
+    assert np.abs(metres - honest).max() < 0.5 * grid.side_m
+    #: Без единого источника — бесконечность, а не ближайший ноль.
+    empty, far = grid.nearest(np.zeros(grid.count, dtype=bool))
+    assert (empty < 0).all() and np.isinf(far).all()
+
+
+def test_reading_from_a_coarser_grid_keeps_a_smooth_field_smooth() -> None:
+    """Билинейки на HEALPix нет, и её место занимает вес по расстоянию:
+    гладкое поле грубой сетки читается на тонкой без ступеней."""
+    fine = Grid.of(99_600.0, 3_000.0)
+    coarse = Grid.of(99_600.0, 12_000.0)
+    #: Гладкое **на сфере**, а не на широте с долготой: `cos(долготы)` у
+    #: полюса скачет от клетки к клетке и сглаживанию не подлежит нигде.
+    aim = np.array([0.3, -0.5, 0.8])
+    read = fine.resample_from(coarse.xyz @ aim, coarse)
+    want = fine.xyz @ aim
+    assert np.abs(read - want).max() < 0.02
+    #: Постоянное поле остаётся постоянным: веса складываются в единицу.
+    assert np.abs(fine.resample_from(np.full(coarse.count, 5.0), coarse) - 5.0).max() < 1e-9
 
 
 def test_the_same_seed_builds_the_same_field_and_another_seed_another() -> None:
@@ -91,16 +169,16 @@ def test_the_sea_is_the_share_of_the_area_asked_for() -> None:
 def test_every_land_cell_drains_to_water() -> None:
     r = pipeline.build(tiny())
     flow = hydro.route(r.height_m, r.sea, r.grid)
-    filled = flow.filled.ravel()
+    filled = flow.filled
     receiver = flow.receiver
     own = np.arange(receiver.size)
     lower = filled[receiver] <= filled[own]
     assert lower.all(), "приёмник не выше клетки"
     #: Клетка, которая никому не отдаёт воду и не вода сама, — пик стока
     #: посреди суши: у заливки таких нет.
-    stuck = (receiver == own) & ~(r.sea | flow.lake).ravel()
+    stuck = (receiver == own) & ~(r.sea | flow.lake)
     assert not stuck.any(), "у каждой клетки суши есть спуск"
-    downstream = flow.area_m2.ravel()[receiver] >= flow.area_m2.ravel()
+    downstream = flow.area_m2[receiver] >= flow.area_m2
     assert downstream.all(), "площадь стока растёт вниз"
     assert (r.water == pipeline.WATER_RIVER).any(), "реки есть"
 

@@ -22,6 +22,29 @@ from field.grid import Grid
 from field.pipeline import Params, Rasters
 
 
+#: Сколько точек кладётся в пробу проекции: край, полюс, стык граней и
+#: полсотни случайных — довольно, чтобы разошедшаяся проекция не прошла.
+PROBES = 64
+
+
+def _probe(grid: Grid) -> dict:
+    """Точки и их клетки, как их видит сборка."""
+    rng = np.random.default_rng(17)
+    lat = np.r_[
+        np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, PROBES))),
+        [-90.0, 90.0, 0.0, 0.0, 41.81031, -41.81031, 66.44354, -66.44354],
+    ]
+    lon = np.r_[
+        rng.uniform(-180.0, 180.0, PROBES),
+        [0.0, 0.0, -180.0, 180.0, 45.0, -45.0, 135.0, -135.0],
+    ]
+    return {
+        "lat": [float(v) for v in lat],
+        "lon": [float(v) for v in lon],
+        "cell": [int(v) for v in grid.cell(lat, lon)],
+    }
+
+
 def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
     directory.mkdir(parents=True, exist_ok=True)
     arrays = directory / f"{r.params.planet}.npz"
@@ -33,6 +56,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         form=r.form.astype(np.uint8),
         hardness=np.round(r.hardness * 255).astype(np.uint8),
         area_km2=r.area_km2.astype(np.float32),
+        flow_km2=r.flow_km2.astype(np.float32),
         wet_m=np.clip(r.wet_m, 0, 65535).astype(np.uint16),
         river_m=np.clip(r.river_m, 0, 65535).astype(np.uint16),
         sea_m=np.clip(r.sea_m, 0, 65535).astype(np.uint16),
@@ -47,7 +71,16 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
     meta = {
         "params": asdict(r.params),
         "digest": r.params.digest(),
-        "grid": {"rows": r.grid.rows, "cols": r.grid.cols, "step_m": r.grid.step_m, "radius_m": r.grid.radius_m},
+        #: Сетка HEALPix (D-328): дробность и радиус задают её целиком —
+        #: клеток `12 nside²`, и все одной стороны.
+        "grid": {
+            "kind": "healpix",
+            "nside": r.grid.nside,
+            "cells": r.grid.count,
+            "step_m": r.grid.step_m,
+            "side_m": round(r.grid.side_m, 3),
+            "radius_m": r.grid.radius_m,
+        },
         "land_share": round(r.land_share(), 4),
         "height_max_m": round(float(r.height_m.max()), 1),
         #: Смысл кодов растров — в паспорте, а не только в коде: файл поля
@@ -58,6 +91,12 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         "zonal": climate.zonal_names(r.params.zonal),
         #: Провинции планеты в порядке кодов растра `province` (план §7):
         #: имена — по id из reнames вольта (D-251), здесь только числа.
+        #: Проба проекции: несколько точек и клетки, в которые они попали
+        #: **у сборки**. Сетка HEALPix живёт в двух местах — здесь и в
+        #: движке, — и разойтись они могут молча: мир поедет на километры,
+        #: и никто не упадёт. Движок сверяет пробу при чтении файла и
+        #: отказывается стартовать, а не читает мир не там (D-328).
+        "probe": _probe(r.grid),
         "provinces": [
             {
                 "id": row["id"],
@@ -98,6 +137,11 @@ def load(directory: Path, planet: str) -> Rasters:
             form=z["form"],
             hardness=z["hardness"].astype(float) / 255.0,
             area_km2=z["area_km2"].astype(float),
+            flow_km2=(
+                z["flow_km2"].astype(float)
+                if "flow_km2" in z
+                else np.zeros(z["water"].shape)
+            ),
             wet_m=z["wet_m"].astype(float),
             river_m=z["river_m"].astype(float),
             temperature_c=temperature,

@@ -23,7 +23,7 @@ from typing import Callable
 import numpy as np
 
 from field import climate, erosion, forms, hydro, noise, plates, provinces
-from field.grid import Grid
+from field.grid import WAYS, Grid
 
 #: Дно моря для картинки, доли размаха: глубина на краю шкалы основы.
 SEA_DEPTH = 0.67
@@ -196,6 +196,12 @@ class Rasters:
     form: np.ndarray  # uint8, коды `forms.FORMS`
     hardness: np.ndarray  # [0.25, 1]
     area_km2: np.ndarray  # площадь стока
+    #: Сколько земли стекает через реку, берегом которой клетка могла бы
+    #: быть: наибольший сток среди неё самой и её соседей, ноль там, где
+    #: реки рядом нет. По нему картинка даёт реке честную ширину (§9.2).
+    #: Считается здесь, а не при чтении файла: соседи клетки — свойство
+    #: сетки, и у сервера таблицы соседей нет и быть не должно.
+    flow_km2: np.ndarray
     wet_m: np.ndarray  # до ближайшей воды, метры, не дальше WET_MAX_M
     river_m: np.ndarray  # до ближайшей реки или озера, метры, не дальше WET_MAX_M
     temperature_c: np.ndarray
@@ -218,30 +224,22 @@ class Rasters:
         return self.water != WATER_SEA
 
     def land_share(self) -> float:
-        area = np.repeat(self.grid.area_m2[:, None], self.grid.cols, axis=1)
-        return float(area[self.land].sum() / area.sum())
-
-
-def _weighted_quantile(values: np.ndarray, weights: np.ndarray, share: float) -> float:
-    order = np.argsort(values, axis=None)
-    v = values.ravel()[order]
-    w = weights.ravel()[order]
-    cumulative = np.cumsum(w) / w.sum()
-    return float(v[np.searchsorted(cumulative, share)])
+        #: Доля клеток и доля площади — одно и то же: сетка равноплощадная (D-328).
+        return float(self.land.mean())
 
 
 def _to_metres(
     base: np.ndarray, sea_share: float, relief_m: float, grid: Grid
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Уровень моря — по доле **площади**, не клеток: у полюса клетка узкая,
-    и квантиль по клеткам делал бы полярную сушу дешевле экваториальной."""
-    weights = np.repeat(grid.area_m2[:, None], grid.cols, axis=1)
+    """Уровень моря — по доле **площади**, не клеток. На равноплощадной сетке
+    (D-328) это одно и то же, и взвешенный квантиль стал обычным: у полюса
+    клетка такая же, как на экваторе, и полярная суша больше не дешевле."""
     if sea_share <= 0.0:
         level = float(base.min()) - 1e-9
     elif sea_share >= 1.0:
         level = float(base.max()) + 1e-9
     else:
-        level = _weighted_quantile(base, weights, sea_share)
+        level = float(np.quantile(base, sea_share))
     top = max(float(base.max()) - level, 1e-9)
     bottom = max(level - float(base.min()), 1e-9)
     height = np.where(
@@ -252,7 +250,7 @@ def _to_metres(
 
 def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Rasters:
     fine = Grid.of(params.radius_m, params.step_m)
-    log(f"grid {fine.rows}x{fine.cols} at {fine.step_m:.0f} m")
+    log(f"grid nside {fine.nside}, {fine.count:,} cells of {fine.side_m:.1f} m")
     tect = plates.build(fine, params.seed, params.plates, params.continental_share, params.sea_share)
     height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
@@ -262,12 +260,16 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     ) -> Callable[[np.ndarray], np.ndarray]:
         #: Расстояние до моря и шум климата — раз на сетку; высота — при каждом чтении.
         if sea_m is None:
-            _, sea_m = grid.nearest(sea_mask)
+            #: Дальше глубины материка ответ всё равно упирается в единицу,
+            #: и заливке незачем обходить планету ради него.
+            _, sea_m = grid.nearest(
+                sea_mask, grid.cells_for_metres(params.continental_reach_r * params.radius_m)
+            )
         lattice = noise.lattice_for(params.radius_m, params.climate_noise_km * 1000.0)
         texture = noise.centred(params.seed + 91, grid.xyz, lattice, 3)
         weather = params.weather
         return lambda h: climate.temperature(
-            grid.lat2d, h, params.warm_c, params.cold_c, params.lapse_per_km,
+            grid.lat, h, params.warm_c, params.cold_c, params.lapse_per_km,
             sea_m=sea_m, radius_m=params.radius_m, weather=weather, texture=texture,
         )
 
@@ -276,7 +278,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     sea_c = h_c < 0.0
     hard_c = coarse.resample_from(tect.hardness, fine)
     up_c = coarse.resample_from(tect.uplift, fine)
-    log(f"coarse erosion {coarse.rows}x{coarse.cols}, {params.coarse_iterations} iterations")
+    log(f"coarse erosion nside {coarse.nside}, {params.coarse_iterations} iterations")
     coarse_done = erosion.erode(
         h_c, sea_c, coarse,
         hardness=hard_c, uplift=up_c, relief_m=params.relief_m,
@@ -311,19 +313,21 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     height = np.where(land, height * (params.relief_m / max(top, 1e-9)), height)
     flow = hydro.route(height, sea, fine)
     river = land & ~flow.lake & (flow.area_m2 >= params.river_area_km2 * 1e6)
-    water = np.full(height.shape, WATER_LAND, dtype=np.uint8)
+    water = np.full(fine.count, WATER_LAND, dtype=np.uint8)
     water[sea] = WATER_SEA
     water[flow.lake] = WATER_LAKE
     water[river] = WATER_RIVER
     wet_cells = fine.cells_for_metres(WET_MAX_R * params.radius_m)
-    wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.step_m
+    wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.side_m
     #: Пресная вода отдельно: «у реки» и «у моря» — разные вещи для узла (D-321).
     fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
-    river_m = fine.dilate_distance(fresh, wet_cells) * fine.step_m
+    river_m = fine.dilate_distance(fresh, wet_cells) * fine.side_m
 
     #: До моря — и термометру (глубина материка), и файлу: «у моря» для узла
     #: (D-321) читается из растра, а не восемью лучами по высотам.
-    _, sea_m = fine.nearest(sea)
+    _, sea_m = fine.nearest(
+        sea, fine.cells_for_metres(params.continental_reach_r * params.radius_m)
+    )
     temperature = thermometer(fine, sea, sea_m)(height)
     rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
     #: Провинции (план §7) сдвигают осадки и температуру до классификатора
@@ -342,6 +346,11 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: сознательно оставлена за льдом.
     cold = temperature < params.ice_c
     ice = land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))
+    #: Ширина реки читается со стока её берега (план §9.2, D-328).
+    bank = np.where(river, flow.area_m2 / 1e6, 0.0)
+    flow_km2 = bank.copy()
+    for k in range(WAYS):
+        flow_km2 = np.maximum(flow_km2, bank[fine.near[k]])
     log("forms")
     form = forms.classify(
         fine,
@@ -353,7 +362,8 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     )
     return Rasters(
         params=params, grid=fine, height_m=height, water=water, form=form,
-        hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, wet_m=wet_m, river_m=river_m,
+        hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, flow_km2=flow_km2,
+        wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
         sea_m=np.minimum(sea_m, WET_MAX_R * params.radius_m),
         deposit_m=done.deposit, uplift=tect.uplift, ice=ice,

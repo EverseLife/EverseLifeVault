@@ -78,8 +78,12 @@ def ang2fxy(
     совпадают, поэтому шва нет.
     """
     nside = int(nside)
-    z = np.sin(np.radians(np.asarray(lat_deg, dtype=np.float64)))
-    phi = np.radians(np.asarray(lon_deg, dtype=np.float64)) % (2.0 * math.pi)
+    #: Широта и долгота разлетаются по обычным правилам numpy: столбец широт
+    #: на строку долгот — это сетка точек, а не ошибка формы.
+    z, phi = np.broadcast_arrays(
+        np.sin(np.radians(np.asarray(lat_deg, dtype=np.float64))),
+        np.radians(np.asarray(lon_deg, dtype=np.float64)) % (2.0 * math.pi),
+    )
     z = np.clip(z, -1.0, 1.0)
     za = np.abs(z)
     #: Долгота в четвертях круга: у HEALPix всё считается в них.
@@ -198,6 +202,83 @@ def _xyz(lat: np.ndarray, lon: np.ndarray) -> np.ndarray:
     return np.stack([np.cos(rad) * np.cos(lam), np.cos(rad) * np.sin(lam), np.sin(rad)])
 
 
+def offset(
+    lat_deg: np.ndarray,
+    lon_deg: np.ndarray,
+    radius_m: float,
+    span_m: np.ndarray | float,
+    bearing: np.ndarray | float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Куда придёшь, пройдя `span_m` по дуге в направлении `bearing` (радианы
+    от севера по часовой). Точка, длина и направление разлетаются по обычным
+    правилам numpy: тысяча точек на триста проб вокруг каждой — один вызов.
+
+    Точная формула большого круга, а не сдвиг широты и долготы: у полюса
+    приближение делится на косинус широты и уводит шаг на другую сторону
+    планеты. Шаг по сфере нужен всем, кто ходит по сетке HEALPix, — соседям,
+    прыжковой заливке, прогулке переписи, — потому что клетка здесь ищется
+    точкой, а не индексом.
+    """
+    span = np.asarray(span_m, dtype=np.float64) / float(radius_m)
+    lat = np.radians(np.asarray(lat_deg, dtype=np.float64))
+    lon = np.radians(np.asarray(lon_deg, dtype=np.float64))
+    turn = np.asarray(bearing, dtype=np.float64)
+    sin_span, cos_span = np.sin(span), np.cos(span)
+    sin_lat, cos_lat = np.sin(lat), np.cos(lat)
+    to_lat = np.arcsin(
+        np.clip(sin_lat * cos_span + cos_lat * sin_span * np.cos(turn), -1.0, 1.0)
+    )
+    to_lon = lon + np.arctan2(
+        np.sin(turn) * sin_span * cos_lat, cos_span - sin_lat * np.sin(to_lat)
+    )
+    return np.degrees(to_lat), ((np.degrees(to_lon) + 180.0) % 360.0) - 180.0
+
+
+def pix2ring(nside: int, pix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Кольцо клетки (с севера, от нуля) и место в кольце по долготе.
+
+    Клетки HEALPix лежат `4 nside - 1` кольцами равной широты. Это то самое
+    свойство, ради которого сетка выбрана вместо икосферы: марш влаги идёт
+    по широтным поясам (§4.2), и пояс должен быть замкнутым кольцом клеток,
+    а не полосой, которую надо собирать поиском.
+    """
+    nside = int(nside)
+    face, ix, iy = pix2fxy(nside, pix)
+    jr = JRLL[face] * nside - ix - iy - 1
+    north, south = jr < nside, jr > 3 * nside
+    nr = np.where(north, jr, np.where(south, 4 * nside - jr, nside))
+    kshift = np.where(north | south, 0, (jr - nside) & 1)
+    jp = (JPLL[face] * nr + ix - iy + 1 + kshift) // 2
+    return jr - 1, (jp - 1) % (4 * nr)
+
+
+def ring_lengths(nside: int) -> np.ndarray:
+    """Сколько клеток в каждом кольце, с севера на юг."""
+    nside = int(nside)
+    jr = np.arange(1, 4 * nside)
+    nr = np.where(jr < nside, jr, np.where(jr > 3 * nside, 4 * nside - jr, nside))
+    return 4 * nr
+
+
+def ring_table(nside: int) -> tuple[np.ndarray, np.ndarray]:
+    """Клетки колец по долготе: `(колец, 4 nside)` номеров и длины колец.
+
+    Короткое кольцо в таблице повторяется: место `s` — это `s` по модулю
+    длины кольца. Так шаг марша остаётся одним столбцом на все кольца
+    сразу, а полярное кольцо из четырёх клеток просто обходится по кругу
+    чаще — оно и по земле короче.
+    """
+    nside = int(nside)
+    lengths = ring_lengths(nside)
+    wide = int(lengths.max())
+    ring, place = pix2ring(nside, np.arange(npix(nside), dtype=np.int64))
+    out = np.zeros((len(lengths), wide), dtype=np.int64)
+    out[ring, place] = np.arange(npix(nside), dtype=np.int64)
+    #: Разложить короткие кольца по всей ширине: место `s` — по модулю длины.
+    seats = np.arange(wide)[None, :] % lengths[:, None]
+    return np.take_along_axis(out, seats, axis=1), lengths
+
+
 #: Сколько сторон света опрашивается в поисках кандидатов и на каких радиусах
 #: в долях стороны клетки: клетки HEALPix — ромбы, и восемь румбов по кругу
 #: мимо них промахиваются. Шестнадцать на двух радиусах накрывают и рёбра, и
@@ -247,11 +328,7 @@ def neighbours(nside: int, radius_m: float) -> np.ndarray:
         step = reach * side
         for k in range(LOOKS):
             turn = 2.0 * math.pi * k / LOOKS
-            d_lat = np.degrees(step * math.cos(turn) / radius_m)
-            d_lon = np.degrees(
-                step * math.sin(turn) / (radius_m * np.maximum(np.cos(np.radians(lat)), 1e-9))
-            )
-            seen.append(ang2pix(nside, np.clip(lat + d_lat, -90.0, 90.0), lon + d_lon))
+            seen.append(ang2pix(nside, *offset(lat, lon, radius_m, step, turn)))
 
     mine = np.arange(count, dtype=np.int64)
     #: Кандидаты повторяются — тридцать два шага попадают в восемь клеток по
