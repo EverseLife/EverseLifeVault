@@ -293,6 +293,12 @@ NEAR = 8
 #: чем срезать: срез — это ровно та несимметрия, из-за которой вода утекала
 #: бы в клетку, которая о ней не знает.
 WAYS = 12
+#: По скольку клеток за раз перемалывается то, что стоит по многу чисел на
+#: клетку: кандидаты в соседи здесь, веса производных в `grid._fit`. Размер
+#: выбран не точностью — она от него не зависит вовсе, — а тем, что блок
+#: такой величины укладывается в кэш последнего уровня и при этом достаточно
+#: велик, чтобы numpy работал массивами, а не заголовками массивов.
+BLOCK = 1 << 16
 
 
 def neighbours(nside: int, radius_m: float) -> np.ndarray:
@@ -317,39 +323,61 @@ def neighbours(nside: int, radius_m: float) -> np.ndarray:
 
     Свободные места добиваются самой клеткой: вызывающий увидит себя и
     ничего не сделает, а обход по сторонам остаётся обходом.
+
+    Кандидаты берутся **блоками клеток**, и каждый блок сразу ужимается до
+    своих восьми ближайших. Отбор идёт в каждой клетке отдельно, поэтому
+    блок ничего не меняет в ответе, зато меняет цену: тридцать два шага на
+    клетку — это тридцать два числа на клетку в полудюжине живых сразу
+    массивов, около полутора килобайт, и на Авроре в двенадцать миллионов
+    клеток это два десятка гигабайт на одну эту таблицу. Блоками живёт
+    полтора килобайта на клетку **блока**, а до конца доживают восемь
+    номеров на клетку.
     """
     count = npix(nside)
     lat, lon = centres(nside)
     side = cell_side_m(radius_m, nside)
     here = _xyz(lat, lon)
-
-    seen: list[np.ndarray] = []
-    for reach in REACHES:
-        step = reach * side
-        for k in range(LOOKS):
-            turn = 2.0 * math.pi * k / LOOKS
-            seen.append(ang2pix(nside, *offset(lat, lon, radius_m, step, turn)))
-
     mine = np.arange(count, dtype=np.int64)
-    #: Кандидаты повторяются — тридцать два шага попадают в восемь клеток по
-    #: многу раз, — и повторы надо снять **до** отбора ближайших, иначе
-    #: «восемь ближайших» окажутся восемью копиями двух.
-    src = np.repeat(mine, len(seen))
-    dst = np.stack(seen, axis=1).reshape(-1)
-    own = src != dst
-    pairs = np.unique(src[own] * count + dst[own])
-    src, dst = np.divmod(pairs, count)
 
-    #: Из них — восемь ближайших каждой клетке.
-    apart = -(here[:, src] * here[:, dst]).sum(axis=0)
-    order = np.lexsort((apart, src))
-    src, dst = src[order], dst[order]
-    starts = np.searchsorted(src, mine)
-    rank = np.arange(len(src)) - starts[src]
-    near = rank < NEAR
+    kept: list[np.ndarray] = []
+    for low in range(0, count, BLOCK):
+        high = min(count, low + BLOCK)
+        block = mine[low:high]
+        seen: list[np.ndarray] = []
+        for reach in REACHES:
+            step = reach * side
+            for k in range(LOOKS):
+                turn = 2.0 * math.pi * k / LOOKS
+                seen.append(
+                    ang2pix(nside, *offset(lat[low:high], lon[low:high], radius_m, step, turn))
+                )
+        #: Кандидаты повторяются — тридцать два шага попадают в восемь клеток
+        #: по многу раз, — и повторы надо снять **до** отбора ближайших, иначе
+        #: «восемь ближайших» окажутся восемью копиями двух.
+        src = np.repeat(block, len(seen))
+        dst = np.stack(seen, axis=1).reshape(-1)
+        del seen
+        own = src != dst
+        pairs = np.unique(src[own] * count + dst[own])
+        del src, dst, own
+        src, dst = np.divmod(pairs, count)
+        del pairs
+
+        #: Из них — восемь ближайших каждой клетке.
+        apart = -(here[:, src] * here[:, dst]).sum(axis=0)
+        order = np.lexsort((apart, src))
+        src, dst = src[order], dst[order]
+        starts = np.searchsorted(src, block)
+        rank = np.arange(len(src)) - starts[src - low]
+        near = rank < NEAR
+        kept.append(src[near] * count + dst[near])
 
     #: И объединение с обратной стороной — вот вся симметрия.
-    both = np.unique(np.r_[src[near] * count + dst[near], dst[near] * count + src[near]])
+    ahead = np.concatenate(kept)
+    del kept
+    src, dst = np.divmod(ahead, count)
+    both = np.unique(np.r_[ahead, dst * count + src])
+    del ahead, src, dst
     src, dst = np.divmod(both, count)
 
     #: По местам без цикла: пары уже отсортированы по хозяину, значит место
