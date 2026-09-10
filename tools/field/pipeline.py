@@ -23,6 +23,7 @@ from typing import Callable
 import numpy as np
 
 from field import climate, erosion, forms, hydro, noise, plates, provinces
+from field.forms import VOLCANO_SHARE
 from field.grid import WAYS, Grid
 
 #: Дно моря для картинки, доли размаха: глубина на краю шкалы основы.
@@ -37,9 +38,40 @@ FINE_ITERATIONS = 24
 DETAIL_AMPLITUDE = 0.015
 DETAIL_WAVELENGTH_R = 0.06
 #: Дальше этого «близость воды» не считается, доля радиуса.
-WET_MAX_R = 0.05
+#:
+#: Потолок обязан быть выше **всякого** порога, который эти растры читает, и
+#: на **самой мелкой** планете: пороги (`biome.bounds.coast_km`,
+#: `biome.facet_axes.wet_km`) стоят в метрах и одни на все миры, а потолок у
+#: каждого мира свой. 0,05 хватало, пока самый мелкий радиус был 14,4 км;
+#: после второго ужатия (D-329) Пироксис стал 7,2 км, его потолок — 359 м, и
+#: `coast_km` = 375 м оказался выше: вся суша планеты читалась берегом, а ось
+#: влаги в выборе фацета не принимала нуля нигде. 0,10 держит нынешние 500 м
+#: с запасом (718 м у Пироксиса) — и это правило, а не число: подняли порог
+#: или ужали планету ещё раз, сверьтесь заново.
+WET_MAX_R = 0.10
 
 WATER_LAND, WATER_SEA, WATER_LAKE, WATER_RIVER = 0, 1, 2, 3
+
+#: Чем течёт планета. Растр `water` один на все четыре: клетка либо суша,
+#: либо под жидкостью, — и игре этого хватает, она и так отказывает войти.
+#: Разные тут **источник** и **имя**: воду рождает дождь, лаву — вулканы и
+#: рифты, и «море» Пироксиса зовётся лавовым океаном, а не морем.
+FLUID_WATER, FLUID_LAVA = "water", "lava"
+FLUIDS = (FLUID_WATER, FLUID_LAVA)
+#: Ниже этого расхода впадина — сухая котловина, а не озеро: одна клетка
+#: средней отдачи планеты. Раньше озером становилась любая яма, поднятая
+#: заливкой, — и на Пироксисе сухая котловина числилась озером ровно так же,
+#: как проточное озеро Терры.
+#:
+#: Мера — **расход через клетку**, а не приток со стороны, и разница тут
+#: есть: накопление считает и собственную долю клетки, поэтому впадина не
+#: суше средней проходит порог сама по себе. То есть правило читается «яма
+#: не суше планеты», а не «яма, в которую втекает». Слабее — да; на деле
+#: разницы нет: заливка объявляет озером только то, что подняла выше
+#: `hydro.LAKE_DEPTH_M`, и одиночных клеток среди озёр Терры **ноль** из
+#: 1338. Ужесточать до двух клеток значит пересобирать четыре мира ради
+#: числа, которое ничего не двигает.
+LAKE_INFLOW_CELLS = 1.0
 
 
 @dataclass(frozen=True)
@@ -83,6 +115,16 @@ class Params:
     zones: tuple = ()
     #: Шкала осадков узла (`site.rain_range`): края строк `biome.zonal` — на ней.
     rain_range: tuple = (0.0, 100.0)
+    #: Чем течёт эта планета (`FLUIDS`): решает, откуда берётся жидкость и
+    #: как её зовут. В хеше паспорта — другая жидкость, другое поле.
+    fluid: str = FLUID_WATER
+    #: Во сколько раз гуще вулканы, чем на земной планете (`terrain.volcanoes`).
+    volcanoes: float = 1.0
+    #: Выше этой температуры земли лава на ней держится расплавом, ниже —
+    #: застывает у жерла (`terrain.lava_c`).
+    lava_c: float = 60.0
+    #: Как далеко язык уходит от конуса, км (`terrain.lava_reach_km`).
+    lava_reach_km: float = 0.6
 
     @property
     def belt(self) -> climate.DryBelt:
@@ -117,12 +159,19 @@ class Params:
     ) -> Params:
         """Числа мира из `build/constants.json`, как их читает движок, и
         строки провинций планеты из `build/provinces.json`."""
-        planets = ("terra", "aquatica", "pyroxis", "aurora")
-        seed = int(constants["terrain.seed"]) * len(planets) + planets.index(planet)
+        #: Зерно — своё у каждой планеты (владелец, 2026-09-10). Раньше оно было
+        #: одно, а миры разводились по номеру планеты в кортеже: перевыбрать
+        #: Аврору, не тронув Терру, было нельзя вовсе, а перестановка планет в
+        #: кортеже молча меняла все четыре мира сразу.
+        seed = int(constants["terrain.seed"][planet])
         share = float(constants["planet.land_area_share"][planet])
         radius_m = (share**0.5) * float(constants["planet.earth_radius_km"]) * 1000.0
         relief_m = float(constants["terrain.relief_m"])
-        temp = constants["site.temp_range"]
+        #: Тёплый и холодный края — тоже свои: одна пара на четыре мира держала
+        #: Пироксис при −34 °C со льдом на пятой части суши, а Аврору — при +35
+        #: с дюнами. Земной диапазон остался у Терры, и он же — шкала узла
+        #: (`site.temp_range`), по которой игра рисует градусник.
+        temp = constants["terrain.temp_range"][planet]
         lapse_range = float(constants["terrain.lapse_c"])
         params = cls(
             planet=planet,
@@ -133,6 +182,7 @@ class Params:
             relief_m=relief_m,
             plates=int(constants["terrain.plates"]),
             continental_share=float(constants["terrain.continental_share"]),
+            volcanoes=float(constants["terrain.volcanoes"][planet]),
             river_area_km2=float(constants["terrain.river_area_km2"]),
             provinces=tuple(
                 {
@@ -153,6 +203,9 @@ class Params:
             rain_range=(float(constants["site.rain_range"]["min"]), float(constants["site.rain_range"]["max"])),
             warm_c=float(temp["max"]),
             cold_c=float(temp["min"]),
+            fluid=_fluid(constants["terrain.fluid"][planet]),
+            lava_c=float(constants["terrain.lava_c"]),
+            lava_reach_km=float(constants["terrain.lava_reach_km"]),
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
             #: переведёт волна климата — здесь только пересчёт.
             lapse_per_km=lapse_range / (relief_m / 1000.0),
@@ -248,10 +301,101 @@ def _to_metres(
     return height, base < level
 
 
+def _fluid(word: object) -> str:
+    """Слово `terrain.fluid`, сверенное со списком.
+
+    Иначе опечатка проходит всю цепь молча: `== FLUID_LAVA` даёт False, и
+    Пироксис пересобирается водным миром с дождём и речной сетью — без
+    единого отказа, потому что «lava» и «Lava» одинаково строки.
+    """
+    if str(word) not in FLUIDS:
+        raise ValueError(f"terrain.fluid: «{word}» — не {' и не '.join(FLUIDS)}")
+    return str(word)
+
+
+def _yield(params: Params, rain: np.ndarray, temperature: np.ndarray) -> np.ndarray:
+    """Сколько **воды** отдаёт клетка, доля: дождь, и только там, где он не
+    выпадает снегом. Замёрзшая клетка воду копит, а не отдаёт, и оттого
+    ледяная шапка рек ниже себя не рождает.
+
+    Ноль по всей суше — законный ответ, а не сбой: планета, у которой вся
+    вода — лёд, не имеет ни рек, ни озёр, и `hydro.discharge` скажет это
+    нулями. Форму земли это не трогает: долины и каньоны режет геометрия
+    склона (`flow.area_m2`), и на Авроре они остаются такими же, какими были.
+
+    Лавы здесь нет намеренно. Она не выпадает с неба и не собирается
+    водосбором: она выходит из конуса и течёт вниз, пока не остынет
+    (`_lava_tongues`). Пропущенная через ту же сеть, она давала на Пироксисе
+    ветвистую речную систему, крашенную в оранжевый, — воду, а не лаву
+    (владелец 2026-09-10: «реки на пироксисе не должны генерироваться как
+    обычные водные реки»).
+    """
+    return np.where(temperature >= params.ice_c, rain, 0.0)
+
+
+def _lava_tongues(
+    params: Params,
+    grid: Grid,
+    flow,
+    volcano: np.ndarray,
+    temperature: np.ndarray,
+    land: np.ndarray,
+) -> np.ndarray:
+    """Лавовые языки: где лава вышла из конуса и куда дотекла.
+
+    Не река и не сеть. Лава начинается в жерле, идёт вниз по тому же спуску,
+    что и вода, и **застывает**, отойдя от источника, — язык, а не водосбор.
+    Оттого их не сливает в одно русло: два соседних конуса дают два потока,
+    а не приток и главную реку.
+
+    Два условия, и оба нужны. **Конус** — иначе течь неоткуда; отсюда
+    `terrain.volcanoes`: вулканы есть на каждой планете, но там, где их одна
+    штука на полушарие, и лавы не видно. **Жара** — `terrain.lava_c`: лава
+    на холодной земле застывает у самого жерла, и на Терре вулканы стоят без
+    единого потока, хотя вулканы у неё есть (владелец 2026-09-10). Порог тот
+    же, за которым в `biome.zonal` кончается всякая растительность: земля,
+    на которой держится расплав, ничего не растит, и наоборот.
+    """
+    hot = land & (temperature >= params.lava_c)
+    vent = hot & (volcano >= VOLCANO_SHARE)
+    reach_m = params.lava_reach_km * 1000.0
+    out = vent.copy()
+    #: Досягаемость расходуется **метрами пути**, а не числом шагов. Шаг по
+    #: диагонали длиннее стороны в корень из двух, и счёт шагами уводил язык
+    #: до сорока процентов дальше объявленного: на Пироксисе он доходил до
+    #: пятнадцати клеток при заявленных двенадцати. `flow.distance` знает
+    #: длину каждого шага, и она же тратится.
+    left = np.where(vent, reach_m, 0.0)
+    receiver = flow.receiver
+    front = vent
+    #: Верхняя граница числа шагов: короче стороны шага не бывает. Она здесь
+    #: страховкой от бесконечного цикла, а не мерой длины.
+    for _ in range(int(reach_m / grid.side_m) + 2):
+        if not front.any():
+            break
+        idx = np.flatnonzero(front)
+        moved = receiver[idx]
+        #: Клетка, чей приёмник — она сама, это дно: море, озеро или яма.
+        budget = left[idx] - flow.distance[idx]
+        keep = (moved != idx) & hot[moved] & (budget > 0.0)
+        gain = np.zeros(grid.count)
+        #: Два языка могут прийти в одну клетку; дальше идёт тот, у кого
+        #: осталось больше, иначе первый обрубал бы второй.
+        np.maximum.at(gain, moved[keep], budget[keep])
+        better = gain > left
+        left = np.maximum(left, gain)
+        out |= better
+        front = better
+    return out
+
+
 def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Rasters:
     fine = Grid.of(params.radius_m, params.step_m)
     log(f"grid nside {fine.nside}, {fine.count:,} cells of {fine.side_m:.1f} m")
-    tect = plates.build(fine, params.seed, params.plates, params.continental_share, params.sea_share)
+    tect = plates.build(
+        fine, params.seed, params.plates, params.continental_share, params.sea_share,
+        volcanoes=params.volcanoes,
+    )
     height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
 
@@ -312,42 +456,92 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     top = float(height[land].max()) if land.any() else params.relief_m
     height = np.where(land, height * (params.relief_m / max(top, 1e-9)), height)
     flow = hydro.route(height, sea, fine)
-    river = land & ~flow.lake & (flow.area_m2 >= params.river_area_km2 * 1e6)
-    water = np.full(fine.count, WATER_LAND, dtype=np.uint8)
-    water[sea] = WATER_SEA
-    water[flow.lake] = WATER_LAKE
-    water[river] = WATER_RIVER
-    wet_cells = fine.cells_for_metres(WET_MAX_R * params.radius_m)
-    wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.side_m
-    #: Пресная вода отдельно: «у реки» и «у моря» — разные вещи для узла (D-321).
-    fresh = (water == WATER_RIVER) | (water == WATER_LAKE)
-    river_m = fine.dilate_distance(fresh, wet_cells) * fine.side_m
 
+    #: Климат — **до** воды, а не после. Раньше он считался в конце, потому
+    #: что реку решала одна геометрия склона; теперь реку решает то, что по
+    #: ней течёт, а течёт по ней дождь — и знать его надо раньше.
     #: До моря — и термометру (глубина материка), и файлу: «у моря» для узла
     #: (D-321) читается из растра, а не восемью лучами по высотам.
     _, sea_m = fine.nearest(
         sea, fine.cells_for_metres(params.continental_reach_r * params.radius_m)
     )
     temperature = thermometer(fine, sea, sea_m)(height)
-    rain = climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
-    #: Провинции (план §7) сдвигают осадки и температуру до классификатора
-    #: (§5): характер области — в самих растрах, а не только в подписи.
+    #: Дождя на лавовой планете нет вовсе, и это не упрощение: марш влаги
+    #: набирает её **над морем**, а море Пироксиса — расплавленный камень.
+    #: Пустить его через тот же марш значило бы получить дождевые леса на
+    #: наветренном берегу лавового океана. Осадки там ноль по всей планете,
+    #: и вся она поэтому сушь — чем и должна быть.
+    rain = (
+        np.zeros(fine.count)
+        if params.fluid == FLUID_LAVA
+        else climate.rain(fine, height, sea, params.seed, params.relief_m, params.belt, params.winds)
+    )
+
+    #: Провинции (план §7) сдвигают осадки и температуру **здесь**, до воды,
+    #: а не после классификатора, как раньше. Пока реку решала геометрия
+    #: склона, порядок был не важен; теперь её решают дождь и жара, и сдвиг,
+    #: применённый после, разводил файл с самим собой: на Терре 319 речных
+    #: клеток лежали при записанной температуре ниже `ice_c`, а на Пироксисе
+    #: 13 клеток лавы — холоднее `lava_c`, то есть холоднее порога, которым
+    #: та же лава и разрешена. Растр и вода теперь считаются по одним числам.
     log("provinces")
     realm = provinces.build(fine, params.seed, land, list(params.provinces))
-    rain = np.clip(rain + provinces.shifts(realm, "rain_shift") / 100.0, 0.0, 1.0)
+    if params.fluid != FLUID_LAVA:
+        #: Провинция двигает осадки только там, где им есть от чего двигаться.
+        #: На лавовой планете дождя нет, а сдвиг — это прибавка к нулю:
+        #: «влажная провинция» вырастала на планете без единой капли и снимала
+        #: с трети суши признак сухости, по которому та и должна быть
+        #: каменистой.
+        rain = np.clip(rain + provinces.shifts(realm, "rain_shift") / 100.0, 0.0, 1.0)
     temperature = np.minimum(temperature + provinces.shifts(realm, "temp_shift_c"), params.warm_c)
-    #: Классификатор читает растры такими, какими их хранит файл (целые
-    #: градусы, осадки в 1/255): рендер судит то, что получит узел, а не
-    #: то, что видел конвейер до записи.
-    zonal = climate.zonal(np.round(temperature), np.round(rain * 255.0) / 255.0, params.zonal, params.rain_range)
+
     #: Шапка — где холодно и мокро, либо где очень холодно (владелец): сухая
     #: мерзлота остаётся землёй. Эрозия выше считала лёд по одной температуре
     #: — осадков до неё ещё нет; разница — сила среза на сухом холоде, и она
     #: сознательно оставлена за льдом.
+    #:
+    #: Считается **до** воды, потому что вода под шапкой не течёт. Пока лёд
+    #: считался после, растры спорили: 225 клеток Терры были разом рекой и
+    #: ледяным полем, и шейдер рисовал в них лёд, а векторный слой — русло.
     cold = temperature < params.ice_c
     ice = land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))
-    #: Ширина реки читается со стока её берега (план §9.2, D-328).
-    bank = np.where(river, flow.area_m2 / 1e6, 0.0)
+
+    log("discharge")
+    given = _yield(params, rain, temperature)
+    carried = hydro.discharge(flow, fine, given, land)
+    #: `& ~ice` — шапка сверху: ледник кормит реку, но она выходит из-под
+    #: него, а не течёт по нему. Спор двух растров решается в пользу льда,
+    #: как и в игре: биом читает `ice` прежде всего остального.
+    river = land & ~ice & ~flow.lake & (carried >= params.river_area_km2 * 1e6)
+    #: Озеро — впадина **не суше планеты** (`LAKE_INFLOW_CELLS`, там же о
+    #: том, почему не «в которую втекает»).
+    lake = flow.lake & ~ice & (carried >= LAKE_INFLOW_CELLS * fine.area_m2)
+    #: Лава — своим ходом, от жерла вниз, и на любой планете: вулканы есть у
+    #: всех, а потечёт ли от них хоть что-нибудь, решает жара.
+    log("lava")
+    lava = _lava_tongues(params, fine, flow, tect.volcano, temperature, land)
+    water = np.full(fine.count, WATER_LAND, dtype=np.uint8)
+    water[sea] = WATER_SEA
+    water[lake] = WATER_LAKE
+    water[river] = WATER_RIVER
+    #: Язык, забредший во впадину, стоит в ней озером; остальной — поток.
+    water[lava & flow.lake] = WATER_LAKE
+    water[lava & ~flow.lake] = WATER_RIVER
+    wet_cells = fine.cells_for_metres(WET_MAX_R * params.radius_m)
+    wet_m = fine.dilate_distance(water != WATER_LAND, wet_cells) * fine.side_m
+    #: Пресная вода отдельно: «у реки» и «у моря» — разные вещи для узла
+    #: (D-321). Лава сюда не входит: узел у лавового потока не «у воды», и
+    #: пить оттуда нечего — иначе разведка нашла бы на Пироксисе реку.
+    fresh = (river | lake) & ~lava
+    river_m = fine.dilate_distance(fresh, wet_cells) * fine.side_m
+    #: Классификатор читает растры такими, какими их хранит файл (целые
+    #: градусы, осадки в 1/255): рендер судит то, что получит узел, а не
+    #: то, что видел конвейер до записи.
+    zonal = climate.zonal(np.round(temperature), np.round(rain * 255.0) / 255.0, params.zonal, params.rain_range)
+    #: Ширина реки читается со стока её берега (план §9.2, D-328) — с того,
+    #: что по ней идёт, а не с площади склона над ней: сухой водосбор реку
+    #: больше не рождает, и широкой её тоже делать не должен.
+    bank = np.where(river, carried / 1e6, 0.0)
     flow_km2 = bank.copy()
     for k in range(WAYS):
         flow_km2 = np.maximum(flow_km2, bank[fine.near[k]])
@@ -355,7 +549,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     form = forms.classify(
         fine,
         forms.Inputs(
-            height_m=height, sea=sea, lake=flow.lake, river=river, area_m2=flow.area_m2,
+            height_m=height, sea=sea, lake=lake, river=river, area_m2=flow.area_m2,
             hardness=tect.hardness, deposit_m=done.deposit, rift=tect.rift, volcano=tect.volcano,
             ice=ice, rain01=rain, relief_m=params.relief_m,
         ),

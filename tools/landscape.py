@@ -181,7 +181,7 @@ def main() -> int:
     ap.add_argument("--seeds", type=int, default=6, help="сколько зёрен перебрать в scan")
     ap.add_argument("--planet", choices=PLANETS, default="terra")
     ap.add_argument("--step", type=float, help="шаг сетки в метрах поверх terrain.step_m")
-    ap.add_argument("--seed", type=int, help="зерно поверх terrain.seed (уже своё для планеты)")
+    ap.add_argument("--seed", type=int, help="зерно поверх terrain.seed этой планеты, на один прогон")
     ap.add_argument("--sea", type=float, help="доля моря поверх terrain.sea_share, на один прогон")
     ap.add_argument("--coarse-iter", type=int)
     ap.add_argument("--fine-iter", type=int)

@@ -37,9 +37,21 @@ export function perPlanet(entry) {
 
 //: `num` округляет до тысячных, а доля суши — это 1.5e-05: в списке она стала
 //: бы нулём, одинаковым у всех четырёх планет.
+//:
+//: Планетное число — не обязательно число: у `terrain.fluid` это слово, у
+//: `terrain.temp_range` — пара краёв. Строкой их отдавать нельзя, иначе в
+//: списке стоит «[object Object]» — ровно та невнятица, ради ухода от
+//: которой линза и заведена.
 function spellNumber(value) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return value == null ? '—' : String(value);
-  return value !== 0 && Math.abs(value) < 0.001 ? value.toExponential(3) : num(value);
+  if (value == null) return '—';
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return String(value);
+    return value !== 0 && Math.abs(value) < 0.001 ? value.toExponential(3) : num(value);
+  }
+  if (typeof value === 'object' && !Array.isArray(value) && 'min' in value && 'max' in value) {
+    return `${spellNumber(value.min)} … ${spellNumber(value.max)}`;
+  }
+  return String(value);
 }
 
 /** Строка списка глазами выбранной планеты: у планетного числа — её число.

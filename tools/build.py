@@ -2552,14 +2552,21 @@ def check_zonal(constants: dict) -> list[str]:
     if problems or not rows:
         return problems
     rain_range = constants.get("site.rain_range") or {}
-    temp_range = constants.get("site.temp_range") or {}
     rain_lo, rain_hi = int(rain_range.get("min", 0)), int(rain_range.get("max", 100))
     temp_lo, temp_hi = int(min(r[1] for r in rows)), int(max(r[2] for r in rows))
     margin = sum(float(constants.get(key) or 0.0) for key in ("terrain.lapse_c", "terrain.continental_c", "terrain.climate_noise_c"))
-    if temp_lo > float(temp_range.get("min", 0.0)) - margin:
-        problems.append(f"biome.zonal: холодный край строк {temp_lo} °C, а поле опускается до {float(temp_range.get('min', 0.0)) - margin:.0f} °C")
-    if temp_hi < float(temp_range.get("max", 0.0)):
-        problems.append(f"biome.zonal: тёплый край строк {temp_hi} °C ниже site.temp_range.max")
+    #: Края — **самой холодной и самой жаркой планеты**, а не шкалы узла. Пока
+    #: пара краёв была одна на четыре мира, `site.temp_range` и была этой
+    #: мерой; с D-329 у каждой планеты своя, и таблица, дотянутая до Терры,
+    #: молча прижимала Пироксис при +120 °C к жаркому поясу — то есть растила
+    #: на нём саванну. Проверка обязана мерить то же, что мерит поле.
+    ends = constants.get("terrain.temp_range") or {"terra": constants.get("site.temp_range") or {}}
+    coldest = min(float((one or {}).get("min", 0.0)) for one in ends.values())
+    hottest = max(float((one or {}).get("max", 0.0)) for one in ends.values())
+    if temp_lo > coldest - margin:
+        problems.append(f"biome.zonal: холодный край строк {temp_lo} °C, а поле опускается до {coldest - margin:.0f} °C")
+    if temp_hi < hottest:
+        problems.append(f"biome.zonal: тёплый край строк {temp_hi} °C, а поле поднимается до {hottest:.0f} °C")
     gaps: list[str] = []
     overlaps: list[str] = []
     for t in range(temp_lo, temp_hi + 1):

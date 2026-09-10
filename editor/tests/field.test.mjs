@@ -56,6 +56,21 @@ test('доля суши не округляется в ноль', () => {
   assert.equal(field.spellForPlanet(share, 'aurora'), '3.052e-5 · Аврора');
 });
 
+test('планетным бывает не только число', () => {
+  //: `terrain.fluid` — слово, `terrain.temp_range` — пара краёв. Обе таблицы
+  //: планетные, и обе шли бы в список как «[object Object]».
+  const fluid = { key: 'terrain.fluid', kind: 'value', value: { terra: 'water', pyroxis: 'lava' } };
+  assert.equal(field.perPlanet(fluid), true);
+  assert.equal(field.spellForPlanet(fluid, 'pyroxis'), 'lava · Пироксис');
+  const ends = {
+    key: 'terrain.temp_range',
+    kind: 'value',
+    value: { terra: { min: -15, max: 35 }, aurora: { min: -75, max: -25 } },
+  };
+  assert.equal(field.perPlanet(ends), true);
+  assert.equal(field.spellForPlanet(ends, 'aurora'), '-75 … -25 · Аврора');
+});
+
 test('общее число рисуется как везде, с единицей', () => {
   const relief = { key: 'terrain.relief_m', kind: 'value', value: 750, unit: 'м' };
   assert.equal(field.spellForPlanet(relief, 'aurora'), '750 м');

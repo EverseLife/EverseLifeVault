@@ -32,11 +32,13 @@ from field import census, erosion, forms, hydro, pipeline, store  # noqa: E402
 from field.grid import Grid  # noqa: E402
 
 
-def tiny(seed: int = 5, **overrides) -> pipeline.Params:
+def tiny(seed: int = 5, *, temp_hot: bool = False, **overrides) -> pipeline.Params:
+    """`temp_hot` — тот же мир, но раскалённый: края температур выше порога
+    `lava_c`, чтобы проверить лаву, не трогая ничего другого."""
     base = dict(
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=300.0,
-        warm_c=35.0, cold_c=-15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
+        warm_c=120.0 if temp_hot else 35.0, cold_c=70.0 if temp_hot else -15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
         continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
         climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,
         dry_belt_wander_deg=8.0, rain_noise=0.3, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
@@ -267,6 +269,58 @@ def _slumped(grid: Grid, height: np.ndarray, cap: float) -> np.ndarray:
     finally:
         erosion.DIFFUSION_MAX = was
         erosion.DIFFUSION_STEP_M = was_step
+
+
+def test_no_open_water_under_the_ice_cap() -> None:
+    """Растры воды и льда не спорят друг с другом (D-329).
+
+    Клетка не бывает разом рекой и ледяным полем: шейдер рисует по льду,
+    векторный слой — по воде, и на одном месте выходили две разные земли.
+    На собранной Терре таких было 225. Ледник реку кормит, но она выходит
+    **из-под** него, а не течёт по нему, и спор решён в пользу льда — как в
+    игре, где биом читает `ice` прежде всего остального.
+    """
+    r = pipeline.build(tiny(seed=11))
+    ice, water = r.ice, r.water
+    assert ice.any(), "мир без единой шапки эту проверку не проверяет"
+    assert not (ice & (water == pipeline.WATER_RIVER)).any(), "река под шапкой"
+    assert not (ice & (water == pipeline.WATER_LAKE)).any(), "озеро под шапкой"
+
+
+def test_lava_flows_from_cones_on_a_hot_planet_and_nowhere_on_a_cold_one() -> None:
+    """Лава — язык от жерла, а не сеть (D-329).
+
+    Два условия, и тест держит оба порознь. **Конус**: клетка лавы обязана
+    иметь вулкан выше по склону, иначе это река, покрашенная в оранжевый, —
+    ровно то, чем лава была, пока её гнали через водосбор. **Жара**: та же
+    планета с тем же зерном и теми же вулканами, но холодная, не даёт ни
+    одной клетки — «на терре тоже будут вулканы, но они там без лавовых рек».
+    """
+    #: Досягаемость — **десятки клеток этой сетки**, а не метры настоящего
+    #: мира: у `tiny` клетка в шесть километров, и при реестровых 0,6 км
+    #: проход делал ровно ноль шагов. Тест тогда сходился тождественно —
+    #: множество лавы совпадало с множеством конусов побитно, — и не держал
+    #: ни спуск по приёмнику, ни порог жары, ни длину языка.
+    reach_km = 30.0
+    hot = pipeline.build(tiny(fluid="lava", volcanoes=12.0, temp_hot=True, lava_reach_km=reach_km))
+    cold = pipeline.build(tiny(fluid="lava", volcanoes=12.0, lava_reach_km=reach_km))
+    lava_hot = (hot.water == pipeline.WATER_RIVER) | (hot.water == pipeline.WATER_LAKE)
+    lava_cold = (cold.water == pipeline.WATER_RIVER) | (cold.water == pipeline.WATER_LAKE)
+    assert lava_hot.any(), "жаркая лавовая планета обязана течь"
+    assert not lava_cold.any(), "на холодной земле лава застывает в жерле"
+    #: Язык **длиннее жерла**: иначе всё, что ниже, проверяет один конус.
+    cone = hot.form == forms.CODE["volcano"]
+    assert (lava_hot & ~cone).any(), "лава никуда не дотекла — это не язык, а жерло"
+    #: И он начинается у конуса, не дальше досягаемости **в метрах**: путь
+    #: по склону не короче прямой, так что прямая обязана уложиться в неё.
+    #: Считалось это шагами, и диагональный шаг уводил язык за предел в
+    #: полтора раза — при заявленных двенадцати клетках выходило пятнадцать.
+    steps = hot.grid.cells_for_metres(reach_km * 1000.0)
+    assert steps > 1, "сетка теста обязана давать проходу хотя бы два шага"
+    straight = hot.grid.dilate_distance(cone, steps + 4) * hot.grid.side_m
+    assert (straight[lava_hot] <= reach_km * 1000.0).all(), (
+        "лава течёт не от вулкана либо дальше положенного"
+    )
 
 
 def test_the_slope_slumps_and_does_not_go_off_however_fine_the_cell() -> None:

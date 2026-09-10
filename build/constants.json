@@ -869,13 +869,13 @@
   "wear.transport_per_leg": 1.5,
   "planet.earth_radius_km": 6371,
   "planet.land_area_share": {
-    "terra": 1.52587890625e-05,
-    "pyroxis": 5.08626302065e-06,
-    "aurora": 3.0517578125e-05,
-    "aquatica": 1.52587890625e-05
+    "terra": 3.814697265625e-06,
+    "pyroxis": 1.2715657551625e-06,
+    "aurora": 3.814697265625e-06,
+    "aquatica": 3.814697265625e-06
   },
   "map.sky_unit_km": 1100000,
-  "map.approach_km": 200,
+  "map.approach_km": 100,
   "map.city_step_m": 7,
   "map.min_gap_m": 6,
   "map.city_lat_max": 60,
@@ -891,27 +891,64 @@
   "path.wear_threshold": 20,
   "path.fade_threshold": 8,
   "path.fade_per_day": 1,
-  "terrain.seed": 20260906,
+  "terrain.seed": {
+    "terra": 81043624,
+    "aquatica": 81043625,
+    "pyroxis": 81043626,
+    "aurora": 81043627
+  },
   "terrain.sea_share": {
     "terra": 0.3,
     "aquatica": 0.9,
-    "pyroxis": 0.0,
+    "pyroxis": 0.15,
     "aurora": 0.0
+  },
+  "terrain.fluid": {
+    "terra": "water",
+    "aquatica": "water",
+    "pyroxis": "lava",
+    "aurora": "water"
+  },
+  "terrain.volcanoes": {
+    "terra": 3,
+    "aquatica": 3,
+    "pyroxis": 20,
+    "aurora": 3
+  },
+  "terrain.lava_c": 60,
+  "terrain.lava_reach_km": 0.6,
+  "terrain.temp_range": {
+    "terra": {
+      "min": -15,
+      "max": 35
+    },
+    "aquatica": {
+      "min": -15,
+      "max": 35
+    },
+    "pyroxis": {
+      "min": 40,
+      "max": 120
+    },
+    "aurora": {
+      "min": -75,
+      "max": -25
+    }
   },
   "terrain.mountain_share": 0.15,
   "terrain.lapse_c": 19.5,
-  "terrain.relief_m": 750,
+  "terrain.relief_m": 375,
   "terrain.step_m": 50,
-  "terrain.plates": 12,
+  "terrain.plates": 24,
   "terrain.continental_share": 0.5,
-  "terrain.river_area_km2": 1.25,
-  "terrain.version": 5,
+  "terrain.river_area_km2": 0.3125,
+  "terrain.version": 6,
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,
   "terrain.continental_c": 5,
   "terrain.climate_noise_c": 5,
-  "terrain.climate_noise_km": 5,
+  "terrain.climate_noise_km": 2.5,
   "terrain.continental_reach_r": 0.5,
   "terrain.wind_belts": {
     "trade_lat": 30,
@@ -1127,10 +1164,21 @@
     "woodland": 0.8
   },
   "biome.zonal": {
+    "dead_cold": {
+      "biome": "ice",
+      "temp": [
+        -140,
+        -25
+      ],
+      "rain": [
+        0,
+        100
+      ]
+    },
     "frozen": {
       "biome": "tundra",
       "temp": [
-        -60,
+        -25,
         -2
       ],
       "rain": [
@@ -1280,6 +1328,17 @@
         75,
         100
       ]
+    },
+    "molten": {
+      "biome": "cinder",
+      "temp": [
+        60,
+        160
+      ],
+      "rain": [
+        0,
+        100
+      ]
     }
   },
   "biome.azonal": {
@@ -1303,14 +1362,14 @@
   "biome.facet_axes": {
     "wave_m": 200,
     "slope_full": 0.2,
-    "wet_km": 1,
-    "patch_km": 0.25,
+    "wet_km": 0.5,
+    "patch_km": 0.125,
     "soft_edge": 0.25,
     "favour_k": 2.5
   },
   "biome.bounds": {
     "wet": 38,
-    "coast_km": 0.75,
+    "coast_km": 0.375,
     "marsh_relief": 0.15
   },
   "complex.chance": {

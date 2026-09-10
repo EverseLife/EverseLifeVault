@@ -96,7 +96,19 @@ def _tangent(rng: np.random.Generator, at: np.ndarray) -> np.ndarray:
     return _unit(v)
 
 
-def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share: float) -> Plates:
+def build(
+    grid: Grid,
+    seed: int,
+    count: int,
+    continental_share: float,
+    sea_share: float,
+    volcanoes: float = 1.0,
+) -> Plates:
+    """`volcanoes` — во сколько раз гуще вулканы, чем на земной планете:
+    множитель **плотности**, поэтому шаг дуги делится на его корень, а горячих
+    точек становится во столько же раз больше. Единица — Земля и Терра;
+    Пироксис живёт вулканизмом, и одной дуги на планету ему мало (владелец
+    2026-09-10: «постоянно извергаются вулканы»)."""
     rng = np.random.default_rng(seed)
     count = max(2, int(count))
     centres = _unit(rng.normal(size=(count, 3)))
@@ -170,11 +182,12 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     arc_band = subduction & cell_continental & ~other_continental
     arc_line = arc_band & (np.abs(boundary_m - ARC_OFFSET_R * grid.radius_m) <= grid.side_m * 0.75)
     cones = np.zeros(plate.shape, dtype=bool)
+    density = max(float(volcanoes), 1e-6)
     #: Конусы вдоль дуги с шагом: клетки дуги в случайном порядке, каждая
     #: следующая не ближе шага дуги к уже взятым. Расстояние — по дуге, а не
     #: по индексам: у равноплощадной сетки индекс соседа ни о чём не говорит.
     on_arc = np.flatnonzero(arc_line)
-    spacing = np.cos(ARC_SPACING_R * grid.radius_m / grid.radius_m)
+    spacing = np.cos(ARC_SPACING_R / density**0.5)
     taken: list[np.ndarray] = []
     for pick in rng.permutation(on_arc.size).tolist():
         flat = int(on_arc[pick])
@@ -187,7 +200,8 @@ def build(grid: Grid, seed: int, count: int, continental_share: float, sea_share
     level = float(np.quantile(base, sea_share)) if 0.0 < sea_share < 1.0 else float(base.min()) - 1.0
     candidates = np.flatnonzero(base >= level)
     if candidates.size:
-        for flat in rng.choice(candidates, size=min(HOTSPOTS, candidates.size), replace=False):
+        hotspots = max(1, int(round(HOTSPOTS * density)))
+        for flat in rng.choice(candidates, size=min(hotspots, candidates.size), replace=False):
             cones[flat] = True
     cone_r = grid.cells_for_metres(CONE_RADIUS_R * grid.radius_m)
     cone_dist = grid.dilate_distance(cones, cone_r)

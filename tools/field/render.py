@@ -28,7 +28,7 @@ import numpy as np
 
 from field import climate, forms, healpix
 from field.grid import Grid
-from field.pipeline import WATER_LAKE, WATER_RIVER, WATER_SEA, Rasters
+from field.pipeline import FLUID_LAVA, WATER_LAKE, WATER_RIVER, WATER_SEA, Rasters
 
 #: Свет: с северо-запада, под 45°, и во сколько раз рельеф подчёркнут.
 SUN_AZIMUTH_DEG = 315.0
@@ -44,11 +44,33 @@ HYPSO = (
     (0.85, (200, 200, 200)),
     (1.00, (255, 255, 255)),
 )
+#: Шкала высот **земной** планеты — зелёная низина, бурый склон, снежная
+#: вершина. На лавовой она врала громче всего, что есть в этих снимках:
+#: владелец 2026-09-10 увидел на Пироксисе зелень и снег, а там ни травы,
+#: ни снега нет и быть не может — это была шкала, а не поле. Базальтовая
+#: идёт от свежего тёмного потока к пеплу и выгоревшей породе, и белого в
+#: ней нет вовсе: снежная вершина при +100 °C — та же ложь, что и луг.
+HYPSO_BASALT = (
+    (0.00, (46, 38, 40)),
+    (0.10, (72, 56, 52)),
+    (0.28, (104, 74, 60)),
+    (0.50, (132, 98, 74)),
+    (0.72, (158, 126, 96)),
+    (0.88, (186, 160, 132)),
+    (1.00, (206, 186, 162)),
+)
 SEA_SHALLOW = (110, 160, 210)
 SEA_DEEP = (20, 50, 110)
 LAKE = (70, 140, 210)
 RIVER = (40, 110, 200)
 ICE = (235, 240, 250)
+#: Лава: тот же растр воды, другое вещество (`Params.fluid`). Глубина светлеет,
+#: а не темнеет — вода темнеет оттого, что свет в неё не доходит, а лава
+#: светится сама, и раскрашенная по-морскому она читалась грязью.
+LAVA_SHALLOW = (150, 45, 20)
+LAVA_DEEP = (255, 190, 90)
+LAVA_LAKE = (240, 140, 45)
+LAVA_RIVER = (255, 165, 60)
 
 FORM_COLORS = {
     "sea": (30, 60, 120), "lake": (70, 140, 210), "plain": (170, 200, 140), "hills": (140, 170, 100),
@@ -62,6 +84,9 @@ ZONAL_COLORS = {
     "tundra": (200, 210, 200), "taiga": (40, 90, 70), "desert": (240, 210, 130), "semidesert": (210, 180, 110),
     "steppe": (200, 190, 90), "savanna": (190, 170, 60), "rainforest": (20, 100, 40), "woodland": (120, 150, 60),
     "forest": (60, 130, 60),
+    #: Мёртвые края таблицы (D-329): холоднее тундры и жарче пустыни ничего
+    #: не растёт. Без них слой рисовал бы их розовым «класса нет».
+    "ice": (235, 240, 250), "cinder": (60, 50, 55),
 }
 #: Класс без цвета и клетка вне таблицы — розовым, чтобы бросалось в глаза.
 ZONAL_UNKNOWN = (255, 0, 255)
@@ -101,23 +126,48 @@ def _ramp(value: np.ndarray, stops: tuple) -> np.ndarray:
     return out
 
 
+def _fluid_colours(r: Rasters) -> tuple[tuple, tuple, tuple, tuple]:
+    """Мелко, глубоко, озеро, река — в цветах того, что на этой планете течёт."""
+    if r.params.fluid == FLUID_LAVA:
+        return LAVA_SHALLOW, LAVA_DEEP, LAVA_LAKE, LAVA_RIVER
+    return SEA_SHALLOW, SEA_DEEP, LAKE, RIVER
+
+
 def layer_relief(r: Rasters) -> np.ndarray:
     share = np.clip(r.height_m / r.params.relief_m, 0.0, 1.0)
-    rgb = _ramp(share, HYPSO)
+    rgb = _ramp(share, HYPSO_BASALT if r.params.fluid == FLUID_LAVA else HYPSO)
     shade = hillshade(r.grid, r.height_m)
     rgb = rgb * (0.45 + 0.55 * shade)[..., None]
     depth = np.clip(-r.height_m / 2000.0, 0.0, 1.0)
-    sea = np.array(SEA_SHALLOW) * (1 - depth)[..., None] + np.array(SEA_DEEP) * depth[..., None]
+    shallow, deep, lake, river = _fluid_colours(r)
+    sea = np.array(shallow) * (1 - depth)[..., None] + np.array(deep) * depth[..., None]
     rgb = np.where((r.water == WATER_SEA)[..., None], sea, rgb)
-    rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(LAKE), rgb)
-    rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(RIVER), rgb)
+    rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
+    rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
     rgb = np.where((r.ice & (r.water != WATER_SEA))[..., None], np.array(ICE) * (0.6 + 0.4 * shade)[..., None], rgb)
     return rgb
 
 
 def layer_forms(r: Rasters) -> np.ndarray:
     table = np.array([FORM_COLORS[key] for key, _, _ in forms.FORMS], dtype=float)
+    #: Слой форм — легенда по процессу, и цвет в ней у формы один на все
+    #: планеты: иначе «равнина» на двух снимках была бы разной. Море и озеро
+    #: — исключение, и не ради красоты: форма у них одна, а **вещество**
+    #: разное, и синее море на лавовой планете говорит неправду о том, что в
+    #: нём (владелец 2026-09-10). Поток лавы формы не имеет вовсе — он суша,
+    #: залитая расплавом, — и красится тут же, по растру воды.
     rgb = table[r.form]
+    if r.params.fluid == FLUID_LAVA:
+        _, deep, lake, river = _fluid_colours(r)
+        #: По растру воды, а не по коду формы. Лавовый поток формы не имеет
+        #: вовсе — он суша, залитая расплавом, — а лавовое озеро формы `lake`
+        #: не получает: её ставит `flow.lake`, которого на планете без воды
+        #: нет. Красить таблицу форм было мёртвой строкой: кода `lake` в
+        #: паспорте Пироксиса просто не появляется, и озёра выходили цветом
+        #: суши.
+        rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
+        rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
+        rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
     shade = hillshade(r.grid, r.height_m)
     return rgb * (0.6 + 0.4 * shade)[..., None]
 
@@ -126,8 +176,9 @@ def layer_zonal(r: Rasters) -> np.ndarray:
     names = climate.zonal_names(r.params.zonal)
     table = np.array([ZONAL_COLORS.get(name, ZONAL_UNKNOWN) for name in names] + [ZONAL_UNKNOWN], dtype=float)
     rgb = table[np.minimum(r.zonal, len(names))]
-    rgb = np.where((r.water == WATER_SEA)[..., None], np.array(FORM_COLORS["sea"]), rgb)
-    rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(LAKE), rgb)
+    _, deep, lake, _ = _fluid_colours(r)
+    rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
+    rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
     rgb = np.where((r.ice & (r.water != WATER_SEA))[..., None], np.array(ICE), rgb)
     shade = hillshade(r.grid, r.height_m)
     return rgb * (0.65 + 0.35 * shade)[..., None]
