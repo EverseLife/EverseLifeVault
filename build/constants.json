@@ -869,13 +869,13 @@
   "wear.transport_per_leg": 1.5,
   "planet.earth_radius_km": 6371,
   "planet.land_area_share": {
-    "terra": 3.0517578125e-05,
-    "pyroxis": 1.01725260413e-05,
-    "aurora": 6.103515625e-05,
-    "aquatica": 3.0517578125e-05
+    "terra": 1.52587890625e-05,
+    "pyroxis": 5.08626302065e-06,
+    "aurora": 3.0517578125e-05,
+    "aquatica": 1.52587890625e-05
   },
   "map.sky_unit_km": 1100000,
-  "map.approach_km": 280,
+  "map.approach_km": 200,
   "map.city_step_m": 7,
   "map.min_gap_m": 6,
   "map.city_lat_max": 60,
@@ -900,18 +900,18 @@
   },
   "terrain.mountain_share": 0.15,
   "terrain.lapse_c": 19.5,
-  "terrain.relief_m": 1060,
+  "terrain.relief_m": 750,
   "terrain.step_m": 50,
   "terrain.plates": 12,
   "terrain.continental_share": 0.5,
-  "terrain.river_area_km2": 2.5,
+  "terrain.river_area_km2": 1.25,
   "terrain.version": 5,
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,
   "terrain.continental_c": 5,
   "terrain.climate_noise_c": 5,
-  "terrain.climate_noise_km": 7,
+  "terrain.climate_noise_km": 5,
   "terrain.continental_reach_r": 0.5,
   "terrain.wind_belts": {
     "trade_lat": 30,
@@ -1303,14 +1303,14 @@
   "biome.facet_axes": {
     "wave_m": 200,
     "slope_full": 0.2,
-    "wet_km": 4,
-    "patch_km": 1,
+    "wet_km": 1,
+    "patch_km": 0.25,
     "soft_edge": 0.25,
     "favour_k": 2.5
   },
   "biome.bounds": {
     "wet": 38,
-    "coast_km": 3,
+    "coast_km": 0.75,
     "marsh_relief": 0.15
   },
   "complex.chance": {
