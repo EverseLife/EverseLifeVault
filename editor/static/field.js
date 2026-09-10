@@ -60,6 +60,20 @@ export function freshness(world) {
   return { state: 'ok', word: `собрано ${ago(built.written)}` };
 }
 
+//: Показывают ли снимки то поле, которое лежит рядом. Своя проверка, потому
+//: что снимки живут отдельной жизнью: поле пересобирают, а нарисовать
+//: забывают, и галерея молча показывает прежний мир под свежей карточкой —
+//: хуже, чем пустое место, потому что похоже на ответ.
+export function picturesFresh(world) {
+  const built = world.built || {};
+  const shots = world.pictures || [];
+  if (!shots.length || !built.present) return null;
+  const drawn = Math.max(...shots.map((one) => one.written || 0));
+  return drawn >= (built.written || 0)
+    ? { state: 'ok', word: `нарисовано ${ago(drawn)}` }
+    : { state: 'stale', word: `сняты до этого поля, ${ago(drawn)} — нажмите «нарисовать»` };
+}
+
 export function planetCards(host, worlds, { picked, onPick }) {
   const box = h('div', { class: 'field-cards' });
   for (const world of worlds) {
@@ -85,6 +99,10 @@ export function planetCards(host, worlds, { picked, onPick }) {
         cell('сборка', `~${spellSeconds(world.about_seconds)}`),
         cell('горизонт', `${world.horizon_m} м`, 'с глаза в два метра над уровнем моря')),
     );
+    const shots = picturesFresh(world);
+    if (shots && shots.state === 'stale') {
+      card.append(h('div', { class: 'field-fresh fresh-stale', text: 'снимки старше поля' }));
+    }
     if (built.present) {
       card.append(h('div', {
         class: 'field-card-built',
@@ -259,9 +277,13 @@ export function gallery(host, world, view, tools) {
   }
   const shot = shots.find((one) => one.frame === view.frame && one.layer === view.layer)
     || shots[0];
+  const state = picturesFresh(world) || { state: 'ok', word: `нарисовано ${ago(shot.written)}` };
   box.append(
     h('div', { class: 'field-gallery-bar' }, frames, layers,
-      h('span', { class: 'note-line', text: `нарисовано ${ago(shot.written)}` })),
+      h('span', {
+        class: state.state === 'stale' ? 'field-said warn' : 'note-line',
+        text: state.word,
+      })),
     //: Метка времени в адресе: картинку перерисовывают на том же имени, и без
     //: неё браузер показывал бы прошлый мир после каждой пересборки.
     h('img', { class: 'field-shot', src: `${shot.url}?t=${shot.written}`, alt: '' }),
