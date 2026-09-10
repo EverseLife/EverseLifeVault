@@ -32,6 +32,11 @@ WALKS = 1000
 WALK_M = 4_000.0
 NEIGHBOURHOODS = 1000
 NEIGHBOURHOOD_M = 2_000.0
+#: Через сколько метров смотрят, считая формы вокруг: не через полклетки, а
+#: через это, иначе счёт форм мерит дробность сетки, а не землю (см. `_disc`).
+#: Двести метров — один взгляд на подъём: мельче человек не различает, что
+#: перед ним другая земля, а не та же самая.
+LOOK_M = 200.0
 #: Планка прогулки: смен формы за час хода в среднем.
 WALK_BAR = 3.0
 
@@ -79,11 +84,23 @@ def _sample_land(r: Rasters, rng: np.random.Generator, n: int) -> np.ndarray:
     return rng.choice(land, size=min(n, land.size), replace=False)
 
 
-def _disc(side_m: float, radius_m: float) -> tuple[np.ndarray, np.ndarray]:
-    """Пробы по кругу радиусом `radius_m`: кольцами через полклетки, и по
-    кольцу — тоже через полклетки, чтобы ни одна клетка круга не осталась
-    непроверенной. Круг по земле, а не квадрат по индексам."""
-    grain = side_m / 2.0
+def _disc(
+    side_m: float, radius_m: float, grain_m: float | None = None
+) -> tuple[np.ndarray, np.ndarray]:
+    """Пробы по кругу радиусом `radius_m`: кольцами через `grain_m`, и по
+    кольцу — тоже. Круг по земле, а не квадрат по индексам.
+
+    Без `grain_m` шаг — полклетки: так ни одна клетка круга не остаётся
+    непроверенной, и это верно, когда спрашивают «что есть в круге».
+
+    Но **сколько** там форм — этим спрашивать нельзя: число проб растёт
+    квадратом дробности сетки, и на клетке в 50 м круг в три километра
+    накрывает одиннадцать тысяч клеток вместо ста восьмидесяти. Разных форм в
+    выборке от этого становится больше просто потому, что выборка больше, и
+    мерка, которой сравнивают два мира, начинает мерить сетку. Кто считает
+    формы — `neighbourhood`, `landscape.best_site`, — задаёт шаг в метрах.
+    """
+    grain = float(grain_m) if grain_m else side_m / 2.0
     #: Середина всегда: круг мельче клетки — это сама клетка, а не пустота.
     spans, turns = [np.zeros(1)], [np.zeros(1)]
     reach = grain
@@ -126,7 +143,7 @@ def walk_test(r: Rasters, rng: np.random.Generator) -> dict[str, float]:
 def neighbourhood_test(r: Rasters, rng: np.random.Generator) -> dict[str, float]:
     """Дневная разведка вокруг дома: сколько форм и есть ли вода в круге."""
     start = _sample_land(r, rng, NEIGHBOURHOODS)
-    spans, turns = _disc(r.grid.side_m, NEIGHBOURHOOD_M)
+    spans, turns = _disc(r.grid.side_m, NEIGHBOURHOOD_M, LOOK_M)
     lat, lon = r.grid.lat[start][:, None], r.grid.lon[start][:, None]
     around = r.grid.cell(
         *healpix.offset(lat, lon, r.grid.radius_m, spans[None, :], turns[None, :])

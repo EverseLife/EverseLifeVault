@@ -122,7 +122,7 @@ def best_site(rasters: pipeline.Rasters, samples: int = 3000) -> tuple[float, fl
     rng = np.random.default_rng(0)
     land = np.flatnonzero(rasters.water == pipeline.WATER_LAND)
     pick = rng.choice(land, size=min(samples, land.size), replace=False)
-    spans, turns = census._disc(grid.side_m, 3000.0)
+    spans, turns = census._disc(grid.side_m, 3000.0, census.LOOK_M)
     around = grid.cell(
         *healpix.offset(
             grid.lat[pick][:, None], grid.lon[pick][:, None], grid.radius_m,
