@@ -4,7 +4,7 @@
 """Конвейер поля: от зерна и долей вольта до растров планеты (план §4).
 
 Порядок — порядок процессов: плиты и порода дают основу и поднятие; уровень
-моря режется квантилем, как и раньше (`terrain.sea_share`), и в метры высота
+моря стоит на своей отметке (`terrain.sea_level`), и в метры высота
 переводится размахом `terrain.relief_m`; эрозия идёт в две сетки — грубая
 (шаг вчетверо крупнее) делает долины и хребты за много итераций, тонкая
 догоняет детали за несколько; потом сток, климат, формы.
@@ -22,7 +22,7 @@ from typing import Callable
 
 import numpy as np
 
-from field import climate, erosion, forms, hydro, noise, plates, provinces
+from field import climate, erosion, forms, hydro, noise, plants, plates, provinces
 from field.forms import VOLCANO_SHARE
 from field.grid import WAYS, Grid
 
@@ -80,7 +80,7 @@ class Params:
     seed: int
     step_m: float
     radius_m: float
-    sea_share: float
+    sea_level: float
     relief_m: float
     plates: int
     continental_share: float
@@ -125,6 +125,15 @@ class Params:
     lava_c: float = 60.0
     #: Как далеко язык уходит от конуса, км (`terrain.lava_reach_km`).
     lava_reach_km: float = 0.6
+    #: Полоса, в которой растёт зелень, °C (`terrain.plant_temp`).
+    plant_warm_c: float = 32.0
+    plant_cold_c: float = -5.0
+    #: Доля шкалы осадков, при которой воды покрову вдоволь
+    #: (`terrain.plant_rain`).
+    plant_rain: float = 0.45
+    #: На каком удалении близость пресной воды перестаёт помогать покрову,
+    #: км (`biome.facet_axes.wet_km` — та же длина, что у оси влаги).
+    plant_wet_km: float = 0.5
 
     @property
     def belt(self) -> climate.DryBelt:
@@ -178,7 +187,7 @@ class Params:
             seed=seed,
             step_m=float(constants["terrain.step_m"]),
             radius_m=radius_m,
-            sea_share=float(constants["terrain.sea_share"].get(planet, 0.0)),
+            sea_level=float(constants["terrain.sea_level"][planet]),
             relief_m=relief_m,
             plates=int(constants["terrain.plates"]),
             continental_share=float(constants["terrain.continental_share"]),
@@ -206,6 +215,10 @@ class Params:
             fluid=_fluid(constants["terrain.fluid"][planet]),
             lava_c=float(constants["terrain.lava_c"]),
             lava_reach_km=float(constants["terrain.lava_reach_km"]),
+            plant_warm_c=float(constants["terrain.plant_temp"]["max"]),
+            plant_cold_c=float(constants["terrain.plant_temp"]["min"]),
+            plant_rain=float(constants["terrain.plant_rain"]),
+            plant_wet_km=float(constants["biome.facet_axes"]["wet_km"]),
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
             #: переведёт волна климата — здесь только пересчёт.
             lapse_per_km=lapse_range / (relief_m / 1000.0),
@@ -267,6 +280,10 @@ class Rasters:
     deposit_m: np.ndarray
     uplift: np.ndarray
     ice: np.ndarray
+    #: Доля клетки под растительностью, [0, 1] (`field.plants`). Отдельно от
+    #: биома и от формы: зелёный цвет на карте берётся отсюда и больше
+    #: ниоткуда, поэтому планета без покрова выходит без зелени сама.
+    plants: np.ndarray
 
     @property
     def sea(self) -> np.ndarray:
@@ -282,17 +299,21 @@ class Rasters:
 
 
 def _to_metres(
-    base: np.ndarray, sea_share: float, relief_m: float, grid: Grid
+    base: np.ndarray, sea_level: float, relief_m: float, grid: Grid
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Уровень моря — по доле **площади**, не клеток. На равноплощадной сетке
-    (D-328) это одно и то же, и взвешенный квантиль стал обычным: у полюса
-    клетка такая же, как на экваторе, и полярная суша больше не дешевле."""
-    if sea_share <= 0.0:
-        level = float(base.min()) - 1e-9
-    elif sea_share >= 1.0:
-        level = float(base.max()) + 1e-9
-    else:
-        level = float(np.quantile(base, sea_share))
+    """Высота в метрах и маска моря по **уровню мирового океана**.
+
+    Уровень — число в собственных единицах основы (`terrain.sea_level`), а не
+    доля площади под водой. Разница не в записи, а в том, что из чего
+    следует. Прежде задавалась **доля моря**, и уровень подбирался под неё
+    квантилем: сколько бы рельефа ни выросло, воды всегда оказывалось ровно
+    столько, сколько сказано, — то есть океан подгонялся под ответ. Теперь
+    вода стоит на своей отметке, а сколько над ней суши, решает сам рельеф
+    (владелец 2026-09-11: «процент суши указывался не отдельной константой, а
+    был следствием константы»). Доля суши стала измеряемой величиной и
+    записывается в паспорт.
+    """
+    level = float(sea_level)
     top = max(float(base.max()) - level, 1e-9)
     bottom = max(level - float(base.min()), 1e-9)
     height = np.where(
@@ -393,10 +414,10 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     fine = Grid.of(params.radius_m, params.step_m)
     log(f"grid nside {fine.nside}, {fine.count:,} cells of {fine.side_m:.1f} m")
     tect = plates.build(
-        fine, params.seed, params.plates, params.continental_share, params.sea_share,
+        fine, params.seed, params.plates, params.continental_share, params.sea_level,
         volcanoes=params.volcanoes,
     )
-    height, sea = _to_metres(tect.base, params.sea_share, params.relief_m, fine)
+    height, sea = _to_metres(tect.base, params.sea_level, params.relief_m, fine)
     log(f"plates: {int(tect.plate.max()) + 1}, land {float((~sea).mean()):.2f}")
 
     def thermometer(
@@ -504,7 +525,16 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: считался после, растры спорили: 225 клеток Терры были разом рекой и
     #: ледяным полем, и шейдер рисовал в них лёд, а векторный слой — русло.
     cold = temperature < params.ice_c
-    ice = land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))
+    #: Море замерзает тоже. Растр льда покрывал одну сушу, и Аврора, получив
+    #: океаны (владелец 2026-09-11), вышла бы белым материком в синей воде
+    #: при −25 °C на экваторе. Порог у моря тот же, `terrain.ice_c`: там, где
+    #: земля под шапкой, вода под припаем. Клетка при этом остаётся водой —
+    #: форма у неё `sea`, движок в неё не пускает, — и лёд на ней только
+    #: цвет и слово. Терре та же строка дала полярные припаи, которых у неё
+    #: не было вовсе.
+    ice = (land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))) | (
+        sea & cold
+    )
 
     log("discharge")
     given = _yield(params, rain, temperature)
@@ -554,12 +584,31 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
             ice=ice, rain01=rain, relief_m=params.relief_m,
         ),
     )
+    #: Растительность — последней: ей нужны и климат, и вода, и лёд, и лава.
+    #: Отдельным растром, а не оттенком в чужой шкале: зелёный цвет на карте
+    #: берётся отсюда и больше ниоткуда, и планета без покрова выходит без
+    #: зелени сама, без единой оговорки про планету.
+    log("plants")
+    green = plants.cover(
+        fine,
+        temperature_c=temperature,
+        rain01=rain,
+        river_m=river_m,
+        height_m=height,
+        hardness=tect.hardness,
+        land=land,
+        barren=ice | lava | (water != WATER_LAND),
+        warm_c=params.plant_warm_c,
+        cold_c=params.plant_cold_c,
+        rain_full=params.plant_rain,
+        wet_km=params.plant_wet_km,
+    )
     return Rasters(
         params=params, grid=fine, height_m=height, water=water, form=form,
         hardness=tect.hardness, area_km2=flow.area_m2 / 1e6, flow_km2=flow_km2,
         wet_m=wet_m, river_m=river_m,
         temperature_c=temperature, rain=rain, zonal=zonal, plate=tect.plate,
         sea_m=np.minimum(sea_m, WET_MAX_R * params.radius_m),
-        deposit_m=done.deposit, uplift=tect.uplift, ice=ice,
+        deposit_m=done.deposit, uplift=tect.uplift, ice=ice, plants=green,
         province=realm.raster, provinces=realm.table,
     )

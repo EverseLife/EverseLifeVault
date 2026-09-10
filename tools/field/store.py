@@ -66,6 +66,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         deposit_m=r.deposit_m.astype(np.float32),
         uplift=np.round(r.uplift * 255).astype(np.uint8),
         ice=r.ice.astype(np.uint8),
+        plants=np.round(np.clip(r.plants, 0.0, 1.0) * 255).astype(np.uint8),
         province=r.province.astype(np.uint8),
     )
     meta = {
@@ -85,7 +86,14 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         "height_max_m": round(float(r.height_m.max()), 1),
         #: Смысл кодов растров — в паспорте, а не только в коде: файл поля
         #: читается сам по себе. Таблица форм переедет в данные вольта (D-251).
-        "forms": [{"id": key, "ru": ru, "en": en} for key, ru, en in forms.FORMS],
+        #: Цвет формы едет вместе с её именем: рисунок и его легенда обязаны
+        #: браться из одного места, иначе в редакторе висит картинка, о
+        #: цветах которой негде спросить (владелец 2026-09-11: «не понятно,
+        #: что значат цвета на слое „формы“»).
+        "forms": [
+            {"id": key, "ru": ru, "en": en, "rgb": list(forms.FORM_COLORS[key])}
+            for key, ru, en in forms.FORMS
+        ],
         "water": ["land", "sea", "lake", "river"],
         #: Растр `zonal` в файл не пишется: игра читает `biome.zonal` сама.
         "zonal": climate.zonal_names(r.params.zonal),
@@ -152,6 +160,9 @@ def load(directory: Path, planet: str) -> Rasters:
             deposit_m=z["deposit_m"].astype(float),
             uplift=z["uplift"].astype(float) / 255.0,
             ice=z["ice"].astype(bool),
+            plants=z["plants"].astype(float) / 255.0
+            if "plants" in z
+            else np.zeros(z["water"].shape, dtype=float),
             province=z["province"] if "province" in z else np.zeros(z["water"].shape, dtype=np.uint8),
             provinces=[
                 {**row, "favours": tuple(row.get("favours") or ())}

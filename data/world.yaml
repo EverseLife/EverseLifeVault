@@ -85,7 +85,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: -20, y: 8}
+    place: {x: -60, y: 24}
     machines:
       - {class: Библиотека, quality: 70}
 
@@ -94,7 +94,7 @@ nodes:
     parent: terra.capital
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 11, y: 0}
+    place: {x: 33, y: 0}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -107,7 +107,7 @@ nodes:
     parent: terra.capital
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 0, y: 7}
+    place: {x: 0, y: 21}
     machines:
       - {name: Администрация, quality: 65}
 
@@ -116,7 +116,7 @@ nodes:
     parent: terra.capital
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 30, y: -12}
+    place: {x: 90, y: -36}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -153,7 +153,7 @@ nodes:
     parent: terra.capital
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -66, y: -23}
+    place: {x: -198, y: -69}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -165,14 +165,14 @@ nodes:
     parent: terra.capital
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -9, y: -13}
+    place: {x: -27, y: -39}
 
   - key: terra.capital.port
     name: Космодром
     parent: terra.capital
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: 21, y: 37}
+    place: {x: 63, y: 111}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -185,7 +185,7 @@ nodes:
     parent: terra.capital
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -37, y: -7}
+    place: {x: -111, y: -21}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -232,7 +232,7 @@ nodes:
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
-    place: {x: 3, y: -9}
+    place: {x: 9, y: -27}
     properties: {вода: нет}
     veins:
       - {resource: Нефть, richness: 55, remaining: 40000}

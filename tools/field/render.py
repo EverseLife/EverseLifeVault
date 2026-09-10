@@ -27,6 +27,7 @@ from pathlib import Path
 import numpy as np
 
 from field import climate, forms, healpix
+from field.forms import FORM_COLORS
 from field.grid import Grid
 from field.pipeline import FLUID_LAVA, WATER_LAKE, WATER_RIVER, WATER_SEA, Rasters
 
@@ -35,15 +36,23 @@ SUN_AZIMUTH_DEG = 315.0
 SUN_ALTITUDE_DEG = 45.0
 EXAGGERATION = 2.0
 #: Гипсометрия суши: доли размаха и цвета.
+#: Шкала высот — **порода, а не покров** (владелец 2026-09-11). Была земной
+#: гипсометрией: низина зелёная, потому что на Земле низины зелёные. Зелёный
+#: цвет при этом означал высоту, а читался как жизнь — оттого Пироксис
+#: выходил травянистым, а Аврора луговой. Теперь он идёт от почвы к камню и
+#: снегу, а зелень кладётся поверх отдельным слоем по растру `plants`.
 HYPSO = (
-    (0.00, (78, 130, 70)),
-    (0.08, (120, 160, 80)),
-    (0.20, (190, 185, 110)),
+    (0.00, (150, 140, 115)),
+    (0.08, (166, 152, 122)),
+    (0.20, (186, 172, 134)),
     (0.40, (170, 130, 80)),
     (0.65, (140, 110, 95)),
     (0.85, (200, 200, 200)),
     (1.00, (255, 255, 255)),
 )
+#: Цвет самого густого покрова. Один на все планеты и на все слои: зелёный на
+#: карте берётся отсюда и больше ниоткуда.
+PLANTS = (56, 112, 52)
 #: Шкала высот **земной** планеты — зелёная низина, бурый склон, снежная
 #: вершина. На лавовой она врала громче всего, что есть в этих снимках:
 #: владелец 2026-09-10 увидел на Пироксисе зелень и снег, а там ни травы,
@@ -72,14 +81,6 @@ LAVA_DEEP = (255, 190, 90)
 LAVA_LAKE = (240, 140, 45)
 LAVA_RIVER = (255, 165, 60)
 
-FORM_COLORS = {
-    "sea": (30, 60, 120), "lake": (70, 140, 210), "plain": (170, 200, 140), "hills": (140, 170, 100),
-    "valley": (110, 180, 120), "floodplain": (60, 160, 90), "delta": (40, 130, 90), "fan": (220, 200, 140),
-    "ridge": (120, 90, 70), "plateau": (190, 160, 110), "canyon": (150, 40, 30), "cliff": (60, 30, 30),
-    "scree": (150, 140, 130), "rift": (110, 60, 130), "volcano": (230, 60, 40), "glacial": (160, 200, 230),
-    "fjord": (90, 150, 210), "ice": (235, 240, 250), "dunes": (240, 210, 120), "rocky_desert": (200, 160, 100),
-    "coast_cliff": (90, 70, 60), "beach": (240, 230, 180),
-}
 ZONAL_COLORS = {
     "tundra": (200, 210, 200), "taiga": (40, 90, 70), "desert": (240, 210, 130), "semidesert": (210, 180, 110),
     "steppe": (200, 190, 90), "savanna": (190, 170, 60), "rainforest": (20, 100, 40), "woodland": (120, 150, 60),
@@ -133,9 +134,19 @@ def _fluid_colours(r: Rasters) -> tuple[tuple, tuple, tuple, tuple]:
     return SEA_SHALLOW, SEA_DEEP, LAKE, RIVER
 
 
+def _greened(r: Rasters, rgb: np.ndarray) -> np.ndarray:
+    """Покров поверх породы: доля растра `plants` подмешивает зелень.
+
+    Не подкраска, а слой. Земля под ним остаётся своего цвета, и на планете
+    без покрова его просто нет — ни оговорки, ни ветки про планету.
+    """
+    share = np.clip(r.plants, 0.0, 1.0)[..., None]
+    return rgb * (1.0 - share) + np.array(PLANTS) * share
+
+
 def layer_relief(r: Rasters) -> np.ndarray:
     share = np.clip(r.height_m / r.params.relief_m, 0.0, 1.0)
-    rgb = _ramp(share, HYPSO_BASALT if r.params.fluid == FLUID_LAVA else HYPSO)
+    rgb = _greened(r, _ramp(share, HYPSO_BASALT if r.params.fluid == FLUID_LAVA else HYPSO))
     shade = hillshade(r.grid, r.height_m)
     rgb = rgb * (0.45 + 0.55 * shade)[..., None]
     depth = np.clip(-r.height_m / 2000.0, 0.0, 1.0)
@@ -144,7 +155,7 @@ def layer_relief(r: Rasters) -> np.ndarray:
     rgb = np.where((r.water == WATER_SEA)[..., None], sea, rgb)
     rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
     rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
-    rgb = np.where((r.ice & (r.water != WATER_SEA))[..., None], np.array(ICE) * (0.6 + 0.4 * shade)[..., None], rgb)
+    rgb = np.where(r.ice[..., None], np.array(ICE) * (0.6 + 0.4 * shade)[..., None], rgb)
     return rgb
 
 
@@ -179,14 +190,49 @@ def layer_zonal(r: Rasters) -> np.ndarray:
     _, deep, lake, _ = _fluid_colours(r)
     rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
     rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
-    rgb = np.where((r.ice & (r.water != WATER_SEA))[..., None], np.array(ICE), rgb)
+    #: Припай — тоже лёд: с этой волны растр покрывает и морскую воду
+    #: холоднее `terrain.ice_c`, и синее море Авроры под ним было бы
+    #: неправдой при −25 °C на экваторе.
+    rgb = np.where(r.ice[..., None], np.array(ICE), rgb)
     shade = hillshade(r.grid, r.height_m)
     return rgb * (0.65 + 0.35 * shade)[..., None]
 
 
 def layer_hardness(r: Rasters) -> np.ndarray:
+    """Твёрдость породы — **везде**, дно океана в том числе.
+
+    Море закрывалось плоской синей заливкой, и слой породы обрывался на
+    берегу: у планеты будто не было дна (владелец 2026-09-11: «а почему на
+    слое „порода“ мы не показываем породу в океане»). Порода там есть и
+    всегда была — плиты строятся по всему шару, — прятал её только рисунок.
+    Вода теперь лишь притеняет: под ней видно тот же камень, на полтона
+    темнее и с синевой, чтобы берег читался.
+    """
     grey = (60 + 190 * (r.hardness - 0.25) / 0.75)[..., None] * np.ones(3)
-    return np.where((r.water == WATER_SEA)[..., None], np.array(FORM_COLORS["sea"]), grey)
+    under = grey * 0.82 + np.array([0.0, 10.0, 38.0])
+    return np.where((r.water == WATER_SEA)[..., None], under, grey)
+
+
+def layer_plants(r: Rasters) -> np.ndarray:
+    """Один покров и ничего кроме: сколько земли под зеленью.
+
+    Слой заведён вместе с растром (владелец 2026-09-11). На нём и видно, чего
+    стоит симуляция: где зелень стоит стеной, где её нет вовсе и где она
+    тянется ниткой вдоль реки по сухой степи.
+    """
+    bare = np.array([170.0, 160.0, 140.0])
+    share = np.clip(r.plants, 0.0, 1.0)[..., None]
+    rgb = bare * (1.0 - share) + np.array(PLANTS) * share
+    #: Вода — водой, и река тоже: покрова на ней нет по определению, и без
+    #: этой строки русло выходило цветом голой земли — бледной ниткой поперёк
+    #: зелени, то есть ровно наоборот тому, что вокруг него растёт.
+    _, deep, lake, river = _fluid_colours(r)
+    rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
+    rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
+    rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
+    rgb = np.where(r.ice[..., None], np.array(ICE), rgb)
+    shade = hillshade(r.grid, r.height_m)
+    return rgb * (0.65 + 0.35 * shade)[..., None]
 
 
 def layer_provinces(r: Rasters) -> np.ndarray:
@@ -210,6 +256,7 @@ LAYERS = {
     "relief": layer_relief,
     "forms": layer_forms,
     "biomes": layer_zonal,
+    "plants": layer_plants,
     "rock": layer_hardness,
     "provinces": layer_provinces,
 }

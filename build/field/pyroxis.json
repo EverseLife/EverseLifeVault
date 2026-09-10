@@ -4,7 +4,7 @@
     "seed": 81043626,
     "step_m": 50.0,
     "radius_m": 7184.176884650027,
-    "sea_share": 0.15,
+    "sea_level": 0.27,
     "relief_m": 375.0,
     "plates": 24,
     "continental_share": 0.5,
@@ -27,7 +27,7 @@
     "dry_belt_lat": 27.0,
     "dry_belt_width": 10.0,
     "dry_belt_strength": 0.4,
-    "version": 6,
+    "version": 7,
     "coarse_factor": 4,
     "coarse_iterations": 60,
     "fine_iterations": 24,
@@ -332,9 +332,13 @@
     "fluid": "lava",
     "volcanoes": 20.0,
     "lava_c": 60.0,
-    "lava_reach_km": 0.6
+    "lava_reach_km": 0.6,
+    "plant_warm_c": 32.0,
+    "plant_cold_c": -5.0,
+    "plant_rain": 0.45,
+    "plant_wet_km": 0.5
   },
-  "digest": "2d50c15c1963",
+  "digest": "90482d8cdf21",
   "grid": {
     "kind": "healpix",
     "nside": 147,
@@ -343,118 +347,228 @@
     "side_m": 50.012,
     "radius_m": 7184.176884650027
   },
-  "land_share": 0.8592,
+  "land_share": 0.8597,
   "height_max_m": 375.0,
   "forms": [
     {
       "id": "sea",
       "ru": "Море",
-      "en": "Sea"
+      "en": "Sea",
+      "rgb": [
+        30,
+        60,
+        120
+      ]
     },
     {
       "id": "lake",
       "ru": "Озеро",
-      "en": "Lake"
+      "en": "Lake",
+      "rgb": [
+        70,
+        140,
+        210
+      ]
     },
     {
       "id": "plain",
       "ru": "Равнина",
-      "en": "Plain"
+      "en": "Plain",
+      "rgb": [
+        198,
+        186,
+        158
+      ]
     },
     {
       "id": "hills",
       "ru": "Холмы",
-      "en": "Hills"
+      "en": "Hills",
+      "rgb": [
+        172,
+        156,
+        126
+      ]
     },
     {
       "id": "valley",
       "ru": "Долина",
-      "en": "Valley"
+      "en": "Valley",
+      "rgb": [
+        186,
+        176,
+        152
+      ]
     },
     {
       "id": "floodplain",
       "ru": "Пойма",
-      "en": "Floodplain"
+      "en": "Floodplain",
+      "rgb": [
+        150,
+        146,
+        124
+      ]
     },
     {
       "id": "delta",
       "ru": "Дельта",
-      "en": "Delta"
+      "en": "Delta",
+      "rgb": [
+        130,
+        128,
+        108
+      ]
     },
     {
       "id": "fan",
       "ru": "Конус выноса",
-      "en": "Alluvial fan"
+      "en": "Alluvial fan",
+      "rgb": [
+        220,
+        200,
+        140
+      ]
     },
     {
       "id": "ridge",
       "ru": "Хребет",
-      "en": "Ridge"
+      "en": "Ridge",
+      "rgb": [
+        120,
+        90,
+        70
+      ]
     },
     {
       "id": "plateau",
       "ru": "Плато",
-      "en": "Plateau"
+      "en": "Plateau",
+      "rgb": [
+        190,
+        160,
+        110
+      ]
     },
     {
       "id": "canyon",
       "ru": "Каньон",
-      "en": "Canyon"
+      "en": "Canyon",
+      "rgb": [
+        150,
+        40,
+        30
+      ]
     },
     {
       "id": "cliff",
       "ru": "Обрыв",
-      "en": "Cliff"
+      "en": "Cliff",
+      "rgb": [
+        60,
+        30,
+        30
+      ]
     },
     {
       "id": "scree",
       "ru": "Осыпь",
-      "en": "Scree"
+      "en": "Scree",
+      "rgb": [
+        150,
+        140,
+        130
+      ]
     },
     {
       "id": "rift",
       "ru": "Рифт",
-      "en": "Rift"
+      "en": "Rift",
+      "rgb": [
+        110,
+        60,
+        130
+      ]
     },
     {
       "id": "volcano",
       "ru": "Вулкан",
-      "en": "Volcano"
+      "en": "Volcano",
+      "rgb": [
+        230,
+        60,
+        40
+      ]
     },
     {
       "id": "glacial",
       "ru": "Ледниковая долина",
-      "en": "Glacial valley"
+      "en": "Glacial valley",
+      "rgb": [
+        160,
+        200,
+        230
+      ]
     },
     {
       "id": "fjord",
       "ru": "Фьорд",
-      "en": "Fjord"
+      "en": "Fjord",
+      "rgb": [
+        90,
+        150,
+        210
+      ]
     },
     {
       "id": "ice",
       "ru": "Лёд",
-      "en": "Ice"
+      "en": "Ice",
+      "rgb": [
+        235,
+        240,
+        250
+      ]
     },
     {
       "id": "dunes",
       "ru": "Дюны",
-      "en": "Dunes"
+      "en": "Dunes",
+      "rgb": [
+        240,
+        210,
+        120
+      ]
     },
     {
       "id": "rocky_desert",
       "ru": "Каменистая пустыня",
-      "en": "Rocky desert"
+      "en": "Rocky desert",
+      "rgb": [
+        200,
+        160,
+        100
+      ]
     },
     {
       "id": "coast_cliff",
       "ru": "Скальный берег",
-      "en": "Sea cliff"
+      "en": "Sea cliff",
+      "rgb": [
+        90,
+        70,
+        60
+      ]
     },
     {
       "id": "beach",
       "ru": "Пляж",
-      "en": "Beach"
+      "en": "Beach",
+      "rgb": [
+        240,
+        230,
+        180
+      ]
     }
   ],
   "water": [

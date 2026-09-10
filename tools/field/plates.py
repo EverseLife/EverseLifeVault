@@ -32,26 +32,69 @@ from field.grid import WAYS, Grid
 CONTINENT_BASE = (0.55, 0.70)
 OCEAN_BASE = (0.15, 0.35)
 #: Искажение границ плит: решётка и амплитуда шума, гнущего Вороного.
-WARP_LATTICE = 4.0
-WARP_AMPLITUDE = 0.09
+#:
+#: Решётка 4 гнула границу на масштабе полушария, и **вблизи она оставалась
+#: прямой** — на снимке планеты материки выходили многоугольниками с прямыми
+#: рёбрами, а горы садились на них треугольными клиньями (владелец
+#: 2026-09-11: «не видно горных цепочек как например тянь шань»). Настоящая
+#: сутура виляет на всех масштабах сразу, и решётка тут нужна такая, чтобы
+#: изгиб был виден на длине самого хребта.
+WARP_LATTICE = 9.0
+WARP_AMPLITUDE = 0.14
 #: Ширина перехода основы между плитами, в косинусах угла: 0.08 — около
 #: 40 км на Терре, и ни одной ступеньки на дне.
 BASE_BLEND = 0.08
 #: Широкий шум недр — плато и впадины внутри плиты — и его вклад в основу.
+#: Октав вчетверо больше, чем было: при четырёх самая мелкая давала рябь в
+#: одну сотую размаха, и внутренность плиты выходила столом. Земля между
+#: хребтами обязана иметь свой рельеф, иначе цепь стоит на скатерти.
 INTERIOR_LATTICE = 3.0
-INTERIOR_AMPLITUDE = 0.16
+INTERIOR_AMPLITUDE = 0.22
+INTERIOR_OCTAVES = 7
 FINE_LATTICE = 14.0
-FINE_AMPLITUDE = 0.05
+FINE_AMPLITUDE = 0.07
 #: Длины — доли радиуса планеты (план §3): хребет в четверть радиуса шириной
 #: — та же гора на Терре и на Авроре, а не 25 км на обеих.
 #: Хребет схождения: полуширина пояса и его высота в долях.
-BELT_WIDTH_R = 0.25
-BELT_HEIGHT = 0.45
+#:
+#: Пояс был четвертью радиуса — на Терре три километра поперёк, — и выходил
+#: не хребтом, а широким валом: одна гладкая гауссиана, которую эрозия потом
+#: чуть подрезала. Цепь узка и длинна, поэтому 0,25 → 0,11, а высота поднята,
+#: чтобы гора осталась горой.
+BELT_WIDTH_R = 0.11
+BELT_HEIGHT = 0.62
+#: Насколько ось цепи виляет поперёк себя, доли полуширины пояса, и на какой
+#: решётке. Прямая ось — главный признак ненастоящей горы: у Тянь-Шаня она
+#: изгибается на длине двух своих ширин.
+BELT_WANDER = 0.9
+BELT_WANDER_LATTICE = 16.0
+#: Сколько высоты цепи приходится на ровный вал, а сколько на гряды. Ноль —
+#: чистый гребенчатый фрактал (рвано и без формы), единица — прежний вал.
+BELT_SMOOTH = 0.42
+#: Вторая цепь, параллельная главной: предгорья и хребет за долиной. Смещение
+#: — в долях полуширины пояса, доля высоты — от главной. Так у горной страны
+#: появляется поперечный профиль, а не один горб.
+BELT_SECOND_AT = 2.1
+BELT_SECOND_SHARE = 0.45
+#: Квантиль схождения, который считается «полным», и степень, с которой
+#: слабое схождение подтягивается к сильному.
+#:
+#: Без этого высота цепи шла прямо от относительной скорости плит, а та
+#: выпадает жребием: одна граница сходилась вдвое сильнее прочих, забирала
+#: весь размах — высоту потом нормируют на максимум, — и на планете
+#: оказывался один снежный хребет при десятке пологих валов. Нормировка на
+#: квантиль делает число горных стран свойством **правила**, а не удачи
+#: зерна: полной высоты достигает верхняя шестая часть сходящихся границ на
+#: любом жребии.
+CONVERGENCE_FULL = 0.84
+CONVERGENCE_POWER = 0.6
 #: Рифт расхождения: полуширина и глубина; плечи стоят на удвоенной ширине.
 RIFT_WIDTH_R = 0.12
 RIFT_DEPTH = 0.22
-#: Гряды внутри пояса: решётка гребенчатого шума (клеток поперёк диаметра).
-RIDGE_LATTICE = 28.0
+#: Гряды внутри пояса: решётка гребенчатого шума (клеток поперёк диаметра)
+#: и сколько октав. Три вместо двух: у хребта обязаны быть отроги отрогов.
+RIDGE_LATTICE = 34.0
+RIDGE_OCTAVES = 3
 #: Твёрдость породы по происхождению.
 HARD_SHIELD = 0.78
 HARD_OCEAN = 0.45
@@ -101,7 +144,7 @@ def build(
     seed: int,
     count: int,
     continental_share: float,
-    sea_share: float,
+    sea_level: float,
     volcanoes: float = 1.0,
 ) -> Plates:
     """`volcanoes` — во сколько раз гуще вулканы, чем на земной планете:
@@ -164,17 +207,38 @@ def build(
     belt_w = BELT_WIDTH_R * grid.radius_m
     rift_w = RIFT_WIDTH_R * grid.radius_m
     converging = np.clip(convergence, 0.0, None)
+    #: Схождение нормируется на свой же квантиль: см. `CONVERGENCE_FULL`.
+    hot = converging[converging > 0.0]
+    full = float(np.quantile(hot, CONVERGENCE_FULL)) if hot.size else 1.0
+    converging = np.clip(converging / max(full, 1e-9), 0.0, 1.0) ** CONVERGENCE_POWER
     diverging = np.clip(-convergence, 0.0, None)
-    belt = converging * np.exp(-((boundary_m / belt_w) ** 2))
+    #: Ось цепи виляет поперёк себя: к расстоянию от границы прибавляется
+    #: шум, и гауссиана перестаёт быть ровной лентой. Без этого хребет
+    #: повторяет ребро Вороного — прямую, которой в горах не бывает.
+    wander = noise.centred(seed + 41, warped, BELT_WANDER_LATTICE, 3) * BELT_WANDER * belt_w
+    axis = boundary_m + wander
+    belt = converging * np.exp(-((axis / belt_w) ** 2))
+    #: Вторая цепь за долиной: та же ось, отодвинутая на пару ширин. Горная
+    #: страна — не один горб, у неё есть поперечный профиль.
+    belt = belt + BELT_SECOND_SHARE * converging * np.exp(
+        -(((np.abs(axis) - BELT_SECOND_AT * belt_w) / belt_w) ** 2)
+    )
     #: Материковая сторона поднимается шире и выше: складчатость на материке,
     #: над погружением — узкая дуга.
     belt = np.where(cell_continental, belt, belt * 0.6)
     rift = diverging * np.exp(-((boundary_m / rift_w) ** 2))
     shoulder = diverging * np.exp(-(((boundary_m - 2.0 * rift_w) / rift_w) ** 2))
 
-    interior = noise.centred(seed + 21, xyz, INTERIOR_LATTICE, 4) * INTERIOR_AMPLITUDE
-    fine = noise.centred(seed + 31, xyz, FINE_LATTICE, 3) * FINE_AMPLITUDE
-    base = blended_base + interior + fine + BELT_HEIGHT * belt - RIFT_DEPTH * rift
+    interior = noise.centred(seed + 21, xyz, INTERIOR_LATTICE, INTERIOR_OCTAVES) * INTERIOR_AMPLITUDE
+    fine = noise.centred(seed + 31, xyz, FINE_LATTICE, 4) * FINE_AMPLITUDE
+    #: **Гряды кладутся в саму высоту**, а не только в скорость поднятия.
+    #: Прежде хребет был гладкой гауссианой, а гребенчатый шум правил лишь
+    #: `uplift` — то есть эрозия резала ровный вал, и цепи из него не
+    #: выходило. Теперь форма горы фрактальна с самого начала: вал держит
+    #: `BELT_SMOOTH` высоты, остальное — гребни, отроги и долины между ними.
+    grain = noise.ridged(seed + 81, warped, RIDGE_LATTICE, RIDGE_OCTAVES)
+    ranges = belt * (BELT_SMOOTH + (1.0 - BELT_SMOOTH) * grain)
+    base = blended_base + interior + fine + BELT_HEIGHT * ranges - RIFT_DEPTH * rift
     base += 0.5 * RIFT_DEPTH * shoulder
 
     #: Дуга вулканов над погружением: своя плита материковая, чужая — океан.
@@ -195,9 +259,10 @@ def build(
         if all(float(point @ t) < spacing for t in taken):
             taken.append(point)
             cones[flat] = True
-    #: Горячие точки — на будущей суше: уровень моря режется потом, здесь
-    #: он прикинут по той же доле, чтобы вулкан не ушёл на дно.
-    level = float(np.quantile(base, sea_share)) if 0.0 < sea_share < 1.0 else float(base.min()) - 1.0
+    #: Горячие точки — на будущей суше: уровень моря режется потом, но
+    #: отметка его известна заранее (`terrain.sea_level`), и вулкан больше не
+    #: прикидывается квантилем, а сверяется с настоящей водой.
+    level = sea_level
     candidates = np.flatnonzero(base >= level)
     if candidates.size:
         hotspots = max(1, int(round(HOTSPOTS * density)))
@@ -220,11 +285,8 @@ def build(
     hardness += noise.centred(seed + 41, xyz, HARD_LATTICE, 3) * HARD_NOISE
     hardness = np.clip(hardness, HARD_FLOOR, HARD_CEIL)
 
-    #: Хребет — не один вал, а гряды: поднятие рябит гребенчатым шумом,
-    #: чтобы вода резала его на параллельные хребты и долины между ними.
-    #: Шум читается в искривлённых координатах, иначе гряды ложатся вдоль
-    #: осей решётки прямыми линиями.
-    grain = noise.ridged(seed + 81, warped, RIDGE_LATTICE, 2)
+    #: Поднятие идёт по тем же грядам, что и высота: вода режет хребет там
+    #: же, где он и растёт, и долины ложатся вдоль гряд, а не поперёк них.
     uplift = belt * (0.55 + 0.45 * grain)
     uplift = np.clip(uplift / max(float(uplift.max()), 1e-9), 0.0, 1.0)
     return Plates(

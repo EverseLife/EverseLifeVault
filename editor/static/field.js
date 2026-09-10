@@ -14,7 +14,8 @@ import { h, num, plural } from './ui.js';
 
 const FRAME_WORDS = { planet: 'планета целиком', region: 'область', city: 'город' };
 const LAYER_WORDS = {
-  relief: 'рельеф', forms: 'формы', biomes: 'биомы', rock: 'порода', provinces: 'провинции',
+  relief: 'рельеф', forms: 'формы', biomes: 'биомы', plants: 'растительность',
+  rock: 'порода', provinces: 'провинции',
 };
 const PLANET_WORDS = {
   terra: 'Терра', aquatica: 'Акватика', pyroxis: 'Пироксис', aurora: 'Аврора',
@@ -320,7 +321,7 @@ export function gallery(host, world, view, tools) {
     }, FRAME_WORDS[frame]));
   }
   const layers = h('div', { class: 'seg' });
-  for (const layer of ['relief', 'forms', 'biomes', 'rock', 'provinces']) {
+  for (const layer of ['relief', 'forms', 'biomes', 'plants', 'rock', 'provinces']) {
     if (!shots.some((one) => one.layer === layer)) continue;
     layers.append(h('button', {
       type: 'button', class: view.layer === layer ? 'on' : '',
@@ -340,6 +341,25 @@ export function gallery(host, world, view, tools) {
     //: неё браузер показывал бы прошлый мир после каждой пересборки.
     h('img', { class: 'field-shot', src: `${shot.url}?t=${shot.written}`, alt: '' }),
   );
+  //: Легенда — только у слоя форм, и только она в ней нуждается: рельеф
+  //: читается высотой, растительность густотой, порода светлотой, а форма —
+  //: это два десятка **имён**, и без подписи цвета они не значат ничего
+  //: (владелец 2026-09-11: «не понятно, что значат цвета на слое „формы“»).
+  //: Цвета берутся из паспорта поля, а не из второй таблицы здесь: рисунок и
+  //: его объяснение обязаны расходиться только вместе.
+  if (view.layer === 'forms') legend(box, world.built?.forms || []);
   host.append(box);
   return box;
+}
+
+function legend(host, forms) {
+  if (!forms.length) return;
+  const box = h('div', { class: 'field-legend' });
+  for (const one of forms) {
+    const [r, g, b] = one.rgb || [128, 128, 128];
+    box.append(h('span', { class: 'field-legend-one' },
+      h('i', { style: `background: rgb(${r} ${g} ${b})` }),
+      one.ru || one.id));
+  }
+  host.append(box);
 }

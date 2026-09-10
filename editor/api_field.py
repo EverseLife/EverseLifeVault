@@ -99,7 +99,7 @@ FIELD_PREFIXES = ("terrain.",)
 FIELD_KEYS = ("planet.land_area_share", "planet.earth_radius_km")
 #: What the pictures are drawn for, in the order a person looks at them.
 PLANETS = ("terra", "aquatica", "pyroxis", "aurora")
-LAYERS = ("relief", "forms", "biomes", "rock", "provinces")
+LAYERS = ("relief", "forms", "biomes", "plants", "rock", "provinces")
 FRAMES = ("planet", "region", "city")
 #: Bytes a cell takes **in memory**, where the server holds the field: the
 #: sum of the store's dtypes, and the same on every planet because they are
@@ -442,6 +442,10 @@ def _built(session: Session, planet: str) -> dict:
         "relief_m": params.get("relief_m"),
         "land_share": said.get("land_share"),
         "height_max_m": said.get("height_max_m"),
+        #: The legend of the forms layer, colours and all: the picture and
+        #: what its colours mean must come from one place, and that place is
+        #: the field's own passport rather than a second table here.
+        "forms": said.get("forms") or [],
         "megabytes": round(data.stat().st_size / 2**20, 1),
         "written": int(data.stat().st_mtime),
     }

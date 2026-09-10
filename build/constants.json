@@ -876,8 +876,8 @@
   },
   "map.sky_unit_km": 1100000,
   "map.approach_km": 100,
-  "map.city_step_m": 7,
-  "map.min_gap_m": 6,
+  "map.city_step_m": 30,
+  "map.min_gap_m": 28,
   "map.city_lat_max": 60,
   "map.draw_stamina": 1,
   "map.memory_places": 400,
@@ -897,11 +897,11 @@
     "pyroxis": 81043626,
     "aurora": 81043627
   },
-  "terrain.sea_share": {
-    "terra": 0.3,
-    "aquatica": 0.9,
-    "pyroxis": 0.15,
-    "aurora": 0.0
+  "terrain.sea_level": {
+    "terra": 0.42,
+    "aquatica": 0.78,
+    "pyroxis": 0.27,
+    "aurora": 0.33
   },
   "terrain.fluid": {
     "terra": "water",
@@ -935,6 +935,11 @@
       "max": -25
     }
   },
+  "terrain.plant_temp": {
+    "min": -5,
+    "max": 32
+  },
+  "terrain.plant_rain": 0.45,
   "terrain.mountain_share": 0.15,
   "terrain.lapse_c": 19.5,
   "terrain.relief_m": 375,
@@ -942,7 +947,7 @@
   "terrain.plates": 24,
   "terrain.continental_share": 0.5,
   "terrain.river_area_km2": 0.3125,
-  "terrain.version": 6,
+  "terrain.version": 7,
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,

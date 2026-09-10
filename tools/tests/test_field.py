@@ -36,7 +36,7 @@ def tiny(seed: int = 5, *, temp_hot: bool = False, **overrides) -> pipeline.Para
     """`temp_hot` — тот же мир, но раскалённый: края температур выше порога
     `lava_c`, чтобы проверить лаву, не трогая ничего другого."""
     base = dict(
-        planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_share=0.6,
+        planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_level=0.55,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=300.0,
         warm_c=120.0 if temp_hot else 35.0, cold_c=70.0 if temp_hot else -15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
         continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
@@ -161,11 +161,22 @@ def test_the_same_seed_builds_the_same_field_and_another_seed_another() -> None:
     assert not np.array_equal(one.height_m, other.height_m)
 
 
-def test_the_sea_is_the_share_of_the_area_asked_for() -> None:
+def test_the_sea_stands_at_its_level_and_the_land_is_what_is_left() -> None:
+    """Доля суши — следствие уровня океана, а не заданное число (D-329).
+
+    Прежде задавалась доля моря, и уровень подбирался под неё квантилем:
+    сколько бы рельефа ни выросло, воды выходило ровно столько, сколько
+    сказано. Проверять там было нечего — ответ был во входных данных. Теперь
+    вода стоит на отметке, и проверять надо ровно то, что из этого следует:
+    **поднял воду — суши стало меньше**, и нигде не наоборот.
+    """
     r = pipeline.build(tiny())
-    assert r.land_share() == pytest.approx(0.4, abs=0.03)
     assert float(r.height_m[r.sea].max()) < 0.0 and float(r.height_m[r.land].min()) >= 0.0
     assert 0.5 * r.params.relief_m < float(r.height_m.max()) <= r.params.relief_m * 1.05
+    #: Монотонность: между «вся суша» и «весь океан» доля суши только убывает.
+    shares = [pipeline.build(tiny(sea_level=level)).land_share() for level in (0.35, 0.55, 0.75)]
+    assert shares[0] > shares[1] > shares[2], f"суша не убывает с уровнем: {shares}"
+    assert shares[0] > 0.6 and shares[2] < 0.3, f"уровень ничего не решает: {shares}"
 
 
 def test_every_land_cell_drains_to_water() -> None:
@@ -269,6 +280,29 @@ def _slumped(grid: Grid, height: np.ndarray, cap: float) -> np.ndarray:
     finally:
         erosion.DIFFUSION_MAX = was
         erosion.DIFFUSION_STEP_M = was_step
+
+
+def test_green_grows_only_where_it_could(tmp_path: Path) -> None:
+    """Растительность — свой растр, и он молчит там, где расти нечему (D-329).
+
+    Зелёный цвет на карте берётся теперь только отсюда, поэтому проверять
+    надо не картинку, а покров: на воде, подо льдом и на лаве его нет, вне
+    полосы тепла его нет, а внутри неё он есть — иначе «зелень только у
+    растительности» означало бы «зелени нет вовсе».
+    """
+    warm = pipeline.build(tiny(seed=11))
+    green = warm.plants
+    assert ((green >= 0.0) & (green <= 1.0)).all(), "покров — доля, а не что попало"
+    assert green.max() > 0.2, "на земном мире обязана быть зелень"
+    assert not (green[warm.water != pipeline.WATER_LAND] > 0).any(), "зелень на воде"
+    assert not (green[warm.ice] > 0).any(), "зелень подо льдом"
+    #: Полоса тепла — не украшение: мир, целиком лежащий за ней, гол.
+    frozen = pipeline.build(tiny(seed=11, plant_warm_c=-40.0, plant_cold_c=-80.0))
+    assert not (frozen.plants > 0).any(), "зелень вне полосы тепла"
+    #: И покров переживает запись в файл: он едет байтом на клетку.
+    store.save(warm, tmp_path)
+    back = store.load(tmp_path, warm.params.planet)
+    assert np.abs(back.plants - green).max() <= 1.0 / 255.0
 
 
 def test_no_open_water_under_the_ice_cap() -> None:
