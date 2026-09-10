@@ -710,3 +710,137 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
   max-height: 340px;
   display: block;
 }
+
+/* ---------------------------------------------------------------- планеты
+ *
+ * Вкладка «Планеты»: карточки миров, пульт конвейера и снимки. Тот же холст,
+ * что у «Космоса» и «Мира» (`.worldstage`), и те же цвета — своей палитры
+ * вкладке заводить незачем.
+ */
+.field-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  overflow: auto;
+  height: 100%;
+  box-sizing: border-box;
+}
+.field-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.field-card {
+  flex: 1 1 260px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid var(--line, #2a3142);
+  border-left: 3px solid var(--line, #2a3142);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.field-card:hover { border-color: var(--tint, #6f9ad8); }
+.field-card.on { border-left-color: var(--tint, #6f9ad8); background: var(--panel, #171c27); }
+.field-card.fresh-ok { border-left-color: var(--good, #5aa469); }
+.field-card.fresh-stale { border-left-color: var(--warn, #c8a34a); }
+.field-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.field-fresh { font-size: 11px; color: var(--muted, #8a93a6); }
+.field-fresh.fresh-stale { color: var(--warn, #c8a34a); }
+.field-fresh.fresh-none { color: var(--muted, #8a93a6); }
+.field-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px 10px;
+  font-size: 12px;
+}
+.field-cell { display: flex; justify-content: space-between; gap: 6px; }
+.field-cell-name { color: var(--muted, #8a93a6); }
+.field-cell b { font-variant-numeric: tabular-nums; }
+.field-card-built {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid var(--line, #2a3142);
+  font-size: 11px;
+  color: var(--muted, #8a93a6);
+}
+.field-run {
+  border: 1px solid var(--line, #2a3142);
+  border-radius: 6px;
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field-run h4 {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted, #8a93a6);
+  font-weight: normal;
+}
+.field-who { display: flex; flex-wrap: wrap; gap: 10px; }
+.field-who-one {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--muted, #8a93a6);
+}
+.field-who-one.on { color: inherit; }
+.field-overrides { display: flex; flex-wrap: wrap; gap: 10px; }
+.field-override {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted, #8a93a6);
+}
+.field-override input { width: 92px; }
+.field-actions { display: flex; align-items: center; gap: 10px; }
+.field-bar { display: flex; flex-wrap: wrap; gap: 6px; }
+.field-bar-one {
+  font-size: 11px;
+  border-radius: 3px;
+  padding: 2px 7px;
+  border: 1px solid var(--line, #2a3142);
+  color: var(--muted, #8a93a6);
+}
+.field-bar-one.now { border-color: var(--tint, #6f9ad8); color: var(--tint, #6f9ad8); }
+.field-bar-one.done { border-color: var(--good, #5aa469); color: var(--good, #5aa469); }
+.field-bar-one.bad { border-color: var(--bad, #c05b5b); color: var(--bad, #c05b5b); }
+.field-said { margin: 0; font-size: 12px; }
+.field-said.bad { color: var(--bad, #c05b5b); }
+.field-log {
+  margin: 0;
+  max-height: 190px;
+  overflow: auto;
+  font-size: 11px;
+  line-height: 1.5;
+  background: var(--panel, #171c27);
+  border-radius: 4px;
+  padding: 6px 8px;
+  white-space: pre-wrap;
+}
+.field-shots-head {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--muted, #8a93a6);
+  font-weight: normal;
+}
+.field-gallery { display: flex; flex-direction: column; gap: 8px; }
+.field-gallery-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.field-shot {
+  max-width: 100%;
+  border: 1px solid var(--line, #2a3142);
+  border-radius: 4px;
+  image-rendering: pixelated;
+}

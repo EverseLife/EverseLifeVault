@@ -20,6 +20,7 @@ import { createPlantsTab } from './plantstab.js';
 import { createGraph } from './graphview.js';
 import { createPanel } from './panel.js';
 import { createRecipesTab } from './recipestab.js';
+import { createFieldTab } from './fieldtab.js';
 import { createSpaceTab } from './spacetab.js';
 import { createStationsTab } from './stationstab.js';
 import { h, plural } from './ui.js';
@@ -146,6 +147,7 @@ const tabs = {
   plants: createPlantsTab(ctx),
   constants: createConstantsTab(ctx),
   space: createSpaceTab(ctx),
+  field: createFieldTab(ctx),
   world: createWorldTab(ctx),
 };
 const current = () => tabs[app.tab];
