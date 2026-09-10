@@ -705,7 +705,7 @@
   "explore.fill_share": 0.8,
   "explore.node_area": {
     "min": 60,
-    "max": 240
+    "max": 600
   },
   "ground.vein_richness": {
     "min": 20,
