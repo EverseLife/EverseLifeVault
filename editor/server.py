@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import threading
 import webbrowser
@@ -74,6 +75,15 @@ CONTENT_TYPES = {
 #: Not from `static/`: they belong to the vault being edited, not to the copy
 #: of the editor doing the editing, and they are rewritten by every run.
 PREVIEW = "/preview/"
+#: What a picture may be called, and the whole of the check. Not a containment
+#: test after the join: on Windows `Path("build/preview") / "//host/share/a.png"`
+#: **is** the UNC path, and `resolve()` on it dials the host -- twenty-one
+#: seconds of an editor thread spent opening an SMB connection somebody else
+#: chose, and on a reachable host the developer's own NTLM hash handed over.
+#: A browser sends that URL from any page (`<img src=...>`), and the container
+#: image listens on every address. A name that cannot hold a separator cannot
+#: name anything but a file in this one directory.
+PREVIEW_NAME = re.compile(r"[a-z0-9_]+\.png")
 
 
 # ------------------------------------------------------------------ handlers
@@ -252,10 +262,15 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def _preview(self, name: str) -> None:
-        """One picture the pipeline drew, out of the vault's own build."""
-        where = (self.session.vault / "build" / "preview").resolve()
-        target = (where / name).resolve()
-        if target.suffix != ".png" or not target.is_file() or where not in target.parents:
+        """One picture the pipeline drew, out of the vault's own build.
+
+        The name is judged **before** it becomes a path: see `PREVIEW_NAME`.
+        """
+        if not PREVIEW_NAME.fullmatch(name):
+            self._send(404, {"error": f"так картинка называться не может: {name}"})
+            return
+        target = self.session.vault / "build" / "preview" / name
+        if not target.is_file():
             self._send(404, {"error": f"нет картинки: {name}"})
             return
         self._bytes(target.read_bytes(), "image/png")

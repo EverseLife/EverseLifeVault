@@ -819,6 +819,7 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
 .field-bar-one.bad { border-color: var(--bad, #c05b5b); color: var(--bad, #c05b5b); }
 .field-said { margin: 0; font-size: 12px; }
 .field-said.bad { color: var(--bad, #c05b5b); }
+.field-said.warn { color: var(--warn, #c8a34a); }
 .field-log {
   margin: 0;
   max-height: 190px;

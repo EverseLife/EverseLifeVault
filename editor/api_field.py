@@ -30,6 +30,8 @@ per open tab for the length of a two-hour build.
 
 from __future__ import annotations
 
+import atexit
+import importlib.util
 import json
 import math
 import os
@@ -43,35 +45,51 @@ from pathlib import Path
 import vaultfile as vault
 from session import Session
 
-#: The pipeline of the vault, borrowed for its arithmetic. `tools/` is not a
-#: package on the path -- `landscape.py` puts itself there the same way.
-TOOLS = Path(__file__).resolve().parent.parent / "tools"
-
-#: **Lazily**, and this is not tidiness. The editor starts on the standard
-#: library and `pyyaml` and says so at the top of `server.py`; the pipeline is
-#: numpy. Imported at the top, one missing wheel would stop the whole tool --
-#: recipes, buildings, cultures, everything -- over a tab about planets. So the
-#: sizes are asked for when they are wanted, and a vault without numpy shows
-#: the numbers and says plainly that it cannot work them out. It could not
-#: build a field either.
-_HEALPIX: object | None = None
+#: The pipeline, borrowed for its arithmetic -- **out of the vault being
+#: edited**, not out of the checkout the editor's own code sits in. Normally
+#: they are the same directory; pointed at a worktree by `EVERSELIFE_VAULT`
+#: (which is how a branch of the vault is edited, and what the tests do) they
+#: are not, and then the sizes shown would be one `healpix` while the field is
+#: built by another -- the very «two implementations» this import exists to
+#: avoid, only spread across trees instead of files. Loaded by file, so two
+#: vaults in one process each get their own.
+_HEALPIX: dict[Path, object] = {}
+_HEALPIX_LOCK = threading.Lock()
 
 
-def _healpix():
-    """`tools/field/healpix`, or a refusal that names what is missing."""
-    global _HEALPIX
-    if _HEALPIX is None:
-        if str(TOOLS) not in sys.path:
-            sys.path.insert(0, str(TOOLS))
+def _healpix(vault_root: Path):
+    """`tools/field/healpix` of this vault, or a refusal naming what is missing.
+
+    **Lazily**, and this is not tidiness. The editor starts on the standard
+    library and `pyyaml` and says so at the top of `server.py`; the pipeline is
+    numpy. Imported at the top, one missing wheel would stop the whole tool --
+    recipes, buildings, cultures, everything -- over a tab about planets. So
+    the sizes are asked for when they are wanted, and a vault without numpy
+    shows the numbers and says plainly that it cannot work them out. It could
+    not build a field either.
+    """
+    tools = (vault_root / "tools").resolve()
+    with _HEALPIX_LOCK:
+        held = _HEALPIX.get(tools)
+        if held is not None:
+            return held
+        if not (tools / "field" / "healpix.py").is_file():
+            raise vault.VaultError(f"в этом вольте нет конвейера поля: {tools / 'field'}")
+        if str(tools) not in sys.path:
+            sys.path.insert(0, str(tools))
         try:
-            from field import healpix
-        except ImportError as error:
+            spec = importlib.util.spec_from_file_location(
+                f"field_healpix_{abs(hash(tools))}", tools / "field" / "healpix.py"
+            )
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+        except Exception as error:  # numpy missing looks many ways
             raise vault.VaultError(
                 f"размеры планет считает конвейер вольта, а он не поднялся: {error}."
                 " Поставьте numpy — им же собираются и поля"
             ) from error
-        _HEALPIX = healpix
-    return _HEALPIX
+        _HEALPIX[tools] = module
+        return module
 
 
 #: Which constants shape a field. Everything under `terrain.` does by
@@ -83,8 +101,10 @@ FIELD_KEYS = ("planet.land_area_share", "planet.earth_radius_km")
 PLANETS = ("terra", "aquatica", "pyroxis", "aurora")
 LAYERS = ("relief", "forms", "biomes", "rock", "provinces")
 FRAMES = ("planet", "region", "city")
-#: Bytes a cell takes where the field is kept: measured on a built file, and
-#: the same on every planet because the store's dtypes are fixed.
+#: Bytes a cell takes **in memory**, where the server holds the field: the
+#: sum of the store's dtypes, and the same on every planet because they are
+#: fixed. Not what the file weighs -- `np.savez_compressed` gets that down to
+#: about a third, and the card shows the file's own size beside this one.
 BYTES_PER_CELL = 32
 #: Seconds a million cells takes to build, measured on this machine at the
 #: fifty-metre step. A guess by its nature -- it is shown as «about».
@@ -105,6 +125,8 @@ class Job:
     kind: str
     planets: list[str]
     argv_extra: list[str]
+    #: Whether the vault itself is built first: see `_stale_registry`.
+    rebuild: bool = False
     began: float = field(default_factory=time.time)
     lines: list[str] = field(default_factory=list)
     #: Which planet is being worked on and what its last printed stage was.
@@ -120,6 +142,7 @@ class Job:
         return {
             "kind": self.kind,
             "planets": self.planets,
+            "rebuild": self.rebuild,
             "at": self.at,
             "stage": self.stage,
             "done": list(self.done),
@@ -132,16 +155,128 @@ class Job:
 
 _JOB: Job | None = None
 _JOB_LOCK = threading.Lock()
+#: The mark a run leaves in the vault while it goes. The in-process singleton
+#: is not enough: the child outlives the editor -- Ctrl+C on the tool leaves
+#: `landscape.py` grinding, and a restarted editor sees no job and would
+#: cheerfully start a second one into the same files. `store.save` writes
+#: straight to `build/field/<planet>.npz` with no temporary and no rename, and
+#: that directory is committed and shared with every worktree and with the
+#: game's test fixtures. The same collision comes of an editor beside a
+#: terminal, or two editors on one vault.
+LOCK_NAME = ".building.json"
 
 
-def _python() -> str:
-    """The interpreter that has numpy: the one running the editor if it has it."""
+def _lock_path(session: Session) -> Path:
+    return session.vault / "build" / "field" / LOCK_NAME
+
+
+def _take_lock(session: Session, job: Job, force: bool) -> None:
+    """Claim the vault's field directory, or say who is holding it."""
+    path = _lock_path(session)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if force and path.exists():
+        path.unlink()
+    try:
+        with path.open("x", encoding="utf-8") as file:
+            json.dump(
+                {"pid": os.getpid(), "kind": job.kind, "planets": job.planets,
+                 "began": int(job.began)},
+                file, ensure_ascii=False,
+            )
+    except FileExistsError as error:
+        try:
+            held = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            held = {}
+        old = int(time.time() - (held.get("began") or 0))
+        raise vault.VaultError(
+            f"поле этого вольта уже строит процесс {held.get('pid', '?')}"
+            f" ({held.get('kind', '?')} над {', '.join(held.get('planets') or ['?'])},"
+            f" {old // 60} мин назад). Если он умер, снимите отметку:"
+            f" удалите {path} или запустите ещё раз с «снять чужую отметку»"
+        ) from error
+
+
+def _drop_lock(session: Session) -> None:
+    path = _lock_path(session)
+    try:
+        path.unlink()
+    except OSError:
+        pass
+
+
+@atexit.register
+def _kill_the_child() -> None:
+    """The editor is going: the field builder does not outlive it.
+
+    A daemon thread dies with the interpreter, but the process it started does
+    not -- that is what leaves a grinding `landscape.py` behind a Ctrl+C.
+    """
+    job = _JOB
+    if job is None or job.ended != 0.0:
+        return
+    job.stopping = True
+    child = job.child
+    if child is not None:
+        child.kill()
+
+
+def _python(vault_root: Path | None = None) -> str:
+    """The interpreter that has numpy.
+
+    The one running the editor where it has it, and otherwise the vault's own
+    `.venv` -- an editor started on a bare python can still drive a build, the
+    same way `api_terrain` finds the engine's interpreter rather than giving up.
+    """
+    if vault_root is not None:
+        for candidate in (
+            vault_root / ".venv" / "Scripts" / "python.exe",
+            vault_root / ".venv" / "bin" / "python",
+        ):
+            if candidate.exists():
+                return str(candidate)
     return sys.executable
+
+
+def _stale_registry(session: Session) -> bool:
+    """Whether `data/constants.yaml` is newer than the `build/constants.json`.
+
+    The tab works its numbers out of the **source** file, because that is what
+    it edits; `landscape.py` reads the **built** registry (`landscape.constants`).
+    Between the two lies every number written and not yet built, and a run
+    started there would quietly build the old world while the cards showed the
+    new one -- the worst kind of failure, because it looks like an answer.
+    """
+    built = session.vault / "build" / "constants.json"
+    if not built.is_file():
+        return True
+    return session.constants.stat().st_mtime > built.stat().st_mtime
 
 
 def _run_job(session: Session, job: Job) -> None:
     """Walk the planets, one child at a time, keeping every line it prints."""
     env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
+    #: The vault is built first when the registry is newer than the build.
+    #: Said out loud in the log rather than done quietly: it writes the vault's
+    #: documents, and that is the «Собрать» button's doing, not a side effect
+    #: of asking for a planet.
+    if job.rebuild:
+        job.stage = "сборка вольта"
+        job.lines.append("$ вольт: реестр новее сборки, собираю его первым")
+        done = subprocess.run(
+            [_python(), str(session.vault / "tools" / "build.py")],
+            cwd=session.vault, capture_output=True, env=env, check=False,
+        )
+        job.lines.extend(
+            (done.stderr + done.stdout).decode("utf-8", errors="replace").strip().splitlines()
+        )
+        if done.returncode != 0:
+            job.failed = f"вольт не собрался: код {done.returncode}"
+            job.at = ""
+            job.stage = "отказ"
+            _drop_lock(session)
+            job.ended = time.time()
+            return
     for planet in job.planets:
         if job.stopping:
             break
@@ -172,6 +307,11 @@ def _run_job(session: Session, job: Job) -> None:
             job.failed = f"{planet}: не запустился ({error})"
             break
         job.child = child
+        #: The stop may have arrived while the child was being started: between
+        #: the check above and this line there is a process launch, and a run
+        #: told to stop must not go on to finish a planet.
+        if job.stopping:
+            child.kill()
         assert child.stdout is not None
         for line in child.stdout:
             said = line.rstrip()
@@ -182,12 +322,20 @@ def _run_job(session: Session, job: Job) -> None:
                 job.stage = said.split("]", 1)[-1].strip() or said
         child.wait()
         job.child = None
-        if child.returncode != 0:
+        #: A killed child returns a code, and a stop is not a failure: reported
+        #: as one, the person who pressed «Остановить» is told the build broke.
+        if child.returncode != 0 and not job.stopping:
             job.failed = f"{planet}: вышел с кодом {child.returncode}"
+            break
+        if job.stopping:
             break
         job.done.append(planet)
     job.at = ""
     job.stage = "остановлено" if job.stopping else ("отказ" if job.failed else "готово")
+    #: The mark goes **before** the run is called over. `ended` is what every
+    #: reader watches for, and between it and the mark's removal a next run
+    #: would be refused by a run that has already finished.
+    _drop_lock(session)
     job.ended = time.time()
 
 
@@ -207,15 +355,20 @@ def field_build(session: Session, _query: dict, body: dict) -> dict:
         value = body.get(name)
         if value not in (None, ""):
             extra += [flag, str(value)]
+    #: A run of `build` or `all` reads the built registry; the others only
+    #: read a field that is already there and cannot be caught out by it.
+    rebuild = kind in ("build", "all", "scan") and _stale_registry(session)
     with _JOB_LOCK:
         if _JOB is not None and _JOB.ended == 0.0:
             raise vault.VaultError(
                 f"уже идёт работа: {_JOB.kind} над «{_JOB.at or '…'}»."
                 " Дождитесь её или остановите."
             )
-        _JOB = Job(kind=kind, planets=planets, argv_extra=extra)
-        threading.Thread(target=_run_job, args=(session, _JOB), daemon=True).start()
-    return {"job": _JOB.state()}
+        job = Job(kind=kind, planets=planets, argv_extra=extra, rebuild=rebuild)
+        _take_lock(session, job, bool(body.get("force")))
+        _JOB = job
+        threading.Thread(target=_run_job, args=(session, job), daemon=True).start()
+    return {"job": job.state()}
 
 
 def field_job(_session: Session, query: dict, _body: dict) -> dict:
@@ -303,7 +456,7 @@ def _pictures(session: Session, planet: str) -> list[dict]:
 
 def _worlds(session: Session, entries: dict) -> list[dict]:
     """Every planet worked out from the numbers as they stand in the file."""
-    healpix = _healpix()
+    healpix = _healpix(session.vault)
     earth_km = _number(entries, "planet.earth_radius_km", 6371.0)
     step = _number(entries, "terrain.step_m", 50.0)
     shares = entries.get("planet.land_area_share")
@@ -363,6 +516,9 @@ def field_state(session: Session, _query: dict, _body: dict) -> dict:
         "missing": missing,
         "layers": list(LAYERS),
         "frames": list(FRAMES),
+        #: Whether a run would build what the cards show, or the world the
+        #: registry was last built into. The tab says so before the button.
+        "stale": _stale_registry(session),
         "totals": {
             "cells": sum(one["cells"] for one in worlds),
             "megabytes": round(sum(one["megabytes"] for one in worlds), 1),

@@ -34,6 +34,11 @@ export function createFieldTab(ctx) {
     frame: 'planet', layer: 'relief',
   };
   let timer = null;
+  //: Сколько строк журнала уже показано и ждём ли ответа на прошлый тик.
+  //: Первое — чтобы не тянуть весь журнал двухчасовой сборки раз в секунду;
+  //: второе — чтобы ответ, пришедший дольше секунды, не наложился на себя же.
+  let seen = 0;
+  let asking = false;
 
   const meta = {
     kind: 'map',
@@ -43,6 +48,7 @@ export function createFieldTab(ctx) {
 
   async function load(keepPick = true) {
     app.field = await api.field();
+    seen = app.field.job?.lines?.length ?? 0;
     const keys = new Set(app.field.groups.flatMap((g) => g.constants.map((one) => one.key)));
     if (!keepPick || !keys.has(app.fieldPick)) app.fieldPick = null;
     if (!app.fieldPlanet) app.fieldPlanet = app.field.worlds[0]?.planet || 'terra';
@@ -53,31 +59,53 @@ export function createFieldTab(ctx) {
 
   //: Пока работа идёт — спрашивать о ней; кончилась — перечитать состояние
   //: целиком, потому что вместе с полем поменялись и снимки, и вес файла.
+  //:
+  //: Опрос **не** гаснет при уходе с вкладки: сборка идёт часами, и сказать о
+  //: её конце надо, куда бы человек ни ушёл. А вот **трогать** он при этом
+  //: ничего не должен: `load` перерисовывает список, легенду и правую панель,
+  //: и открытая форма чужой вкладки с несохранёнными правками была бы стёрта
+  //: формой константы этой.
   function watch() {
     const job = app.field?.job;
     if (!job || !job.running) {
-      if (timer) { clearInterval(timer); timer = null; }
+      stopWatching();
       return;
     }
     if (timer) return;
-    timer = setInterval(async () => {
-      try {
-        const answer = await api.fieldJob();
-        app.field.job = answer.job;
-        if (answer.job && !answer.job.running) {
-          clearInterval(timer);
-          timer = null;
-          say(answer.job.failed || 'сборка кончилась', Boolean(answer.job.failed));
-          await load();
-          return;
-        }
-        if (app.tab === 'field') draw();
-      } catch (error) {
-        clearInterval(timer);
-        timer = null;
-        say(String(error.message || error), true);
+    timer = setInterval(tick, POLL_MS);
+  }
+
+  function stopWatching() {
+    if (timer) { clearInterval(timer); timer = null; }
+    asking = false;
+  }
+
+  async function tick() {
+    if (asking) return;
+    asking = true;
+    try {
+      const answer = await api.fieldJob(seen);
+      const job = answer.job;
+      if (!job) { stopWatching(); return; }
+      //: Приходит хвост журнала, а не весь он: сервер отдаёт от `since`.
+      job.lines = [...(app.field.job?.lines || []).slice(0, seen), ...job.lines];
+      seen = job.total ?? job.lines.length;
+      app.field.job = job;
+      if (!job.running) {
+        stopWatching();
+        say(job.failed || (job.stage === 'остановлено' ? 'остановлено' : 'сборка кончилась'),
+          Boolean(job.failed));
+        if (app.tab === 'field') await load();
+        else app.field = null;  //: перечитается сама, когда сюда вернутся
+        return;
       }
-    }, POLL_MS);
+      if (app.tab === 'field') draw();
+    } catch (error) {
+      stopWatching();
+      say(String(error.message || error), true);
+    } finally {
+      asking = false;
+    }
   }
 
   function renderFilters() {
@@ -177,7 +205,10 @@ export function createFieldTab(ctx) {
           seeds: view.kind === 'scan' ? view.seeds || null : null,
         });
         app.field.job = answer.job;
-        say(`пошла работа: ${view.kind}`, false);
+        seen = answer.job?.lines?.length ?? 0;
+        say(answer.job?.rebuild
+          ? 'пошла работа: сперва соберётся вольт, потом поле'
+          : `пошла работа: ${view.kind}`, false);
         draw();
         watch();
       } catch (error) {

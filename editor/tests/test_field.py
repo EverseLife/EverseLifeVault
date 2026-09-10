@@ -14,14 +14,40 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import shutil
 import time
 from pathlib import Path
 
 import api_field
 import pytest
+import server
 import vaultfile as vault
-
 from field import healpix
+
+
+@pytest.fixture
+def bare_vault(tmp_path: Path, session) -> Path:
+    """A vault with nothing built in it but the pipeline's own arithmetic.
+
+    The sizes are worked out by the `healpix` of **the vault being edited**
+    (`api_field._healpix`), so a temporary vault has to have one: pointed at a
+    directory without it, the tab correctly refuses to work anything out, and
+    that is a different test than this one.
+    """
+    where = tmp_path / "tools" / "field"
+    where.mkdir(parents=True)
+    real = Path(healpix.__file__).parent
+    for name in ("__init__.py", "healpix.py"):
+        if (real / name).is_file():
+            shutil.copy2(real / name, where / name)
+    #: And a built registry newer than the source, so a run here is a run of
+    #: the pipeline and not of the vault's own build first (`_stale_registry`).
+    built = tmp_path / "build" / "constants.json"
+    built.parent.mkdir(parents=True, exist_ok=True)
+    built.write_text("{}", encoding="utf-8")
+    session.vault = tmp_path
+    return tmp_path
 
 
 @pytest.fixture(autouse=True)
@@ -33,6 +59,20 @@ def no_job() -> None:
     if job is not None and job.child is not None:
         job.child.kill()
     api_field._JOB = None
+
+
+def test_a_vault_without_the_pipeline_says_so_and_still_shows_the_numbers(
+    session, tmp_path: Path
+) -> None:
+    """No pipeline, no sizes -- and the numbers are still there to be edited.
+
+    The editor rises on the standard library; the pipeline is numpy. What is
+    lost without it is only what the numbers come to.
+    """
+    session.vault = tmp_path
+    state = api_field.field_state(session, {}, {})
+    assert state["worlds"] == [] and "конвейер" in state["missing"]
+    assert state["groups"], "числа земли всё равно показываются и правятся"
 
 
 def test_the_sizes_are_the_pipelines_own_arithmetic(session) -> None:
@@ -67,19 +107,17 @@ def test_the_sizes_are_the_pipelines_own_arithmetic(session) -> None:
     assert state["totals"]["cells"] == sum(one["cells"] for one in worlds.values())
 
 
-def test_a_field_that_is_not_there_is_not_pretended_to_be(session, tmp_path: Path) -> None:
+def test_a_field_that_is_not_there_is_not_pretended_to_be(session, bare_vault: Path) -> None:
     """«Не собрано» is a state, not an empty картинка."""
-    session.vault = tmp_path
     state = api_field.field_state(session, {}, {})
     for world in state["worlds"]:
         assert world["built"] == {"present": False}
         assert world["pictures"] == []
 
 
-def test_a_built_field_is_read_out_of_its_own_passport(session, tmp_path: Path) -> None:
+def test_a_built_field_is_read_out_of_its_own_passport(session, bare_vault: Path) -> None:
     """What the card says about a built planet comes from the file it was built into."""
-    session.vault = tmp_path
-    where = tmp_path / "build" / "field"
+    where = bare_vault / "build" / "field"
     where.mkdir(parents=True)
     (where / "terra.npz").write_bytes(b"x" * 2048)
     (where / "terra.json").write_text(
@@ -212,3 +250,149 @@ def _wait(seconds: float = 5.0) -> None:
             return
         time.sleep(0.02)
     raise AssertionError("работа не кончилась")
+
+
+def test_a_run_marks_the_vault_so_a_second_process_cannot_start_another(
+    session, bare_vault: Path, monkeypatch
+) -> None:
+    """The singleton is inside one process; the child outlives it.
+
+    Ctrl+C on the editor leaves `landscape.py` grinding, and a restarted editor
+    would see no job and start a second one into the same files -- `store.save`
+    writes straight to `build/field/<planet>.npz`, with no temporary and no
+    rename, and that directory is committed and shared with every worktree.
+    """
+    class Child:
+        returncode = 0
+
+        def __init__(self) -> None:
+            self.stdout = iter(["[ 0.0 s] grid\n"])
+
+        def wait(self) -> None:
+            return None
+
+    monkeypatch.setattr(api_field.subprocess, "Popen", lambda *a, **k: Child())
+    api_field.field_build(session, {}, {"planets": ["terra"]})
+    _wait()
+    #: The mark goes when the run does.
+    assert not api_field._lock_path(session).exists()
+
+    #: And a mark left by somebody else stops a run before it starts.
+    api_field._lock_path(session).write_text(
+        json.dumps({"pid": 4242, "kind": "build", "planets": ["aurora"], "began": 0}),
+        encoding="utf-8",
+    )
+    api_field._JOB = None
+    with pytest.raises(vault.VaultError, match="4242"):
+        api_field.field_build(session, {}, {"planets": ["terra"]})
+    #: Unless it is said to be stale, and then it is taken over rather than
+    #: worked around by hand.
+    api_field.field_build(session, {}, {"planets": ["terra"], "force": True})
+    _wait()
+
+
+def test_stopping_a_run_is_not_a_failure(session, bare_vault: Path, monkeypatch) -> None:
+    """A killed child returns a code, and «Остановить» must not read as «отказ»."""
+    class Child:
+        returncode = -9
+
+        def __init__(self) -> None:
+            self.stdout = iter(["[ 0.0 s] grid\n"])
+            self.killed = False
+
+        def kill(self) -> None:
+            self.killed = True
+
+        def wait(self) -> None:
+            return None
+
+    monkeypatch.setattr(api_field.subprocess, "Popen", lambda *a, **k: Child())
+    job = api_field.Job(kind="build", planets=["terra"], argv_extra=[])
+    job.stopping = True
+    api_field._JOB = job
+    api_field._take_lock(session, job, False)
+    api_field._run_job(session, job)
+    assert job.failed == "" and job.stage == "остановлено"
+    assert job.done == []
+
+
+def test_a_registry_newer_than_the_build_is_built_first(
+    session, bare_vault: Path, monkeypatch
+) -> None:
+    """The tab reads the source file; the pipeline reads the built registry.
+
+    Between them lies every number written and not yet built. A run started
+    there would quietly build the old world while the cards showed the new one
+    -- the worst kind of failure, because it looks like an answer.
+    """
+    #: The source is newer than the build, which is what writing a constant
+    #: leaves behind. Set by hand rather than by touching: two writes a
+    #: millisecond apart are the same stamp on this filesystem, and the test
+    #: would pass or fail by the weather.
+    built = bare_vault / "build" / "constants.json"
+    built.write_text("{}", encoding="utf-8")
+    old = session.constants.stat().st_mtime - 60
+    os.utime(built, (old, old))
+    assert api_field._stale_registry(session)
+    assert api_field.field_state(session, {}, {})["stale"] is True
+
+    ran: list[list[str]] = []
+
+    class Built:
+        returncode = 0
+        stdout = b"reg\n"
+        stderr = b""
+
+    class Child:
+        returncode = 0
+
+        def __init__(self) -> None:
+            self.stdout = iter(["[ 0.0 s] grid\n"])
+
+        def wait(self) -> None:
+            return None
+
+    monkeypatch.setattr(
+        api_field.subprocess, "run", lambda argv, **k: (ran.append(argv), Built())[1]
+    )
+    monkeypatch.setattr(api_field.subprocess, "Popen", lambda *a, **k: Child())
+    answer = api_field.field_build(session, {}, {"planets": ["terra"]})
+    assert answer["job"]["rebuild"] is True
+    _wait()
+    assert ran and ran[0][-1].endswith("build.py")
+    #: And said out loud rather than done quietly: it writes the vault's own
+    #: documents, and that is the «Собрать» button's doing.
+    lines = api_field.field_job(session, {}, {})["job"]["lines"]
+    assert any("реестр новее сборки" in line for line in lines)
+
+    #: A render reads a field that is already there and cannot be caught out.
+    api_field._JOB = None
+    answer = api_field.field_build(session, {}, {"kind": "render", "planets": ["terra"]})
+    assert answer["job"]["rebuild"] is False
+    _wait()
+
+
+def test_a_picture_can_only_be_named_a_picture() -> None:
+    """The name is judged before it becomes a path, and the judge is a pattern.
+
+    Not a containment test after the join: on Windows `Path("build/preview") /
+    "//host/share/a.png"` **is** that UNC path, and resolving it dials the host
+    -- measured at twenty-one seconds of an editor thread spent opening an SMB
+    connection somebody else chose, and on a reachable host the developer's own
+    hash handed over. A browser sends that URL from any page.
+    """
+    assert server.PREVIEW_NAME.fullmatch("terra_planet_relief.png")
+    for bad in (
+        "../../data/recipes.yaml",
+        "../../../Windows/win.ini",
+        "//host/share/a.png",
+        "/host/share/a.png",
+        "C:/Windows/win.ini",
+        "a/b.png",
+        "a\\b.png",
+        "..%2f..%2fa.png",
+        "Terra.PNG",
+        "terra.png.exe",
+        "",
+    ):
+        assert not server.PREVIEW_NAME.fullmatch(bad), bad

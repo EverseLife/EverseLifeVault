@@ -81,7 +81,7 @@ export function planetCards(host, worlds, { picked, onPick }) {
         cell('nside', String(world.nside)),
         cell('клеток', spellCells(world.cells)),
         cell('сторона', `${world.side_m} м`, `промах от заданного шага ${(world.miss * 100).toFixed(2)} %`),
-        cell('вес', `${world.megabytes} МБ`),
+        cell('в памяти', `${world.megabytes} МБ`, 'сколько поле займёт у сервера; файл втрое легче — он сжат'),
         cell('сборка', `~${spellSeconds(world.about_seconds)}`),
         cell('горизонт', `${world.horizon_m} м`, 'с глаза в два метра над уровнем моря')),
     );
@@ -180,7 +180,16 @@ export function runPanel(host, state, view, tools) {
 
   box.append(
     h('h4', { text: 'сборка' }),
-    kindBox, whoBox, overrides, actions,
+    kindBox, whoBox, overrides,
+    //: Конвейер читает собранный реестр, а карточки — исходный файл. Между
+    //: ними лежит всё записанное и ещё не собранное, и запуск построил бы
+    //: прежний мир, показывая новый. Вольт соберётся первым шагом, и об этом
+    //: сказано здесь, до кнопки, а не в журнале после неё.
+    state.stale ? h('p', {
+      class: 'field-said warn',
+      text: 'реестр новее сборки вольта — соберу вольт первым шагом, иначе поле вышло бы по прежним числам',
+    }) : null,
+    actions,
     progress(job),
   );
   host.append(box);
