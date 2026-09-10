@@ -195,16 +195,26 @@ def to_bytes(rgb: np.ndarray) -> np.ndarray:
     return np.clip(np.round(rgb), 0, 255).astype(np.uint8)
 
 
+#: Ширина и высота двух ближних кадров в долях радиуса планеты, а не в
+#: метрах. Метрами это было 60 x 40 км и 6 x 4 км, и держалось, пока у Терры
+#: было 99,5 км радиуса: доли взяты ровно те. При ужатии планет кадр области
+#: в шестьдесят километров оказался бы шире самой планеты, и «окно вокруг
+#: точки в честных метрах» нарисовало бы землю по нескольку раз.
+REGION_R, REGION_TALL_R = 0.603, 0.402
+CITY_R, CITY_TALL_R = 0.0603, 0.0402
+
+
 def render_all(r: Rasters, out: Path, focus: tuple[float, float], planet_width: int = 1400) -> list[Path]:
-    """Три кадра на каждый слой: планета целиком, область в 60 км, город в 6 км."""
+    """Три кадра на каждый слой: планета целиком, область и город — в долях радиуса."""
     written: list[Path] = []
     name = r.params.planet
+    radius = r.grid.radius_m
     for layer, paint in LAYERS.items():
         cell_rgb = paint(r)
         frames = (
             ("planet", globe(cell_rgb, r.grid, planet_width)),
-            ("region", frame(cell_rgb, r.grid, focus, 60_000.0, 40_000.0, 900)),
-            ("city", frame(cell_rgb, r.grid, focus, 6_000.0, 4_000.0, 900)),
+            ("region", frame(cell_rgb, r.grid, focus, REGION_R * radius, REGION_TALL_R * radius, 900)),
+            ("city", frame(cell_rgb, r.grid, focus, CITY_R * radius, CITY_TALL_R * radius, 900)),
         )
         for kind, image in frames:
             path = out / f"{name}_{kind}_{layer}.png"
