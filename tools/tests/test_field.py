@@ -28,7 +28,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from field import census, forms, hydro, pipeline, store  # noqa: E402
+from field import census, erosion, forms, hydro, pipeline, store  # noqa: E402
 from field.grid import Grid  # noqa: E402
 
 
@@ -227,3 +227,68 @@ def test_the_file_reads_back_as_the_same_field(tmp_path: Path) -> None:
     assert written["provinces"][0]["favours"] == ["scree", "crag"]
     assert written["provinces"][1]["favours"] == []
     assert back.provinces[0]["favours"] == ("scree", "crag")
+
+
+def _hill(grid: Grid) -> np.ndarray:
+    """Гладкая гора и ложбина рядом: у поля есть что терять, и потеря видна."""
+    return 1000.0 + 800.0 * np.sin(np.radians(3.0 * grid.lat)) * np.cos(
+        np.radians(3.0 * grid.lon)
+    )
+
+
+def _slumped(grid: Grid, height: np.ndarray, cap: float) -> np.ndarray:
+    """Та же гора, оплывшая на этой сетке при этом пределе шага."""
+    was = erosion.DIFFUSION_MAX
+    erosion.DIFFUSION_MAX = cap
+    try:
+        return erosion.erode(
+            height,
+            np.zeros(grid.count, dtype=bool),
+            grid,
+            #: Самая мягкая порода: у неё наибольшее `kd`, ей и проверять.
+            hardness=np.full(grid.count, 0.25),
+            #: Без поднятия: проверяется оплывание, а не то, чем его чинят.
+            uplift=np.zeros(grid.count),
+            relief_m=3000.0,
+            iterations=4,
+            temperature=lambda h: np.full(grid.count, 20.0),
+            ice_c=-8.0,
+        ).height
+    finally:
+        erosion.DIFFUSION_MAX = was
+
+
+def test_the_slope_slumps_and_does_not_go_off_however_fine_the_cell() -> None:
+    """Оплывание дробится по устойчивости, и от дробности сетки не зависит.
+
+    Коэффициент диффузии растёт квадратом дробности сетки, а шаг у явной
+    схемы один: на клетке в 398 м самая мягкая порода давала 0,54 при пределе
+    оператора 0,74, на клетке в 50 м — 12,35. Схема пошла вразнос, а
+    `maximum(h, 0)` в конце итерации дожал качели в ноль: Терра и Пироксис
+    собрались плоскими, медиана высоты 0 при размахе 1060 м. Тесты этого не
+    увидели, потому что у здешней сетки шаг 6000 м — ни один прогон ни разу
+    не подходил к пределу. Здесь шаг взят такой, при котором подходит.
+    """
+    #: Шар нарочно мал, а клетка — та самая, что теперь у планет: дробность
+    #: сетки настоящая, клеток мало, тест быстрый.
+    fine = Grid.of(2_000.0, 50.0)
+    #: Дробление и вправду нужно: иначе тест сторожил бы пустое место.
+    scale = (erosion.DIFFUSION_STEP_M / fine.side_m) ** 2
+    assert erosion.DIFFUSION * scale / 0.25 > erosion.DIFFUSION_MAX
+
+    hill = _hill(fine)
+    slumped = _slumped(fine, hill, erosion.DIFFUSION_MAX)
+    #: Оплывание **сглаживает**: размах падает, но гора остаётся горой.
+    assert np.ptp(slumped) < np.ptp(hill)
+    assert np.ptp(slumped) > np.ptp(hill) / 2
+
+    #: И ответ не зависит от того, на сколько шагов разбито: вдвое мельче шаг
+    #: — тот же ландшафт до долей процента размаха. Диффузия линейна, и это
+    #: то, что делает дробление честным, а не подгонкой.
+    finer = _slumped(fine, hill, erosion.DIFFUSION_MAX / 2)
+    assert np.abs(slumped - finer).max() < 0.01 * np.ptp(slumped)
+
+    #: А одним шагом сглаживание **раздувает** поле: размах выходит больше
+    #: того, с которого начали. Оператор, обязанный ровнять, делает круче —
+    #: подпись расхождения, и ровно она стояла за плоскими планетами.
+    assert np.ptp(_slumped(fine, hill, 1.0e9)) > np.ptp(hill)

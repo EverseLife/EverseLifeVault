@@ -121,9 +121,23 @@ def render_constants_group(group: dict) -> str:
         sense = c.get("note", "")
         if c.get("decision"):
             sense = f"{sense} ({c['decision']})" if sense else f"задано {c['decision']}"
-        rows.append(f"| `{c['key']}` | {fmt_value(c)} | {sense} |")
+        rows.append(f"| `{c['key']}` | {fmt_value(c)} | {one_line(sense)} |")
     return "\n".join(rows)
 
+
+def one_line(said: str) -> str:
+    """Заметку — в одну строку: строка таблицы переносов не терпит.
+
+    Заметка ключа бывает в несколько абзацев — у тех, чьё число однажды
+    пересматривали, там история пересмотра. В `constants.yaml` абзацы
+    разделены пустой строкой, а в ячейке таблицы такая строка обрывает саму
+    таблицу: всё после неё выпадает из разметки и читается сплошным текстом
+    посреди списка констант. Абзац становится `<br><br>`, перенос внутри
+    абзаца — пробелом.
+    """
+    return "<br><br>".join(
+        " ".join(part.split()) for part in said.split("\n\n") if part.strip()
+    )
 
 def flatten_constants(doc: dict) -> dict:
     flat: dict[str, object] = {}
