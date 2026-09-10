@@ -18,3 +18,9 @@ venv/
 # Мусор прогона тестов редактора.
 .pytest_cache/
 __pycache__/
+
+# Картинки и пробные поля отладочного рендера (tools/landscape.py): линейка,
+# не интерфейс. Само поле build/field/ — в истории, как остальной build/.
+build/preview*/
+build/field_*/
+build/*.log

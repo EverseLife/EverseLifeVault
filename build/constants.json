@@ -883,33 +883,46 @@
   "map.memory_places": 400,
   "map.public_delay_days": 3,
   "map.sight_km": 0.1,
+  "map.eye_m": 2,
+  "map.sight_step_m": 10,
   "travel.walk_speed_kmh": 8,
   "terrain.river_reach_km": 1,
-  "terrain.rain_noise_share": 0.6,
   "road.wild_multiplier": 4,
   "path.wear_threshold": 20,
   "path.fade_threshold": 8,
   "path.fade_per_day": 1,
   "terrain.seed": 20260906,
   "terrain.sea_share": {
-    "terra": 0.6,
+    "terra": 0.3,
     "aquatica": 0.9,
     "pyroxis": 0.0,
     "aurora": 0.0
   },
   "terrain.mountain_share": 0.15,
-  "terrain.detail_km": 3,
-  "terrain.detail_seed": 94,
-  "terrain.detail_amplitude": 0.4,
-  "terrain.peak_share": 0.08,
-  "terrain.basin_share": 0.03,
-  "terrain.rivers": {
-    "terra": 24,
-    "aquatica": 12,
-    "pyroxis": 0,
-    "aurora": 6
+  "terrain.lapse_c": 19.5,
+  "terrain.relief_m": 3000,
+  "terrain.step_m": 398,
+  "terrain.plates": 12,
+  "terrain.continental_share": 0.5,
+  "terrain.river_area_km2": 20,
+  "terrain.version": 4,
+  "terrain.ice_c": -8,
+  "terrain.ice_rain": 0.25,
+  "terrain.ice_deep_c": -20,
+  "terrain.continental_c": 5,
+  "terrain.climate_noise_c": 5,
+  "terrain.climate_noise_km": 20,
+  "terrain.continental_reach_r": 0.5,
+  "terrain.wind_belts": {
+    "trade_lat": 30,
+    "westerly_lat": 60,
+    "edge_deg": 8
   },
-  "terrain.lapse_c": 12,
+  "terrain.dry_belt_wander_deg": 8,
+  "terrain.rain_noise": 0.3,
+  "terrain.dry_belt_lat": 27,
+  "terrain.dry_belt_width": 10,
+  "terrain.dry_belt_strength": 0.4,
   "map.lattice_m": 5,
   "biome.names": {
     "coast": "Берег",
@@ -923,7 +936,11 @@
     "foothills": "Предгорье",
     "alpine": "Горный склон",
     "ice": "Ледяное поле",
-    "cinder": "Чёрное поле"
+    "cinder": "Чёрное поле",
+    "rainforest": "Дождевой лес",
+    "savanna": "Саванна",
+    "semidesert": "Полупустыня",
+    "woodland": "Сухолесье"
   },
   "biome.reach_m": {
     "coast": {
@@ -973,6 +990,22 @@
     "cinder": {
       "min": 10,
       "max": 60
+    },
+    "rainforest": {
+      "min": 5,
+      "max": 20
+    },
+    "savanna": {
+      "min": 10,
+      "max": 40
+    },
+    "semidesert": {
+      "min": 15,
+      "max": 60
+    },
+    "woodland": {
+      "min": 5,
+      "max": 25
     }
   },
   "biome.swing_c": {
@@ -987,7 +1020,11 @@
     "foothills": 9,
     "alpine": 12,
     "ice": 6,
-    "cinder": 15
+    "cinder": 15,
+    "rainforest": 4,
+    "savanna": 12,
+    "semidesert": 16,
+    "woodland": 8
   },
   "biome.marks": {
     "coast": {
@@ -1049,6 +1086,26 @@
       "woods": 0,
       "stones": 80,
       "meadow": 0
+    },
+    "rainforest": {
+      "woods": 100,
+      "stones": 5,
+      "meadow": 0
+    },
+    "savanna": {
+      "woods": 25,
+      "stones": 15,
+      "meadow": 70
+    },
+    "semidesert": {
+      "woods": 5,
+      "stones": 35,
+      "meadow": 20
+    },
+    "woodland": {
+      "woods": 60,
+      "stones": 15,
+      "meadow": 35
     }
   },
   "biome.vein_k": {
@@ -1063,16 +1120,197 @@
     "foothills": 1.5,
     "alpine": 2.0,
     "ice": 1.5,
-    "cinder": 1.5
+    "cinder": 1.5,
+    "rainforest": 0.6,
+    "savanna": 0.8,
+    "semidesert": 1.0,
+    "woodland": 0.8
+  },
+  "biome.zonal": {
+    "frozen": {
+      "biome": "tundra",
+      "temp": [
+        -60,
+        -2
+      ],
+      "rain": [
+        0,
+        100
+      ]
+    },
+    "boreal": {
+      "biome": "taiga",
+      "temp": [
+        -2,
+        5
+      ],
+      "rain": [
+        0,
+        100
+      ]
+    },
+    "cool_dry": {
+      "biome": "steppe",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        0,
+        20
+      ]
+    },
+    "cool_open": {
+      "biome": "woodland",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        20,
+        45
+      ]
+    },
+    "cool_wet": {
+      "biome": "forest",
+      "temp": [
+        5,
+        14
+      ],
+      "rain": [
+        45,
+        100
+      ]
+    },
+    "mild_dry": {
+      "biome": "semidesert",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        0,
+        12
+      ]
+    },
+    "mild_grass": {
+      "biome": "steppe",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        12,
+        25
+      ]
+    },
+    "mild_open": {
+      "biome": "woodland",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        25,
+        45
+      ]
+    },
+    "mild_wet": {
+      "biome": "forest",
+      "temp": [
+        14,
+        20
+      ],
+      "rain": [
+        45,
+        100
+      ]
+    },
+    "hot_dry": {
+      "biome": "desert",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        0,
+        12
+      ]
+    },
+    "hot_scrub": {
+      "biome": "semidesert",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        12,
+        30
+      ]
+    },
+    "hot_grass": {
+      "biome": "savanna",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        30,
+        55
+      ]
+    },
+    "hot_wood": {
+      "biome": "forest",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        55,
+        75
+      ]
+    },
+    "hot_rain": {
+      "biome": "rainforest",
+      "temp": [
+        20,
+        60
+      ],
+      "rain": [
+        75,
+        100
+      ]
+    }
+  },
+  "biome.azonal": {
+    "ridge": "alpine",
+    "cliff": "alpine",
+    "scree": "alpine",
+    "volcano": "alpine",
+    "glacial": "alpine",
+    "canyon": "foothills",
+    "hills": "foothills",
+    "fan": "foothills",
+    "floodplain": "floodplain",
+    "delta": "floodplain",
+    "valley": "floodplain",
+    "beach": "coast",
+    "coast_cliff": "coast",
+    "fjord": "coast",
+    "dunes": "desert",
+    "ice": "ice"
+  },
+  "biome.facet_axes": {
+    "wave_m": 200,
+    "slope_full": 0.2,
+    "wet_km": 4,
+    "patch_km": 1,
+    "soft_edge": 0.25,
+    "favour_k": 2.5
   },
   "biome.bounds": {
-    "cold_c": -2,
-    "cool_c": 5,
-    "dry": 30,
     "wet": 38,
-    "desert_lat": 35,
     "coast_km": 3,
-    "hills_relief": 0.25,
     "marsh_relief": 0.15
   },
   "complex.chance": {
@@ -1165,7 +1403,7 @@
       "nodes": [
         {
           "role": "saddle",
-          "name": "Седловина"
+          "name": "Перевал"
         },
         {
           "role": "slope",

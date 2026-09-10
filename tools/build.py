@@ -1999,12 +1999,157 @@ def seed_ids(plants: list[dict]) -> dict[str, str]:
     }
 
 
+def load_facets() -> tuple[dict[str, list[dict]], list[str]]:
+    """`data/facets.yaml`: биом -> строки фацетов (план ландшафта §6).
+
+    Проверяется то, что ломает выбор фацета или подпись на карте: id в
+    snake_case и единственный на весь вольт, имя не длиннее подписи, доли
+    биома в сумме сто, коробка `where` внутри нуля и единицы, метки и
+    множители — числа. Файла может не быть — тогда фацетов нет, и это
+    законно до волны 7.
+    """
+    path = DATA / "facets.yaml"
+    if not path.exists():
+        return {}, []
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    table = doc.get("facets") or {}
+    problems: list[str] = []
+    seen: set[str] = set()
+    out: dict[str, list[dict]] = {}
+    for biome, rows in table.items():
+        out[biome] = []
+        for row in rows or []:
+            fid = str(row.get("id", ""))
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", fid):
+                problems.append(f"facets.yaml: id «{fid}» ({biome}) не snake_case")
+            if fid in seen:
+                problems.append(f"facets.yaml: id «{fid}» встречается дважды")
+            seen.add(fid)
+            name = str(row.get("name") or "")
+            if not name:
+                problems.append(f"facets.yaml: у «{fid}» нет имени")
+            elif len(name) > FACET_NAME_LIMIT:
+                problems.append(
+                    f"facets.yaml: имя «{name}» длиннее {FACET_NAME_LIMIT} знаков — не ляжет подписью"
+                )
+            if not isinstance(row.get("share"), (int, float)):
+                problems.append(f"facets.yaml: у «{fid}» нет доли share")
+            for key in ("vein_k", "reach_k", "swing_k"):
+                if not isinstance(row.get(key), (int, float)) or float(row[key]) <= 0:
+                    problems.append(f"facets.yaml: у «{fid}» нет положительного {key}")
+            where = row.get("where") or {}
+            for axis in FACET_AXES:
+                span = where.get(axis)
+                if (
+                    not isinstance(span, list)
+                    or len(span) != 2
+                    or not all(isinstance(v, (int, float)) for v in span)
+                    or not 0 <= span[0] < span[1] <= 1
+                ):
+                    problems.append(f"facets.yaml: у «{fid}» ось {axis} не отрезок внутри 0…1")
+            marks = row.get("marks") or {}
+            for mark in ("woods", "stones", "meadow"):
+                share = marks.get(mark)
+                if not isinstance(share, (int, float)) or not 0 <= float(share) <= FACET_SHARE_FULL:
+                    problems.append(f"facets.yaml: у «{fid}» метка {mark} не доля 0…100")
+            out[biome].append(row)
+        total = sum(float(row.get("share") or 0) for row in out[biome])
+        if out[biome] and round(total, 3) != FACET_SHARE_FULL:
+            problems.append(f"facets.yaml: доли биома «{biome}» дают {total:g}, а не 100")
+    return out, problems
+
+
+#: Имя фацета ложится подписью на карту (словарь 10-world/08).
+FACET_NAME_LIMIT = 18
+#: Доли фацетов биома в сумме, и потолок доли метки, в процентах.
+FACET_SHARE_FULL = 100
+FACET_AXES = ("slope", "wet", "high")
+
+
+def check_facets(constants: dict, facets: dict[str, list[dict]]) -> list[str]:
+    """Фацеты стоят под биомами реестра, и у каждого биома они есть: узел
+    биома без фацетов остался бы без лица (план §6)."""
+    if not facets:
+        return []
+    names = constants.get("biome.names") or {}
+    problems = [
+        f"facets.yaml: биом «{biome}», которого нет в biome.names"
+        for biome in facets
+        if biome not in names
+    ]
+    problems += [
+        f"biome.names: у биома «{biome}» нет ни одного фацета в facets.yaml"
+        for biome in names
+        if not facets.get(biome)
+    ]
+    axes = constants.get("biome.facet_axes") or {}
+    problems += [
+        f"biome.facet_axes: нет положительной оси {axis}"
+        for axis in ("wave_m", "slope_full", "wet_km", "patch_km", "soft_edge", "favour_k")
+        if not isinstance(axes.get(axis), (int, float)) or float(axes[axis]) <= 0
+    ]
+    return problems
+
+
+def load_provinces() -> tuple[dict[str, list[dict]], list[str]]:
+    """`data/provinces.yaml`: планета -> строки провинций (план ландшафта §7).
+
+    Проверяется то, что ломает сборку поля или имя на карте: id в snake_case
+    и единственный на весь вольт, имя, числа сдвигов. Файла может не быть —
+    тогда провинций нет, и это законно до волны 3.
+    """
+    path = DATA / "provinces.yaml"
+    if not path.exists():
+        return {}, []
+    doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    table = doc.get("provinces") or {}
+    problems: list[str] = []
+    seen: set[str] = set()
+    out: dict[str, list[dict]] = {}
+    for planet, rows in table.items():
+        out[planet] = []
+        for row in rows or []:
+            pid = str(row.get("id", ""))
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", pid):
+                problems.append(f"provinces.yaml: id «{pid}» ({planet}) не snake_case")
+            if pid in seen:
+                problems.append(f"provinces.yaml: id «{pid}» встречается дважды")
+            seen.add(pid)
+            if not row.get("name"):
+                problems.append(f"provinces.yaml: у «{pid}» нет имени")
+            for key in ("rain_shift", "temp_shift_c", "vein_k"):
+                if not isinstance(row.get(key), (int, float)):
+                    problems.append(f"provinces.yaml: у «{pid}» нет числа {key}")
+            if not isinstance(row.get("favours") or [], list):
+                problems.append(f"provinces.yaml: `favours` у «{pid}» не список")
+            out[planet].append(row)
+    return out, problems
+
+
+def check_favours(provinces: dict[str, list[dict]], facets: dict[str, list[dict]]) -> list[str]:
+    """`favours` провинции называет фацеты, которые здесь чаще обычного
+    (план §7, волна 8): ключа, которого нет в `facets.yaml`, быть не может —
+    он бы молча ничего не делал."""
+    known = {str(row.get("id")) for rows in facets.values() for row in rows or []}
+    if not known:
+        return []
+    return [
+        f"provinces.yaml: «{row['id']}» любит фацет «{fid}», которого нет в facets.yaml"
+        for rows in provinces.values()
+        for row in rows or []
+        for fid in (row.get("favours") or [])
+        if str(fid) not in known
+    ]
+
+
 def build_renames(
     recipes_doc: dict,
     vocabulary: dict,
     plants: list[dict] = (),
     locales: dict[str, dict] | None = None,
     code_laws: list[dict] = (),
+    provinces: dict[str, list[dict]] | None = None,
+    facets: dict[str, list[dict]] | None = None,
 ) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
@@ -2054,6 +2199,23 @@ def build_renames(
     }
     for domain, rows in vocabulary.items():
         out[domain] = {row["name"]: row["id"] for row in rows or []}
+    #: Провинции (план ландшафта §7): имя области на карте и в сводке едет
+    #: ключом, как всякое имя вольта; свой домен, потому что «Рудный кряж» —
+    #: не товар и не закон.
+    out["provinces"] = {
+        row["name"]: row["id"]
+        for rows in (provinces or {}).values()
+        for row in rows
+        if row.get("id") and row.get("name")
+    }
+    #: Фацеты (план ландшафта §6): имя грани биома на карте и в окне узла.
+    #: Свой домен рядом с провинциями — «Опушка» не товар и не область.
+    out["facets"] = {
+        row["name"]: row["id"]
+        for rows in (facets or {}).values()
+        for row in rows
+        if row.get("id") and row.get("name")
+    }
     out["names_ru"] = {
         domain: {v: k for k, v in table.items()} for domain, table in out.items()
     }
@@ -2333,6 +2495,112 @@ REFS_GONE = "документ ссылается на снятую конста�
 LINKS_DEAD = "ссылка ведёт в никуда"
 RECORDS_UNKNOWN = "названо решение или вопрос, которого нет"
 STATUS_MISSING = "документ без распознанного статуса"
+FIELD_STALE = "поле планеты собрано под другие числа"
+
+def check_zonal(constants: dict) -> list[str]:
+    """`biome.zonal` покрывает плоскость без дыр и без наложений (план §5):
+    точка без класса — узел без биома, точка с двумя — порядок строк
+    становится той же ложью, что порядок веток `if`. Нижний край строки
+    входит, верхний — нет, кроме верхнего края плоскости. Плоскость —
+    шкала `site.rain_range` и температуры от самого холодного края строк
+    до самого тёплого; строки обязаны дотянуться до `site.temp_range` с
+    запасом вниз на высоту, глубину материка и местный шум — столько
+    поле отнимает у холодного края (`tools/field/climate.py`). Ключи
+    `biome.azonal` — формы конвейера (`tools/field/forms.py`), пока
+    таблица форм живёт в коде."""
+    table = constants.get("biome.zonal")
+    if not isinstance(table, dict):
+        return []
+    names = constants.get("biome.names") or {}
+    problems: list[str] = []
+    rows = []
+    for label, row in table.items():
+        try:
+            biome = str(row["biome"])
+            t0, t1 = (float(v) for v in row["temp"])
+            r0, r1 = (float(v) for v in row["rain"])
+        except (KeyError, TypeError, ValueError):
+            problems.append(f"biome.zonal: строка «{label}» не {{biome, temp: [a, b], rain: [a, b]}}")
+            continue
+        if biome not in names:
+            problems.append(f"biome.zonal: «{label}» называет биом «{biome}», которого нет в biome.names")
+        if t0 >= t1 or r0 >= r1:
+            problems.append(f"biome.zonal: у «{label}» пустой прямоугольник")
+        rows.append((label, t0, t1, r0, r1))
+    from field import forms  # noqa: PLC0415 -- сборка не зависит от конвейера иначе
+
+    known_forms = {key for key, _, _ in forms.FORMS}
+    for form, biome in (constants.get("biome.azonal") or {}).items():
+        if biome not in names:
+            problems.append(f"biome.azonal: форма «{form}» ведёт в биом «{biome}», которого нет в biome.names")
+        if form not in known_forms:
+            problems.append(f"biome.azonal: формы «{form}» нет в таблице форм конвейера")
+    if problems or not rows:
+        return problems
+    rain_range = constants.get("site.rain_range") or {}
+    temp_range = constants.get("site.temp_range") or {}
+    rain_lo, rain_hi = int(rain_range.get("min", 0)), int(rain_range.get("max", 100))
+    temp_lo, temp_hi = int(min(r[1] for r in rows)), int(max(r[2] for r in rows))
+    margin = sum(float(constants.get(key) or 0.0) for key in ("terrain.lapse_c", "terrain.continental_c", "terrain.climate_noise_c"))
+    if temp_lo > float(temp_range.get("min", 0.0)) - margin:
+        problems.append(f"biome.zonal: холодный край строк {temp_lo} °C, а поле опускается до {float(temp_range.get('min', 0.0)) - margin:.0f} °C")
+    if temp_hi < float(temp_range.get("max", 0.0)):
+        problems.append(f"biome.zonal: тёплый край строк {temp_hi} °C ниже site.temp_range.max")
+    gaps: list[str] = []
+    overlaps: list[str] = []
+    for t in range(temp_lo, temp_hi + 1):
+        for r in range(rain_lo, rain_hi + 1):
+            hits = [
+                label
+                for label, t0, t1, r0, r1 in rows
+                if (t0 <= t < t1 or (t == temp_hi and t1 >= t))
+                and (r0 <= r < r1 or (r == rain_hi and r1 >= r))
+            ]
+            if not hits and len(gaps) < 5:
+                gaps.append(f"{t} °C, осадки {r}")
+            if len(hits) > 1 and len(overlaps) < 5:
+                overlaps.append(f"{t} °C, осадки {r}: {', '.join(hits)}")
+    if gaps:
+        problems.append("biome.zonal: без класса — " + "; ".join(gaps) + " …")
+    if overlaps:
+        problems.append("biome.zonal: два класса — " + "; ".join(overlaps) + " …")
+    return problems
+
+
+def check_field_freshness(constants: dict) -> list[str]:
+    """Поле в `build/field/` — производное реестра (план ландшафта §4.8): его
+    паспорт несёт хеш параметров, и поле, собранное под другие зерно, шаг или
+    долю моря, обманет и картинку, и, когда поле приедет в игру, движок.
+    Предупреждение, а не проблема: пока движок поле не читает, ломается
+    только линейка. Без numpy — молчит: сборка без него обходится."""
+    field_dir = BUILD / "field"
+    if not field_dir.exists():
+        return []
+    try:
+        from field.pipeline import Params  # noqa: PLC0415 -- только при наличии поля
+    except ImportError:
+        return []
+    found = []
+    #: Строки провинций входят в хеш (план §7): без них реестр «давал» другой
+    #: хеш каждой планете с провинциями, и предупреждение не гасло никогда.
+    provinces, _ = load_provinces()
+    for passport in sorted(field_dir.glob("*.json")):
+        planet = passport.stem
+        try:
+            meta = json.loads(passport.read_text(encoding="utf-8"))
+            expected = Params.from_constants(constants, planet, provinces.get(planet)).digest()
+        except (KeyError, ValueError, TypeError) as why:
+            found.append(
+                f"{planet}: паспорт не читается ({why}); "
+                f"пересобери: python tools/landscape.py build --planet {planet}"
+            )
+            continue
+        if meta.get("digest") != expected:
+            found.append(
+                f"{planet}: в паспорте {meta.get('digest')}, реестр даёт {expected}; "
+                f"пересобери: python tools/landscape.py build --planet {planet}"
+            )
+    return found
 
 
 def by_kind(found: list[tuple[str, str]]) -> list[tuple[str, list[str]]]:
@@ -2425,6 +2693,7 @@ def main() -> int:
     warnings += [(LINKS_DEAD, one) for one in check_doc_links()]
     warnings += [(RECORDS_UNKNOWN, one) for one in check_named_records()]
     warnings += [(STATUS_MISSING, one) for one in check_statuses()]
+    warnings += [(FIELD_STALE, one) for one in check_field_freshness(flatten_constants(constants_doc))]
     problems += check_building_types(constants_doc, recipes_doc)
     problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()
@@ -2435,12 +2704,24 @@ def main() -> int:
     problems += worldfile.check_spacing(world_doc, flatten_constants(constants_doc))
     vocabulary = load_vocabulary()
     problems += check_ids(recipes_doc, vocabulary, constants_doc, world_doc, plants)
+    provinces_doc, province_problems = load_provinces()
+    problems += province_problems
+    facets_doc, facet_problems = load_facets()
+    problems += facet_problems
+    problems += check_facets(flatten_constants(constants_doc), facets_doc)
+    problems += check_favours(provinces_doc, facets_doc)
+    problems += check_zonal(flatten_constants(constants_doc))
     #: Полнота второго языка (волна V). Проверяется здесь, а не в движке:
     #: имена — данные вольта, и язык с дырой должен ронять сборку вольта, а не
     #: показывать игроку `iron_ore` в готовой игре.
     locales = load_locales()
     problems += check_locales(
-        build_renames(recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"]), locales
+        build_renames(
+            recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"],
+            provinces=provinces_doc,
+            facets=facets_doc,
+        ),
+        locales,
     )
     problems, excused_problems = excuse_known(problems, recipes_doc)
     known_problems += excused_problems
@@ -2643,8 +2924,15 @@ def main() -> int:
           json.dumps(worldfile.build_world(world_doc), ensure_ascii=False, indent=2) + "\n")
     write(BUILD / "renames.json",
           json.dumps(build_renames(recipes_doc, vocabulary, plants, locales,
-                                   code_laws=laws_doc["code_laws"]),
+                                   code_laws=laws_doc["code_laws"],
+                                   provinces=provinces_doc, facets=facets_doc),
                      ensure_ascii=False, indent=2) + "\n")
+    #: Провинции (план ландшафта §7): конвейер поля читает отсюда, сколько
+    #: областей резать на планете и чем каждая сдвигает климат.
+    write(BUILD / "provinces.json",
+          json.dumps(provinces_doc, ensure_ascii=False, indent=2) + "\n")
+    write(BUILD / "facets.json",
+          json.dumps({"facets": facets_doc}, ensure_ascii=False, indent=2) + "\n")
     write(ROOT / "90-production" / "03-status.md", build_status_index())
 
     print("собрано:")

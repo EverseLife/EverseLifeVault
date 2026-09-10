@@ -1,0 +1,2976 @@
+{
+  "facets": {
+    "alpine": [
+      {
+        "id": "alpine_meadow",
+        "name": "Альпийский луг",
+        "share": 20,
+        "where": {
+          "slope": [
+            0.2,
+            0.5
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 30,
+          "meadow": 80
+        },
+        "vein_k": 1,
+        "reach_k": 1.3,
+        "swing_k": 0.9,
+        "note": "низкая густая трава в цветах, камни выглядывают"
+      },
+      {
+        "id": "boulder_field",
+        "name": "Курумник",
+        "share": 20,
+        "where": {
+          "slope": [
+            0.3,
+            0.7
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2,
+        "reach_k": 1.2,
+        "swing_k": 1.1,
+        "note": "море глыб в лишайнике, шагаешь с камня на камень"
+      },
+      {
+        "id": "rock_face",
+        "name": "Скальник",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.8,
+            1
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.3,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2.5,
+        "reach_k": 1.6,
+        "swing_k": 1,
+        "note": "отвес голого камня, пройти только вдоль"
+      },
+      {
+        "id": "crest",
+        "name": "Гребень",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.4,
+            0.8
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.9,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 1.8,
+        "reach_k": 2,
+        "swing_k": 1.3,
+        "note": "узкий хребет, ветер валит с ног, обе стороны вниз"
+      },
+      {
+        "id": "snowfield",
+        "name": "Снежник",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0.4,
+            0.8
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 20,
+          "meadow": 0
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.5,
+        "swing_k": 0.7,
+        "note": "слежавшийся снег не тает и летом, по краю талая вода"
+      },
+      {
+        "id": "cirque",
+        "name": "Ледниковый цирк",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.1,
+            0.4
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 60,
+          "meadow": 20
+        },
+        "vein_k": 1.2,
+        "reach_k": 1,
+        "swing_k": 0.8,
+        "note": "чаша с озерцом под отвесными стенами"
+      },
+      {
+        "id": "scree_slope",
+        "name": "Щебнистый склон",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.5,
+            0.8
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "мелкий щебень едет под ногой до самого низа"
+      }
+    ],
+    "cinder": [
+      {
+        "id": "smooth_lava",
+        "name": "Лавовая гладь",
+        "share": 25,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.2,
+            0.7
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 90,
+          "meadow": 0
+        },
+        "vein_k": 1,
+        "reach_k": 1.4,
+        "swing_k": 1,
+        "note": "застывшие складки, как чёрное тесто, идти ровно"
+      },
+      {
+        "id": "clinker",
+        "name": "Колючая лава",
+        "share": 25,
+        "where": {
+          "slope": [
+            0.1,
+            0.4
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.3,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 1.2,
+        "reach_k": 1,
+        "swing_k": 1.1,
+        "note": "острые обломки режут подошву, идти вдвое медленнее"
+      },
+      {
+        "id": "cinder_cone",
+        "name": "Шлаковый конус",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.5,
+            0.9
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 90,
+          "meadow": 0
+        },
+        "vein_k": 1.8,
+        "reach_k": 1.8,
+        "swing_k": 1.2,
+        "note": "конус рыжей и чёрной крошки, на макушке кратер"
+      },
+      {
+        "id": "ash_flat",
+        "name": "Пепельное поле",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.15
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 30,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 1.5,
+        "swing_k": 1.2,
+        "note": "серая мелкая крошка по щиколотку, след держится долго"
+      },
+      {
+        "id": "hot_ground",
+        "name": "Паровые щели",
+        "share": 8,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.2,
+            0.6
+          ],
+          "high": [
+            0.3,
+            0.7
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 60,
+          "meadow": 0
+        },
+        "vein_k": 1.5,
+        "reach_k": 0.8,
+        "swing_k": 0.6,
+        "note": "из трещин идёт пар, камни тёплые, пахнет серой"
+      },
+      {
+        "id": "collapse_trench",
+        "name": "Провал",
+        "share": 7,
+        "where": {
+          "slope": [
+            0.4,
+            1
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2.2,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "рухнувший свод, внизу чёрный ход уходит в темноту"
+      },
+      {
+        "id": "lava_basin",
+        "name": "Лавовая котловина",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.25
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 50,
+          "meadow": 0
+        },
+        "vein_k": 1,
+        "reach_k": 1.2,
+        "swing_k": 0.9,
+        "note": "чаша в лаве, на дне вода, вокруг соляная кайма"
+      }
+    ],
+    "coast": [
+      {
+        "id": "sandy_shore",
+        "name": "Пляж",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 5,
+          "meadow": 0
+        },
+        "vein_k": 0.4,
+        "reach_k": 1.5,
+        "swing_k": 0.9,
+        "note": "плотный сырой песок, полоса водорослей по линии прибоя"
+      },
+      {
+        "id": "shingle",
+        "name": "Галечник",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.25
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 60,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 1.3,
+        "swing_k": 1,
+        "note": "окатанная галька гремит под ногой, к воде круче"
+      },
+      {
+        "id": "cliff",
+        "name": "Обрыв",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.6,
+            1
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0.3,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 100,
+          "meadow": 10
+        },
+        "vein_k": 2,
+        "reach_k": 1.8,
+        "swing_k": 1,
+        "note": "стена слоистого камня, внизу бьёт вода"
+      },
+      {
+        "id": "dune_ridge",
+        "name": "Дюна",
+        "share": 12,
+        "where": {
+          "slope": [
+            0.2,
+            0.5
+          ],
+          "wet": [
+            0.4,
+            0.8
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 0,
+          "meadow": 30
+        },
+        "vein_k": 0.4,
+        "reach_k": 1.3,
+        "swing_k": 1.2,
+        "note": "сыпучий вал с колосняком на гребне"
+      },
+      {
+        "id": "tidal_flat",
+        "name": "Солёный луг",
+        "share": 13,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.7,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 50
+        },
+        "vein_k": 0.3,
+        "reach_k": 1.2,
+        "swing_k": 0.8,
+        "note": "солёный луг, в прилив под водой, ил в промоинах"
+      },
+      {
+        "id": "shore_wood",
+        "name": "Прибрежный лес",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.4,
+            0.8
+          ],
+          "high": [
+            0.3,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 10,
+          "meadow": 20
+        },
+        "vein_k": 0.6,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "кривые от ветра деревья, все кроны наклонены от моря"
+      },
+      {
+        "id": "lagoon",
+        "name": "Лагуна",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.9,
+            1
+          ],
+          "high": [
+            0,
+            0.15
+          ]
+        },
+        "marks": {
+          "woods": 5,
+          "stones": 0,
+          "meadow": 40
+        },
+        "vein_k": 0.3,
+        "reach_k": 1.2,
+        "swing_k": 0.8,
+        "note": "тихая мелкая вода за косой, тростник по краю"
+      }
+    ],
+    "desert": [
+      {
+        "id": "dune",
+        "name": "Бархан",
+        "share": 25,
+        "where": {
+          "slope": [
+            0.1,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.3,
+        "reach_k": 1,
+        "swing_k": 1.1,
+        "note": "сыпучий песок, ветер сдувает след за час"
+      },
+      {
+        "id": "stony_flat",
+        "name": "Каменистая равнина",
+        "share": 25,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 70,
+          "meadow": 0
+        },
+        "vein_k": 1.3,
+        "reach_k": 1.3,
+        "swing_k": 1,
+        "note": "чёрный от загара щебень, ровно, как стол"
+      },
+      {
+        "id": "salt_flat",
+        "name": "Соляная корка",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.2,
+            0.6
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 10,
+          "meadow": 0
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.5,
+        "swing_k": 1.2,
+        "note": "белая корка хрустит, вода под ней горькая"
+      },
+      {
+        "id": "dry_wash",
+        "name": "Сухое русло",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.8
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 40,
+          "meadow": 10
+        },
+        "vein_k": 1,
+        "reach_k": 0.8,
+        "swing_k": 0.9,
+        "note": "гравий и промытые валуны, редкий куст в ложе"
+      },
+      {
+        "id": "mesa",
+        "name": "Столовая гора",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.5,
+            1
+          ],
+          "wet": [
+            0,
+            0.2
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2,
+        "reach_k": 1.8,
+        "swing_k": 1,
+        "note": "обрыв слоистого камня, наверху плоско и ветрено"
+      },
+      {
+        "id": "oasis",
+        "name": "Оазис",
+        "share": 5,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 0,
+          "meadow": 40
+        },
+        "vein_k": 0.4,
+        "reach_k": 0.6,
+        "swing_k": 0.6,
+        "note": "пальмы над лужей, кругом густая трава — одна зелень на день пути"
+      },
+      {
+        "id": "clay_pan",
+        "name": "Такыр",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.1,
+            0.4
+          ],
+          "high": [
+            0.1,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 5,
+          "meadow": 0
+        },
+        "vein_k": 0.7,
+        "reach_k": 1.6,
+        "swing_k": 1.2,
+        "note": "глина растрескалась плитками, твёрдая, как обожжённая"
+      }
+    ],
+    "floodplain": [
+      {
+        "id": "water_meadow",
+        "name": "Заливной луг",
+        "share": 30,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.5,
+            0.9
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 5,
+          "stones": 0,
+          "meadow": 100
+        },
+        "vein_k": 0.7,
+        "reach_k": 1.3,
+        "swing_k": 1,
+        "note": "ровный сочный луг, весной под водой"
+      },
+      {
+        "id": "willow_brake",
+        "name": "Ивняк",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.5,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "густой ивовый прут по самой воде, ил под ногами"
+      },
+      {
+        "id": "oxbow",
+        "name": "Старица",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.9,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 20,
+          "stones": 0,
+          "meadow": 40
+        },
+        "vein_k": 0.3,
+        "reach_k": 1,
+        "swing_k": 0.8,
+        "note": "дугой стоячая вода, ряска, по берегу камыш"
+      },
+      {
+        "id": "levee_ridge",
+        "name": "Грива",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 5,
+          "meadow": 40
+        },
+        "vein_k": 1.2,
+        "reach_k": 1.2,
+        "swing_k": 1,
+        "note": "сухая гряда над лугом, дубы и песок"
+      },
+      {
+        "id": "sandbar",
+        "name": "Коса",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.15
+          ],
+          "wet": [
+            0.9,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 10,
+          "meadow": 5
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.5,
+        "swing_k": 1.1,
+        "note": "намытая полоса песка в излучине, без травы"
+      },
+      {
+        "id": "steep_bank",
+        "name": "Круча",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.6,
+            1
+          ],
+          "wet": [
+            0.6,
+            1
+          ],
+          "high": [
+            0.3,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 30,
+          "stones": 40,
+          "meadow": 20
+        },
+        "vein_k": 1.6,
+        "reach_k": 1.4,
+        "swing_k": 1,
+        "note": "подмытый берег, глина и слои песка, корни висят"
+      },
+      {
+        "id": "bottomland_wood",
+        "name": "Урёма",
+        "share": 5,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.6,
+            0.9
+          ],
+          "high": [
+            0.2,
+            0.6
+          ]
+        },
+        "marks": {
+          "woods": 90,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.6,
+        "reach_k": 0.5,
+        "swing_k": 0.7,
+        "note": "густой сырой лес, крапива и хмель по стволам"
+      }
+    ],
+    "foothills": [
+      {
+        "id": "hillside",
+        "name": "Косогор",
+        "share": 30,
+        "where": {
+          "slope": [
+            0.3,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 40,
+          "stones": 40,
+          "meadow": 40
+        },
+        "vein_k": 1.2,
+        "reach_k": 1.2,
+        "swing_k": 1,
+        "note": "пологий длинный склон, трава и редкие деревья"
+      },
+      {
+        "id": "scree",
+        "name": "Осыпь",
+        "share": 12,
+        "where": {
+          "slope": [
+            0.5,
+            0.9
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2,
+        "reach_k": 1.4,
+        "swing_k": 1.1,
+        "note": "съезжающий щебень, каждый шаг — полшага назад"
+      },
+      {
+        "id": "glen",
+        "name": "Падь",
+        "share": 18,
+        "where": {
+          "slope": [
+            0.1,
+            0.4
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 20,
+          "meadow": 30
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.5,
+        "swing_k": 0.7,
+        "note": "узкая долина с ручьём, лес по обоим склонам"
+      },
+      {
+        "id": "shelf",
+        "name": "Полка",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.1,
+            0.5
+          ],
+          "high": [
+            0.4,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 30,
+          "stones": 40,
+          "meadow": 50
+        },
+        "vein_k": 1,
+        "reach_k": 1.5,
+        "swing_k": 1,
+        "note": "ровная площадка на склоне, с неё видно долину"
+      },
+      {
+        "id": "crag",
+        "name": "Утёс",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.8,
+            1
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2.5,
+        "reach_k": 1.8,
+        "swing_k": 1.1,
+        "note": "отвесная скала торчит из склона, у подножия глыбы"
+      },
+      {
+        "id": "saddle",
+        "name": "Седловина",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.1,
+            0.4
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.8,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 60,
+          "meadow": 30
+        },
+        "vein_k": 1.4,
+        "reach_k": 2,
+        "swing_k": 1.2,
+        "note": "прогиб между двумя горбами, сквозной ветер"
+      },
+      {
+        "id": "piedmont_wood",
+        "name": "Подгорный лес",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.1,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 20,
+          "meadow": 20
+        },
+        "vein_k": 0.9,
+        "reach_k": 0.7,
+        "swing_k": 0.8,
+        "note": "густой лес у подножия, валуны между стволами"
+      }
+    ],
+    "forest": [
+      {
+        "id": "thicket",
+        "name": "Чаща",
+        "share": 35,
+        "where": {
+          "slope": [
+            0,
+            0.4
+          ],
+          "wet": [
+            0.1,
+            0.6
+          ],
+          "high": [
+            0.2,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 100,
+          "stones": 10,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.7,
+        "swing_k": 0.8,
+        "note": "сомкнутый полог, полумрак, тропы нет"
+      },
+      {
+        "id": "edge",
+        "name": "Опушка",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.1,
+            0.6
+          ],
+          "high": [
+            0.3,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 5,
+          "meadow": 60
+        },
+        "vein_k": 0.9,
+        "reach_k": 1.5,
+        "swing_k": 1.2,
+        "note": "деревья редеют, трава густая, светло"
+      },
+      {
+        "id": "windthrow",
+        "name": "Ветровал",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.1,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 15,
+          "meadow": 10
+        },
+        "vein_k": 1.1,
+        "reach_k": 0.8,
+        "swing_k": 1.1,
+        "note": "стволы лежат в одну сторону, корни вывернуты с землёй"
+      },
+      {
+        "id": "burn",
+        "name": "Гарь",
+        "share": 8,
+        "where": {
+          "slope": [
+            0,
+            0.4
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 30,
+          "stones": 10,
+          "meadow": 50
+        },
+        "vein_k": 1,
+        "reach_k": 1.4,
+        "swing_k": 1.3,
+        "note": "чёрные стволы стоят голые, между ними кипрей и малина"
+      },
+      {
+        "id": "alder_bottom",
+        "name": "Ольшаник",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 90,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.5,
+        "reach_k": 0.5,
+        "swing_k": 0.7,
+        "note": "чёрная ольха по щиколотку в воде, комары"
+      },
+      {
+        "id": "knoll",
+        "name": "Взлобок",
+        "share": 12,
+        "where": {
+          "slope": [
+            0.2,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 85,
+          "stones": 20,
+          "meadow": 10
+        },
+        "vein_k": 1.4,
+        "reach_k": 1.1,
+        "swing_k": 1,
+        "note": "сухой пригорок под дубами, корни выступают из земли"
+      },
+      {
+        "id": "steep_gully",
+        "name": "Яр",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.6,
+            1
+          ],
+          "wet": [
+            0.3,
+            0.9
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 50,
+          "meadow": 5
+        },
+        "vein_k": 1.7,
+        "reach_k": 0.6,
+        "swing_k": 0.9,
+        "note": "обрывистый овраг с ручьём на дне, глина и камень в стенках"
+      }
+    ],
+    "ice": [
+      {
+        "id": "firn_plain",
+        "name": "Фирн",
+        "share": 30,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.2,
+        "swing_k": 1,
+        "note": "слежавшийся зернистый снег держит шаг, ровно до горизонта"
+      },
+      {
+        "id": "sastrugi",
+        "name": "Заструги",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "твёрдые снежные гребни по ветру, об них ломают ноги"
+      },
+      {
+        "id": "crevasses",
+        "name": "Ледяные трещины",
+        "share": 12,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.2,
+            0.7
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 1,
+        "swing_k": 1,
+        "note": "синие разломы под тонкими снежными мостами"
+      },
+      {
+        "id": "bare_summit",
+        "name": "Голец",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.4,
+            1
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.8,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2.5,
+        "reach_k": 1.8,
+        "swing_k": 1.2,
+        "note": "чёрный камень торчит из льда, единственное, что не бело"
+      },
+      {
+        "id": "glaze_ice",
+        "name": "Наледь",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.7,
+        "reach_k": 1.4,
+        "swing_k": 0.9,
+        "note": "голый лёд без снега, скользко, в глубине видно пузыри"
+      },
+      {
+        "id": "melt_pool",
+        "name": "Полынья",
+        "share": 8,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.4,
+        "reach_k": 1.2,
+        "swing_k": 0.8,
+        "note": "тёмная вода в снегу, парит на морозе"
+      },
+      {
+        "id": "pressure_ridges",
+        "name": "Торосы",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.3,
+            0.8
+          ],
+          "wet": [
+            0.4,
+            0.9
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 0
+        },
+        "vein_k": 0.6,
+        "reach_k": 0.7,
+        "swing_k": 1,
+        "note": "ломаные льдины стоят дыбом, обход длинный"
+      }
+    ],
+    "marsh": [
+      {
+        "id": "quagmire",
+        "name": "Топь",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.8,
+            1
+          ],
+          "high": [
+            0,
+            0.25
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.2,
+        "reach_k": 1,
+        "swing_k": 0.8,
+        "note": "зыбун, под мхом вода, нога уходит по колено и дальше"
+      },
+      {
+        "id": "moss_bog",
+        "name": "Мшара",
+        "share": 25,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.6,
+            0.9
+          ],
+          "high": [
+            0.2,
+            0.6
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 0,
+          "meadow": 30
+        },
+        "vein_k": 0.5,
+        "reach_k": 1.1,
+        "swing_k": 1,
+        "note": "рыжий сфагнум и клюква, сосенки по колено"
+      },
+      {
+        "id": "reed_beds",
+        "name": "Плавни",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.9,
+            1
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 50
+        },
+        "vein_k": 0.2,
+        "reach_k": 0.4,
+        "swing_k": 0.8,
+        "note": "тростник выше головы, протоки с тёмной водой"
+      },
+      {
+        "id": "bog_ridge",
+        "name": "Веретье",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.6
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 70,
+          "stones": 10,
+          "meadow": 30
+        },
+        "vein_k": 1.5,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "сухая грядка в болоте, сосны и черника"
+      },
+      {
+        "id": "fen_hollow",
+        "name": "Мочажина",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.7,
+            1
+          ],
+          "high": [
+            0.1,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 60
+        },
+        "vein_k": 0.3,
+        "reach_k": 1.2,
+        "swing_k": 0.9,
+        "note": "осока по колено, вода стоит вровень с травой"
+      },
+      {
+        "id": "marsh_wood",
+        "name": "Болотный лес",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.6,
+            0.9
+          ],
+          "high": [
+            0.3,
+            0.7
+          ]
+        },
+        "marks": {
+          "woods": 70,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.5,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "чахлые берёзы и ели на кочках, дно мягкое"
+      }
+    ],
+    "rainforest": [
+      {
+        "id": "jungle_thicket",
+        "name": "Дебри",
+        "share": 35,
+        "where": {
+          "slope": [
+            0,
+            0.4
+          ],
+          "wet": [
+            0,
+            0.7
+          ],
+          "high": [
+            0.2,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 100,
+          "stones": 5,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.6,
+        "swing_k": 0.7,
+        "note": "стволы в два обхвата, под ногами прелый лист, неба не видно"
+      },
+      {
+        "id": "jungle_gap",
+        "name": "Прогалина",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0,
+            0.6
+          ],
+          "high": [
+            0.3,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 5,
+          "meadow": 40
+        },
+        "vein_k": 1,
+        "reach_k": 1.4,
+        "swing_k": 1.2,
+        "note": "упало большое дерево, в дыру бьёт свет, трава по грудь"
+      },
+      {
+        "id": "jungle_deadfall",
+        "name": "Валежник",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 10,
+          "meadow": 10
+        },
+        "vein_k": 1,
+        "reach_k": 0.8,
+        "swing_k": 1,
+        "note": "стволы навалены крест-накрест, идти — значит лезть"
+      },
+      {
+        "id": "jungle_bottom",
+        "name": "Мокрый лог",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.4,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.5,
+        "reach_k": 0.5,
+        "swing_k": 0.6,
+        "note": "чёрная вода между корнями, ноги вязнут по щиколотку"
+      },
+      {
+        "id": "jungle_ridge",
+        "name": "Гряда",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 85,
+          "stones": 20,
+          "meadow": 5
+        },
+        "vein_k": 1.4,
+        "reach_k": 1.3,
+        "swing_k": 1,
+        "note": "сухой хребтик под пологом, корни держатся за камень"
+      },
+      {
+        "id": "jungle_scarp",
+        "name": "Крутояр",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.6,
+            1
+          ],
+          "wet": [
+            0,
+            1
+          ],
+          "high": [
+            0.2,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 50,
+          "stones": 60,
+          "meadow": 0
+        },
+        "vein_k": 1.8,
+        "reach_k": 1.5,
+        "swing_k": 1,
+        "note": "обрыв в зелени, с уступа видно верхушки внизу"
+      }
+    ],
+    "savanna": [
+      {
+        "id": "tall_grass",
+        "name": "Травостой",
+        "share": 35,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.1,
+            0.5
+          ],
+          "high": [
+            0.2,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 5,
+          "meadow": 90
+        },
+        "vein_k": 0.8,
+        "reach_k": 1,
+        "swing_k": 1,
+        "note": "трава выше пояса, по ней идут тропы зверья"
+      },
+      {
+        "id": "grove",
+        "name": "Роща",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.8
+          ],
+          "high": [
+            0,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 70,
+          "stones": 5,
+          "meadow": 30
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "кучка широких деревьев, под ними тень и сбитая копытами земля"
+      },
+      {
+        "id": "bare_patch",
+        "name": "Плешина",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 30,
+          "meadow": 10
+        },
+        "vein_k": 1.2,
+        "reach_k": 1.3,
+        "swing_k": 1.3,
+        "note": "рыжая утоптанная земля, трава не держится, солнце жарит"
+      },
+      {
+        "id": "pan",
+        "name": "Западина",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.15
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.25
+          ]
+        },
+        "marks": {
+          "woods": 20,
+          "stones": 0,
+          "meadow": 60
+        },
+        "vein_k": 0.5,
+        "reach_k": 1,
+        "swing_k": 0.8,
+        "note": "блюдце с потрескавшимся илом, после дождя стоит вода"
+      },
+      {
+        "id": "outcrop",
+        "name": "Останец",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.4,
+            1
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 90,
+          "meadow": 5
+        },
+        "vein_k": 2,
+        "reach_k": 1.8,
+        "swing_k": 1.1,
+        "note": "груда серых глыб над травой, с макушки видно далеко"
+      },
+      {
+        "id": "riverside_wood",
+        "name": "Приречный лес",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.7,
+            1
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 5,
+          "meadow": 20
+        },
+        "vein_k": 0.6,
+        "reach_k": 0.5,
+        "swing_k": 0.7,
+        "note": "полоса густых деревьев вдоль пересыхающего русла"
+      },
+      {
+        "id": "scrub",
+        "name": "Кустарник",
+        "share": 5,
+        "where": {
+          "slope": [
+            0.1,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 40,
+          "stones": 20,
+          "meadow": 30
+        },
+        "vein_k": 1,
+        "reach_k": 0.7,
+        "swing_k": 1.1,
+        "note": "колючий низкий кустарник, цепляет одежду"
+      }
+    ],
+    "semidesert": [
+      {
+        "id": "wormwood_flat",
+        "name": "Полынник",
+        "share": 35,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.2,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 20,
+          "meadow": 30
+        },
+        "vein_k": 1,
+        "reach_k": 1.2,
+        "swing_k": 1,
+        "note": "серая полынь по щиколотку, пахнет горько"
+      },
+      {
+        "id": "alkali_flat",
+        "name": "Солонец",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 5,
+          "meadow": 10
+        },
+        "vein_k": 0.6,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "земля белёсая и рыхлая, трава — пучками"
+      },
+      {
+        "id": "gully",
+        "name": "Овраг",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.4,
+            1
+          ],
+          "wet": [
+            0.2,
+            0.7
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 10,
+          "stones": 40,
+          "meadow": 20
+        },
+        "vein_k": 1.4,
+        "reach_k": 0.5,
+        "swing_k": 0.9,
+        "note": "рыжие стенки, на дне промоина с редкой зеленью"
+      },
+      {
+        "id": "saxaul",
+        "name": "Саксаульник",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 40,
+          "stones": 10,
+          "meadow": 5
+        },
+        "vein_k": 0.9,
+        "reach_k": 0.8,
+        "swing_k": 1,
+        "note": "кривые низкие деревца, древесина твёрдая, как кость"
+      },
+      {
+        "id": "stony_rise",
+        "name": "Каменистый увал",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 70,
+          "meadow": 10
+        },
+        "vein_k": 1.8,
+        "reach_k": 1.5,
+        "swing_k": 1.1,
+        "note": "россыпь щебня на горбу, ветер не стихает"
+      },
+      {
+        "id": "dry_lake",
+        "name": "Сухое озеро",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.4,
+            0.8
+          ],
+          "high": [
+            0,
+            0.2
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 5
+        },
+        "vein_k": 0.5,
+        "reach_k": 1.6,
+        "swing_k": 1.2,
+        "note": "ровное дно в трещинах, по краю кайма соли"
+      }
+    ],
+    "steppe": [
+      {
+        "id": "feather_grass",
+        "name": "Ковыльник",
+        "share": 40,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0,
+            0.5
+          ],
+          "high": [
+            0.3,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 5,
+          "meadow": 100
+        },
+        "vein_k": 0.8,
+        "reach_k": 1.2,
+        "swing_k": 1,
+        "note": "серебристая трава волнами до самого края"
+      },
+      {
+        "id": "grove_island",
+        "name": "Колок",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.4,
+            0.9
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 0,
+          "meadow": 30
+        },
+        "vein_k": 0.7,
+        "reach_k": 0.5,
+        "swing_k": 0.7,
+        "note": "кучка берёз и осин в западине, кругом голая степь"
+      },
+      {
+        "id": "ravine",
+        "name": "Балка",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.3,
+            0.8
+          ],
+          "wet": [
+            0.3,
+            0.8
+          ],
+          "high": [
+            0,
+            0.4
+          ]
+        },
+        "marks": {
+          "woods": 30,
+          "stones": 20,
+          "meadow": 60
+        },
+        "vein_k": 1.3,
+        "reach_k": 0.5,
+        "swing_k": 0.8,
+        "note": "пологая лощина с кустами по склонам, внизу сырее"
+      },
+      {
+        "id": "long_rise",
+        "name": "Увал",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.1,
+            0.4
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 30,
+          "meadow": 70
+        },
+        "vein_k": 1.4,
+        "reach_k": 1.6,
+        "swing_k": 1.1,
+        "note": "длинный горб, с него видна вся округа"
+      },
+      {
+        "id": "liman",
+        "name": "Лиман",
+        "share": 10,
+        "where": {
+          "slope": [
+            0,
+            0.1
+          ],
+          "wet": [
+            0.6,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 5,
+          "stones": 0,
+          "meadow": 80
+        },
+        "vein_k": 0.5,
+        "reach_k": 1,
+        "swing_k": 0.8,
+        "note": "мокрый луг в блюдце, весной под водой"
+      },
+      {
+        "id": "stony_ground",
+        "name": "Каменник",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.1,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 70,
+          "meadow": 30
+        },
+        "vein_k": 1.8,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "плиты и щебень торчат из дёрна, трава редкая"
+      }
+    ],
+    "taiga": [
+      {
+        "id": "spruce_stand",
+        "name": "Ельник",
+        "share": 30,
+        "where": {
+          "slope": [
+            0,
+            0.4
+          ],
+          "wet": [
+            0.2,
+            0.7
+          ],
+          "high": [
+            0.1,
+            0.6
+          ]
+        },
+        "marks": {
+          "woods": 100,
+          "stones": 10,
+          "meadow": 0
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.6,
+        "swing_k": 0.7,
+        "note": "тёмные ели, под ногами мох и хвоя, сыро и тихо"
+      },
+      {
+        "id": "pine_wood",
+        "name": "Бор",
+        "share": 25,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.5,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 90,
+          "stones": 20,
+          "meadow": 10
+        },
+        "vein_k": 1.1,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "сосны на песке, сухо, светло, брусничник"
+      },
+      {
+        "id": "swamp_wood",
+        "name": "Согра",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.6,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 0,
+          "meadow": 20
+        },
+        "vein_k": 0.4,
+        "reach_k": 0.6,
+        "swing_k": 0.7,
+        "note": "чахлые сосенки во мху, кочки, вода в следах"
+      },
+      {
+        "id": "deadfall",
+        "name": "Бурелом",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.1,
+            0.6
+          ],
+          "wet": [
+            0.1,
+            0.5
+          ],
+          "high": [
+            0.4,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 80,
+          "stones": 15,
+          "meadow": 5
+        },
+        "vein_k": 1,
+        "reach_k": 0.7,
+        "swing_k": 1,
+        "note": "сухие стволы навалом, идёшь по брёвнам"
+      },
+      {
+        "id": "boulder_run",
+        "name": "Валунник",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.3,
+            0.8
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 20,
+          "stones": 100,
+          "meadow": 0
+        },
+        "vein_k": 2.2,
+        "reach_k": 1.5,
+        "swing_k": 1.2,
+        "note": "серые глыбы во мху, между ними пусто и гулко"
+      },
+      {
+        "id": "forest_glade",
+        "name": "Луговина",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 20,
+          "stones": 5,
+          "meadow": 80
+        },
+        "vein_k": 0.8,
+        "reach_k": 1.5,
+        "swing_k": 1.2,
+        "note": "открытый луг в тайге, трава по пояс, по краю осины"
+      }
+    ],
+    "tundra": [
+      {
+        "id": "moss_flat",
+        "name": "Моховина",
+        "share": 30,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0.2,
+            0.6
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 10,
+          "meadow": 40
+        },
+        "vein_k": 0.8,
+        "reach_k": 1,
+        "swing_k": 1,
+        "note": "пружинит под ногой, мох и ягель без края"
+      },
+      {
+        "id": "hummocks",
+        "name": "Кочкарник",
+        "share": 20,
+        "where": {
+          "slope": [
+            0,
+            0.15
+          ],
+          "wet": [
+            0.5,
+            1
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 0,
+          "meadow": 50
+        },
+        "vein_k": 0.5,
+        "reach_k": 0.9,
+        "swing_k": 0.9,
+        "note": "кочки по колено, между ними ржавая вода"
+      },
+      {
+        "id": "rubble",
+        "name": "Россыпь",
+        "share": 15,
+        "where": {
+          "slope": [
+            0.1,
+            0.5
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.6,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 90,
+          "meadow": 5
+        },
+        "vein_k": 1.8,
+        "reach_k": 1.4,
+        "swing_k": 1.1,
+        "note": "щебень и плитняк, лишайник на камнях"
+      },
+      {
+        "id": "dwarf_scrub",
+        "name": "Ерник",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.8
+          ],
+          "high": [
+            0.1,
+            0.5
+          ]
+        },
+        "marks": {
+          "woods": 30,
+          "stones": 5,
+          "meadow": 30
+        },
+        "vein_k": 0.7,
+        "reach_k": 0.6,
+        "swing_k": 0.9,
+        "note": "карликовая берёзка по пояс, цепкая, вязкая"
+      },
+      {
+        "id": "frost_mound",
+        "name": "Бугор пучения",
+        "share": 8,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0.2,
+            0.6
+          ],
+          "high": [
+            0.7,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 30,
+          "meadow": 40
+        },
+        "vein_k": 1,
+        "reach_k": 1.5,
+        "swing_k": 1.1,
+        "note": "круглый холм с трещиной на макушке, внутри лёд"
+      },
+      {
+        "id": "hollow",
+        "name": "Ложбина",
+        "share": 12,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.6,
+            1
+          ],
+          "high": [
+            0,
+            0.25
+          ]
+        },
+        "marks": {
+          "woods": 0,
+          "stones": 5,
+          "meadow": 30
+        },
+        "vein_k": 0.6,
+        "reach_k": 1,
+        "swing_k": 0.9,
+        "note": "осевшее блюдце с мелким озерцом, берега оплывают"
+      }
+    ],
+    "woodland": [
+      {
+        "id": "open_wood",
+        "name": "Редколесье",
+        "share": 35,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.1,
+            0.5
+          ],
+          "high": [
+            0.3,
+            0.8
+          ]
+        },
+        "marks": {
+          "woods": 60,
+          "stones": 15,
+          "meadow": 50
+        },
+        "vein_k": 0.9,
+        "reach_k": 1,
+        "swing_k": 1,
+        "note": "деревья стоят вразброс, между ними сухая трава"
+      },
+      {
+        "id": "oak_stand",
+        "name": "Дубрава",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.3
+          ],
+          "wet": [
+            0.3,
+            0.7
+          ],
+          "high": [
+            0.2,
+            0.6
+          ]
+        },
+        "marks": {
+          "woods": 90,
+          "stones": 10,
+          "meadow": 10
+        },
+        "vein_k": 0.8,
+        "reach_k": 0.7,
+        "swing_k": 0.8,
+        "note": "широкие кроны смыкаются, под ногами жёлуди и сухой лист"
+      },
+      {
+        "id": "glade",
+        "name": "Поляна",
+        "share": 15,
+        "where": {
+          "slope": [
+            0,
+            0.2
+          ],
+          "wet": [
+            0.2,
+            0.6
+          ],
+          "high": [
+            0.2,
+            0.7
+          ]
+        },
+        "marks": {
+          "woods": 20,
+          "stones": 5,
+          "meadow": 90
+        },
+        "vein_k": 0.8,
+        "reach_k": 1.3,
+        "swing_k": 1.1,
+        "note": "круглый луг в кольце деревьев"
+      },
+      {
+        "id": "brush",
+        "name": "Чапыжник",
+        "share": 12,
+        "where": {
+          "slope": [
+            0.3,
+            0.7
+          ],
+          "wet": [
+            0,
+            0.4
+          ],
+          "high": [
+            0.4,
+            0.9
+          ]
+        },
+        "marks": {
+          "woods": 40,
+          "stones": 30,
+          "meadow": 20
+        },
+        "vein_k": 1.3,
+        "reach_k": 0.6,
+        "swing_k": 1.1,
+        "note": "жёсткий низкий кустарник по склону, не продраться"
+      },
+      {
+        "id": "dry_hollow",
+        "name": "Сухой лог",
+        "share": 13,
+        "where": {
+          "slope": [
+            0.1,
+            0.5
+          ],
+          "wet": [
+            0.3,
+            0.8
+          ],
+          "high": [
+            0,
+            0.3
+          ]
+        },
+        "marks": {
+          "woods": 70,
+          "stones": 20,
+          "meadow": 20
+        },
+        "vein_k": 1,
+        "reach_k": 0.6,
+        "swing_k": 0.8,
+        "note": "узкое русло без воды, по дну камни и тенистые деревья"
+      },
+      {
+        "id": "bald_top",
+        "name": "Лысина",
+        "share": 10,
+        "where": {
+          "slope": [
+            0.2,
+            0.6
+          ],
+          "wet": [
+            0,
+            0.3
+          ],
+          "high": [
+            0.8,
+            1
+          ]
+        },
+        "marks": {
+          "woods": 5,
+          "stones": 70,
+          "meadow": 30
+        },
+        "vein_k": 1.7,
+        "reach_k": 1.7,
+        "swing_k": 1.2,
+        "note": "голый камень на горбу, деревья кончаются ниже"
+      }
+    ]
+  }
+}

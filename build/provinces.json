@@ -1,0 +1,765 @@
+{
+  "terra": [
+    {
+      "id": "ore_ridge",
+      "name": "Рудный кряж",
+      "rain_shift": -5,
+      "temp_shift_c": -1,
+      "vein_k": 1.8,
+      "favours": [
+        "scree",
+        "crag"
+      ],
+      "note": "каждый второй шурф даёт цвет, зато дрова возят издалека"
+    },
+    {
+      "id": "wet_ridge",
+      "name": "Мокрая грива",
+      "rain_shift": 18,
+      "temp_shift_c": 0,
+      "vein_k": 0.8,
+      "favours": [
+        "levee_ridge",
+        "willow_brake"
+      ],
+      "note": "единственная сухая дорога идёт по гребню, всё остальное — вода"
+    },
+    {
+      "id": "salt_wedge",
+      "name": "Солёный клин",
+      "rain_shift": -20,
+      "temp_shift_c": 3,
+      "vein_k": 0.9,
+      "favours": [
+        "salt_flat",
+        "alkali_flat"
+      ],
+      "note": "колодцы горькие, лес не растёт, соль лежит под ногами"
+    },
+    {
+      "id": "still_reach",
+      "name": "Тихий плёс",
+      "rain_shift": 10,
+      "temp_shift_c": 1,
+      "vein_k": 0.6,
+      "favours": [
+        "oxbow",
+        "water_meadow"
+      ],
+      "note": "река широкая и медленная, паводок раз в год стоит неделями"
+    },
+    {
+      "id": "black_pinewood",
+      "name": "Чёрный бор",
+      "rain_shift": 5,
+      "temp_shift_c": -2,
+      "vein_k": 1.0,
+      "favours": [
+        "spruce_stand",
+        "pine_wood"
+      ],
+      "note": "сплошная тайга в три дня пути, тропу теряют даже свои"
+    },
+    {
+      "id": "windy_rise",
+      "name": "Ветреный увал",
+      "rain_shift": -8,
+      "temp_shift_c": -1,
+      "vein_k": 1.2,
+      "favours": [
+        "long_rise",
+        "stony_ground"
+      ],
+      "note": "ветер не стихает ни днём, ни ночью, крыши крепят камнями"
+    },
+    {
+      "id": "rotten_lowland",
+      "name": "Гнилая низина",
+      "rain_shift": 22,
+      "temp_shift_c": 1,
+      "vein_k": 0.5,
+      "favours": [
+        "quagmire",
+        "marsh_wood"
+      ],
+      "note": "гать гниёт за два года, дома ставят на сваях"
+    },
+    {
+      "id": "dry_shore",
+      "name": "Сухой берег",
+      "rain_shift": -15,
+      "temp_shift_c": 2,
+      "vein_k": 0.8,
+      "favours": [
+        "shingle",
+        "cliff"
+      ],
+      "note": "море есть, а пресной воды нет — её возят с гор"
+    },
+    {
+      "id": "far_corner",
+      "name": "Глухой угол",
+      "rain_shift": 8,
+      "temp_shift_c": -1,
+      "vein_k": 1.1,
+      "favours": [
+        "thicket",
+        "alder_bottom"
+      ],
+      "note": "до ближайшего города два дня лесом, вести доходят последними"
+    },
+    {
+      "id": "stone_gate",
+      "name": "Каменные ворота",
+      "rain_shift": 0,
+      "temp_shift_c": -2,
+      "vein_k": 1.6,
+      "favours": [
+        "saddle",
+        "rock_face"
+      ],
+      "note": "единственный проход через хребет, зимой закрыт снегом"
+    },
+    {
+      "id": "yellow_steppe",
+      "name": "Жёлтая степь",
+      "rain_shift": -12,
+      "temp_shift_c": 2,
+      "vein_k": 0.9,
+      "favours": [
+        "feather_grass",
+        "liman"
+      ],
+      "note": "трава выгорает к середине лета, к лиманам сходятся все тропы"
+    },
+    {
+      "id": "white_sands",
+      "name": "Белые пески",
+      "rain_shift": -25,
+      "temp_shift_c": 4,
+      "vein_k": 0.7,
+      "favours": [
+        "dune",
+        "clay_pan"
+      ],
+      "note": "барханы идут на посёлок, каждый год откапывают ограды"
+    },
+    {
+      "id": "alder_glen",
+      "name": "Ольховая падь",
+      "rain_shift": 15,
+      "temp_shift_c": -1,
+      "vein_k": 1.0,
+      "favours": [
+        "glen",
+        "alder_bottom"
+      ],
+      "note": "узкая долина, солнце заходит в три часа дня"
+    },
+    {
+      "id": "rust_hills",
+      "name": "Рыжие холмы",
+      "rain_shift": -6,
+      "temp_shift_c": 1,
+      "vein_k": 1.5,
+      "favours": [
+        "hillside",
+        "bare_patch"
+      ],
+      "note": "земля красная от железа, вода в ручьях ржавая"
+    },
+    {
+      "id": "long_spit",
+      "name": "Долгая коса",
+      "rain_shift": 5,
+      "temp_shift_c": 1,
+      "vein_k": 0.5,
+      "favours": [
+        "sandbar",
+        "lagoon"
+      ],
+      "note": "коса тянется на день пути, за ней тихая вода и тростник"
+    },
+    {
+      "id": "burnt_hollow",
+      "name": "Горелый лог",
+      "rain_shift": -5,
+      "temp_shift_c": 1,
+      "vein_k": 1.0,
+      "favours": [
+        "burn",
+        "glade"
+      ],
+      "note": "горит каждое сухое лето, кипрей до плеч"
+    },
+    {
+      "id": "cold_spring",
+      "name": "Студёный ключ",
+      "rain_shift": 10,
+      "temp_shift_c": -3,
+      "vein_k": 1.1,
+      "favours": [
+        "cirque",
+        "snowfield"
+      ],
+      "note": "вода в ключах ломит зубы даже в жару, снег лежит до июля"
+    },
+    {
+      "id": "cranberry_moss",
+      "name": "Клюквенная мшара",
+      "rain_shift": 20,
+      "temp_shift_c": -2,
+      "vein_k": 0.5,
+      "favours": [
+        "moss_bog",
+        "bog_ridge"
+      ],
+      "note": "клюкву берут вёдрами, зато ни камня, ни дров"
+    },
+    {
+      "id": "oak_cape",
+      "name": "Дубовый мыс",
+      "rain_shift": 5,
+      "temp_shift_c": 2,
+      "vein_k": 0.8,
+      "favours": [
+        "oak_stand",
+        "shore_wood"
+      ],
+      "note": "дубы у самой воды, брёвна спускают прямо с берега"
+    },
+    {
+      "id": "warm_ravine",
+      "name": "Тёплая балка",
+      "rain_shift": 3,
+      "temp_shift_c": 3,
+      "vein_k": 0.9,
+      "favours": [
+        "ravine",
+        "grove_island"
+      ],
+      "note": "в балке нет ветра, огороды поспевают на две недели раньше"
+    },
+    {
+      "id": "wormwood_plain",
+      "name": "Полынная равнина",
+      "rain_shift": -18,
+      "temp_shift_c": 2,
+      "vein_k": 1.0,
+      "favours": [
+        "wormwood_flat",
+        "dry_lake"
+      ],
+      "note": "серо и горько во все стороны, дорогу держат по столбам"
+    },
+    {
+      "id": "hummock_field",
+      "name": "Кочкарное поле",
+      "rain_shift": 5,
+      "temp_shift_c": -5,
+      "vein_k": 0.8,
+      "favours": [
+        "hummocks",
+        "dwarf_scrub"
+      ],
+      "note": "пешком по кочкам не быстрее двух вёрст в час"
+    },
+    {
+      "id": "blue_mountains",
+      "name": "Синие горы",
+      "rain_shift": 5,
+      "temp_shift_c": -4,
+      "vein_k": 1.7,
+      "favours": [
+        "crest",
+        "boulder_field"
+      ],
+      "note": "издали синие, вблизи — голый камень и ветер"
+    },
+    {
+      "id": "crooked_shore",
+      "name": "Кривой берег",
+      "rain_shift": 8,
+      "temp_shift_c": 0,
+      "vein_k": 0.7,
+      "favours": [
+        "tidal_flat",
+        "sandy_shore"
+      ],
+      "note": "берег изрезан бухтами, до соседей по прямой ближе, чем по земле"
+    },
+    {
+      "id": "gravel_ridge",
+      "name": "Щебнистая гряда",
+      "rain_shift": -10,
+      "temp_shift_c": 0,
+      "vein_k": 1.6,
+      "favours": [
+        "stony_rise",
+        "rubble"
+      ],
+      "note": "щебень до горизонта, зато жилы ложатся близко к поверхности"
+    },
+    {
+      "id": "rain_slope",
+      "name": "Дождевой склон",
+      "rain_shift": 25,
+      "temp_shift_c": 2,
+      "vein_k": 1.0,
+      "favours": [
+        "jungle_bottom",
+        "jungle_scarp"
+      ],
+      "note": "дождь каждый день после полудня, обувь не сохнет"
+    },
+    {
+      "id": "wet_wilds",
+      "name": "Мокрые дебри",
+      "rain_shift": 22,
+      "temp_shift_c": 3,
+      "vein_k": 0.8,
+      "favours": [
+        "jungle_thicket",
+        "jungle_gap"
+      ],
+      "note": "тропа зарастает за неделю, ходят с топором"
+    },
+    {
+      "id": "hot_plain",
+      "name": "Жаркая равнина",
+      "rain_shift": -8,
+      "temp_shift_c": 4,
+      "vein_k": 1.0,
+      "favours": [
+        "tall_grass",
+        "pan"
+      ],
+      "note": "жара к полудню такая, что работают только утром и вечером"
+    },
+    {
+      "id": "goat_crag",
+      "name": "Козий утёс",
+      "rain_shift": 0,
+      "temp_shift_c": -1,
+      "vein_k": 1.4,
+      "favours": [
+        "crag",
+        "scree"
+      ],
+      "note": "только козы держатся на этих склонах, тропы идут карнизами"
+    },
+    {
+      "id": "willow_bottoms",
+      "name": "Ивовая пойма",
+      "rain_shift": 12,
+      "temp_shift_c": 1,
+      "vein_k": 0.6,
+      "favours": [
+        "willow_brake",
+        "bottomland_wood"
+      ],
+      "note": "ивняк стоит стеной по обоим берегам, вода мутная и тёплая"
+    },
+    {
+      "id": "bald_knolls",
+      "name": "Лысые сопки",
+      "rain_shift": -5,
+      "temp_shift_c": -2,
+      "vein_k": 1.5,
+      "favours": [
+        "bald_top",
+        "knoll"
+      ],
+      "note": "макушки голые, лес только по низам, зимой ветер сносит снег до земли"
+    },
+    {
+      "id": "pine_sands",
+      "name": "Сосновые пески",
+      "rain_shift": -5,
+      "temp_shift_c": 0,
+      "vein_k": 0.9,
+      "favours": [
+        "pine_wood",
+        "edge"
+      ],
+      "note": "сухой бор на песке, вода глубоко, зато грибы и брусника"
+    },
+    {
+      "id": "flood_meadows",
+      "name": "Заливные луга",
+      "rain_shift": 15,
+      "temp_shift_c": 1,
+      "vein_k": 0.5,
+      "favours": [
+        "water_meadow",
+        "oxbow"
+      ],
+      "note": "травы столько, что косить не успевают, зато паводок сносит стога"
+    },
+    {
+      "id": "grey_range",
+      "name": "Седой хребет",
+      "rain_shift": 10,
+      "temp_shift_c": -5,
+      "vein_k": 1.8,
+      "favours": [
+        "snowfield",
+        "rock_face"
+      ],
+      "note": "снег на гребне держится круглый год, тропы только через седловины"
+    },
+    {
+      "id": "feather_grass_reach",
+      "name": "Ковыльный край",
+      "rain_shift": -10,
+      "temp_shift_c": 1,
+      "vein_k": 0.8,
+      "favours": [
+        "feather_grass",
+        "long_rise"
+      ],
+      "note": "степь без единого дерева, дрова везут за два дня"
+    },
+    {
+      "id": "dark_spruce",
+      "name": "Тёмный ельник",
+      "rain_shift": 12,
+      "temp_shift_c": -3,
+      "vein_k": 0.9,
+      "favours": [
+        "spruce_stand",
+        "swamp_wood"
+      ],
+      "note": "солнце сквозь ели не проходит, мох по колено, путь держат по ручьям"
+    },
+    {
+      "id": "lichen_flats",
+      "name": "Ягельник",
+      "rain_shift": -5,
+      "temp_shift_c": -6,
+      "vein_k": 1.0,
+      "favours": [
+        "moss_flat",
+        "frost_mound"
+      ],
+      "note": "ягель хрустит под ногой, летом мошка, зимой ни зги"
+    },
+    {
+      "id": "dry_washes",
+      "name": "Сухие русла",
+      "rain_shift": -20,
+      "temp_shift_c": 3,
+      "vein_k": 1.2,
+      "favours": [
+        "dry_wash",
+        "mesa"
+      ],
+      "note": "дождь раз в год, зато после него по руслам идёт вода стеной"
+    },
+    {
+      "id": "dune_shore",
+      "name": "Дюнный берег",
+      "rain_shift": 3,
+      "temp_shift_c": 0,
+      "vein_k": 0.5,
+      "favours": [
+        "dune_ridge",
+        "sandy_shore"
+      ],
+      "note": "песок засыпает всё, что не ходит, сосны в дюнах кривые"
+    },
+    {
+      "id": "cold_glen",
+      "name": "Стылая падь",
+      "rain_shift": 5,
+      "temp_shift_c": -4,
+      "vein_k": 1.3,
+      "favours": [
+        "glen",
+        "deadfall"
+      ],
+      "note": "холод стекает в долину, иней на траве в июле"
+    }
+  ],
+  "aquatica": [],
+  "pyroxis": [
+    {
+      "id": "black_level",
+      "name": "Чёрная гладь",
+      "rain_shift": -10,
+      "temp_shift_c": 1,
+      "vein_k": 1.0,
+      "favours": [
+        "smooth_lava"
+      ],
+      "note": "ровная чёрная корка на день пути, солнце печёт снизу"
+    },
+    {
+      "id": "thorn_field",
+      "name": "Колючее поле",
+      "rain_shift": -5,
+      "temp_shift_c": 0,
+      "vein_k": 1.2,
+      "favours": [
+        "clinker"
+      ],
+      "note": "обувь рвётся за неделю, по прямой идти нельзя"
+    },
+    {
+      "id": "sulphur_springs",
+      "name": "Серные ключи",
+      "rain_shift": 5,
+      "temp_shift_c": 4,
+      "vein_k": 1.6,
+      "favours": [
+        "hot_ground"
+      ],
+      "note": "пар и вонь, зато здесь единственное тепло на два дня пути"
+    },
+    {
+      "id": "rust_cones",
+      "name": "Рыжие конусы",
+      "rain_shift": -10,
+      "temp_shift_c": 2,
+      "vein_k": 1.8,
+      "favours": [
+        "cinder_cone",
+        "clinker"
+      ],
+      "note": "три десятка конусов в ряд, с каждого видно следующий"
+    },
+    {
+      "id": "ash_lowland",
+      "name": "Пепельная низина",
+      "rain_shift": 0,
+      "temp_shift_c": 0,
+      "vein_k": 0.7,
+      "favours": [
+        "ash_flat"
+      ],
+      "note": "пепел по колено, ветер поднимает его стеной, дышат через тряпку"
+    },
+    {
+      "id": "sunken_edge",
+      "name": "Провальный край",
+      "rain_shift": -5,
+      "temp_shift_c": -1,
+      "vein_k": 2.0,
+      "favours": [
+        "collapse_trench"
+      ],
+      "note": "земля проваливается под ногой в чёрные ходы, дорогу щупают"
+    },
+    {
+      "id": "salt_bowls",
+      "name": "Солёные чаши",
+      "rain_shift": 10,
+      "temp_shift_c": 1,
+      "vein_k": 0.9,
+      "favours": [
+        "lava_basin"
+      ],
+      "note": "вода в котловинах горькая, зато единственная на два дня пути"
+    },
+    {
+      "id": "hot_slope",
+      "name": "Горячий склон",
+      "rain_shift": -15,
+      "temp_shift_c": 6,
+      "vein_k": 1.5,
+      "favours": [
+        "hot_ground",
+        "cinder_cone"
+      ],
+      "note": "камень тёплый круглые сутки, снег не ложится, спать можно на земле"
+    },
+    {
+      "id": "cold_field",
+      "name": "Стылое поле",
+      "rain_shift": 5,
+      "temp_shift_c": -5,
+      "vein_k": 0.8,
+      "favours": [
+        "smooth_lava",
+        "ash_flat"
+      ],
+      "note": "старая лава давно остыла, ветер и мороз, ни пара, ни тепла"
+    },
+    {
+      "id": "glass_bank",
+      "name": "Стеклянный откос",
+      "rain_shift": -10,
+      "temp_shift_c": 0,
+      "vein_k": 1.4,
+      "favours": [
+        "smooth_lava",
+        "collapse_trench"
+      ],
+      "note": "лава застыла блестящей коркой, режет, как стекло, на солнце слепит"
+    },
+    {
+      "id": "smoke_ridge",
+      "name": "Дымная гряда",
+      "rain_shift": 0,
+      "temp_shift_c": 3,
+      "vein_k": 1.7,
+      "favours": [
+        "cinder_cone",
+        "hot_ground"
+      ],
+      "note": "над гребнем всегда дым, ночью видно красное"
+    },
+    {
+      "id": "still_bowl",
+      "name": "Тихая чаша",
+      "rain_shift": 15,
+      "temp_shift_c": -2,
+      "vein_k": 0.6,
+      "favours": [
+        "lava_basin",
+        "ash_flat"
+      ],
+      "note": "низина между конусами, ветра нет, пепел ложится ровно, как снег"
+    }
+  ],
+  "aurora": [
+    {
+      "id": "white_level",
+      "name": "Белая гладь",
+      "rain_shift": -5,
+      "temp_shift_c": -2,
+      "vein_k": 0.7,
+      "favours": [
+        "firn_plain",
+        "glaze_ice"
+      ],
+      "note": "ровно, как стол, на три дня пути, вешки — единственная примета"
+    },
+    {
+      "id": "black_teeth",
+      "name": "Чёрные зубья",
+      "rain_shift": -10,
+      "temp_shift_c": -3,
+      "vein_k": 1.9,
+      "favours": [
+        "bare_summit"
+      ],
+      "note": "гольцы торчат из льда рядом, у их подножия единственный камень на планете"
+    },
+    {
+      "id": "broken_ice",
+      "name": "Ломаный лёд",
+      "rain_shift": 0,
+      "temp_shift_c": 0,
+      "vein_k": 0.8,
+      "favours": [
+        "pressure_ridges",
+        "crevasses"
+      ],
+      "note": "путь втрое длиннее прямой, ночью лёд трещит"
+    },
+    {
+      "id": "warm_lead",
+      "name": "Тёплая полынья",
+      "rain_shift": 15,
+      "temp_shift_c": 4,
+      "vein_k": 0.9,
+      "favours": [
+        "melt_pool",
+        "glaze_ice"
+      ],
+      "note": "вода не замерзает, стоит туман, здесь единственные мокрые ноги на Авроре"
+    },
+    {
+      "id": "wind_ridge",
+      "name": "Ветровой гребень",
+      "rain_shift": -15,
+      "temp_shift_c": -5,
+      "vein_k": 0.8,
+      "favours": [
+        "sastrugi"
+      ],
+      "note": "ветер несёт снег стеной, заструги в рост, стоять нельзя"
+    },
+    {
+      "id": "blue_rifts",
+      "name": "Синие трещины",
+      "rain_shift": 0,
+      "temp_shift_c": -2,
+      "vein_k": 1.1,
+      "favours": [
+        "crevasses"
+      ],
+      "note": "ледник течёт, разломы каждый год на новом месте"
+    },
+    {
+      "id": "still_basin",
+      "name": "Тихая котловина",
+      "rain_shift": 5,
+      "temp_shift_c": -6,
+      "vein_k": 0.6,
+      "favours": [
+        "firn_plain",
+        "melt_pool"
+      ],
+      "note": "ветра нет, зато самый лютый холод — воздух стекает и стоит"
+    },
+    {
+      "id": "stone_edge",
+      "name": "Каменный берег",
+      "rain_shift": 5,
+      "temp_shift_c": 2,
+      "vein_k": 1.5,
+      "favours": [
+        "bare_summit",
+        "glaze_ice"
+      ],
+      "note": "край ледника упирается в камень, тут ставят первые дома"
+    },
+    {
+      "id": "loose_snows",
+      "name": "Рыхлые снега",
+      "rain_shift": 20,
+      "temp_shift_c": 1,
+      "vein_k": 0.5,
+      "favours": [
+        "firn_plain"
+      ],
+      "note": "снег валит неделями, по пояс, дороги торят заново"
+    },
+    {
+      "id": "ice_rampart",
+      "name": "Ледяной вал",
+      "rain_shift": -5,
+      "temp_shift_c": -1,
+      "vein_k": 1.0,
+      "favours": [
+        "pressure_ridges"
+      ],
+      "note": "гряда торосов в высоту дома тянется через всю область"
+    },
+    {
+      "id": "mirror_ice",
+      "name": "Зеркальный лёд",
+      "rain_shift": -20,
+      "temp_shift_c": -4,
+      "vein_k": 1.2,
+      "favours": [
+        "glaze_ice"
+      ],
+      "note": "ветер сдувает снег дочиста, лёд как стекло, не устоять"
+    },
+    {
+      "id": "melt_edge",
+      "name": "Талый край",
+      "rain_shift": 10,
+      "temp_shift_c": 5,
+      "vein_k": 0.9,
+      "favours": [
+        "melt_pool",
+        "crevasses"
+      ],
+      "note": "летом лёд течёт ручьями, зимой всё это застывает буграми"
+    }
+  ]
+}
