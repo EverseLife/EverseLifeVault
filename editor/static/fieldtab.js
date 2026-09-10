@@ -29,7 +29,6 @@ export function createFieldTab(ctx) {
 
   const view = {
     kind: 'build',
-    planets: new Set(['terra']),
     seed: '', step: '', sea: '', seeds: '6',
     frame: 'planet', layer: 'relief',
   };
@@ -110,11 +109,21 @@ export function createFieldTab(ctx) {
 
   function renderFilters() {
     if (!app.field) return;
-    const total = app.field.groups.reduce((sum, g) => sum + g.constants.length, 0);
+    const rows = app.field.groups.flatMap((g) => g.constants);
+    const own = rows.filter((one) => field.perPlanet(one)).length;
     dom.filters.replaceChildren(h('span', {
       class: 'note-line',
-      text: `${total} ${plural(total, 'число', 'числа', 'чисел')} земли`
-        + ' · правятся здесь же, слева, и планеты пересчитаются после записи',
+      //: Почему список почти не меняется от планеты к планете — сказать
+      //: числом, а не оставить догадываться: клетка и рельеф у четырёх миров
+      //: общие (D-328), своего у планеты всего ничего.
+      //: Планета в строке стоит за двоеточием, а не в падеже: склонять её
+      //: нечем, и «для Терра» читалось бы поломкой (D-258 — правило игры, но
+      //: язык у инструмента тот же).
+      text: `${rows.length} ${plural(rows.length, 'число', 'числа', 'чисел')} земли`
+        + (own
+          ? `, из них ${own} у каждой планеты ${plural(own, 'своё', 'свои', 'свои')}`
+            + ` — показаны для выбранной: ${field.planetWord(app.fieldPlanet)}`
+          : ' · у всех планет общие'),
     }));
   }
 
@@ -124,6 +133,7 @@ export function createFieldTab(ctx) {
       selected: app.fieldPick,
       query: app.query,
       onSelect: (key) => select(key),
+      spell: (entry) => field.spellForPlanet(entry, app.fieldPlanet),
     });
   }
 
@@ -152,14 +162,36 @@ export function createFieldTab(ctx) {
     }
     field.planetCards(box, app.field.worlds, {
       picked: app.fieldPlanet,
-      onPick: (planet) => { app.fieldPlanet = planet; draw(); },
+      onPick: pick,
     });
-    field.runPanel(box, app.field, view, tools);
+    field.runPanel(box, app.field, view, tools, app.fieldPlanet);
     const world = app.field.worlds.find((one) => one.planet === app.fieldPlanet);
     if (world) {
       box.append(h('h4', { class: 'field-shots-head', text: `снимки: ${field.planetWord(world.planet)}` }));
       field.gallery(box, world, view, tools);
     }
+  }
+
+  //: Выбор планеты двигает всю вкладку, а не одни карточки: слева у планетных
+  //: чисел стоит её число, подпись над списком называет её, в форме подсвечена
+  //: её строка, пульт собирает её. Иначе вкладка говорила бы о двух планетах
+  //: сразу — та, что выбрана, и та, что осталась в других её углах.
+  function pick(planet) {
+    if (app.fieldPlanet === planet) return;
+    app.fieldPlanet = planet;
+    //: Снимки у планет разные: «нарисовать» идёт по одной, и у выбранной
+    //: может не быть кадра, на котором стояли. Кнопки и картинка обязаны
+    //: говорить одно — иначе подсвечено «город», а показана планета целиком.
+    const shots = app.field?.worlds.find((one) => one.planet === planet)?.pictures || [];
+    if (shots.length && !shots.some((one) => one.frame === view.frame)) view.frame = shots[0].frame;
+    if (shots.length && !shots.some((one) => one.layer === view.layer)) view.layer = shots[0].layer;
+    renderFilters();
+    renderList();
+    draw();
+    //: Форма не переоткрывается: у планетного числа переезжает только метка
+    //: строки, а переоткрытие стёрло бы всё набранное — молча и ровно там,
+    //: где набранное и есть работа.
+    app.fieldForm?.highlight(planet);
   }
 
   function select(key) {
@@ -181,16 +213,12 @@ export function createFieldTab(ctx) {
       }));
       return;
     }
-    app.fieldForm = constantForm(host, app.field, app.fieldPick, formTools);
+    app.fieldForm = constantForm(host, app.field, app.fieldPick, formTools, null,
+      { highlight: app.fieldPlanet });
   }
 
   const tools = {
     setKind: (kind) => { view.kind = kind; draw(); },
-    togglePlanet: (planet) => {
-      if (view.planets.has(planet)) view.planets.delete(planet);
-      else view.planets.add(planet);
-      draw();
-    },
     setOverride: (name, value) => { view[name] = value; },
     setFrame: (frame) => { view.frame = frame; draw(); },
     setLayer: (layer) => { view.layer = layer; draw(); },
@@ -198,7 +226,7 @@ export function createFieldTab(ctx) {
       try {
         const answer = await api.fieldRun({
           kind: view.kind,
-          planets: [...view.planets],
+          planets: [app.fieldPlanet],
           seed: view.seed || null,
           step: view.step || null,
           sea: view.sea || null,
@@ -208,7 +236,7 @@ export function createFieldTab(ctx) {
         seen = answer.job?.lines?.length ?? 0;
         say(answer.job?.rebuild
           ? 'пошла работа: сперва соберётся вольт, потом поле'
-          : `пошла работа: ${view.kind}`, false);
+          : `пошла работа: ${view.kind} · ${field.planetWord(app.fieldPlanet)}`, false);
         draw();
         watch();
       } catch (error) {

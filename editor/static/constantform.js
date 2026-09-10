@@ -103,7 +103,12 @@ function convert(draft, shape) {
   }
 }
 
-export function constantForm(host, registry, key, tools, seed = null) {
+//: `opts.highlight` -- which row of a table is the one being read. A number
+//: that differs by planet is one table over all four worlds and is edited
+//: whole, the way the file writes it; but one comes to it for a single
+//: planet, and that row has to be found at a glance. The form knows nothing
+//: of planets: it is told a row's key.
+export function constantForm(host, registry, key, tools, seed = null, opts = {}) {
   const found = registry.groups.flatMap((group) => group.constants.map((entry) => ({ ...entry, group: group.id })))
     .find((entry) => entry.key === key);
   const isNew = !found;
@@ -111,21 +116,32 @@ export function constantForm(host, registry, key, tools, seed = null) {
     key: '', kind: 'value', value: 0, unit: '', note: '', decision: '', comment: [],
     group: seed?.group || registry.groups[0]?.id, ...(seed || {}),
   };
-  const draft = {
-    key: entry.key,
-    shape: shapeOf(entry),
-    value: entry.kind === 'value' ? entry.value : null,
-    formula: entry.kind === 'formula' ? entry.value : '',
-    valueFrom: entry.kind === 'value_from' ? entry.value : null,
-    yaml: entry.kind === 'value' ? toYaml(entry.value) : '',
-    unit: entry.unit || '',
-    note: entry.note || '',
-    decision: entry.decision || '',
-    group: entry.group,
-    after: seed?.after || '',
-    rows: [],
-  };
-  if (draft.shape === 'table') draft.rows = [...Object.entries(draft.value).map(([name, one]) => [name, String(one)]), ['', '']];
+  //: The draft is rebuilt rather than the form re-made, because «Сбросить»
+  //: used to make a second `constantForm` over the same host and hand it to
+  //: nobody: the tab kept the first one, and Ctrl+S (`app.js`) saved the
+  //: draft the person had just thrown away, while another form stood on the
+  //: screen. One form over one host, from the first render to the last.
+  let draft;
+  function reset() {
+    draft = {
+      key: entry.key,
+      shape: shapeOf(entry),
+      value: entry.kind === 'value' ? entry.value : null,
+      formula: entry.kind === 'formula' ? entry.value : '',
+      valueFrom: entry.kind === 'value_from' ? entry.value : null,
+      yaml: entry.kind === 'value' ? toYaml(entry.value) : '',
+      unit: entry.unit || '',
+      note: entry.note || '',
+      decision: entry.decision || '',
+      group: entry.group,
+      after: seed?.after || '',
+      rows: [],
+    };
+    if (draft.shape === 'table') {
+      draft.rows = [...Object.entries(draft.value).map(([name, one]) => [name, String(one)]), ['', '']];
+    }
+  }
+  reset();
 
   const group = () => registry.groups.find((one) => one.id === draft.group);
 
@@ -185,7 +201,7 @@ export function constantForm(host, registry, key, tools, seed = null) {
           : null,
         errorLine(),
         entry.building ? null : actions(isNew ? 'Создать' : 'Сохранить', save,
-          () => (isNew ? tools.clear() : constantForm(host, registry, key, tools))),
+          () => { if (isNew) tools.clear(); else { reset(); render(); } }),
         commentBlock(entry.comment),
         h('div', { class: 'note-line',
           text: 'константа применяется к миру сборкой вольта и деплоем, без выката версии (D-065). '
@@ -228,7 +244,9 @@ export function constantForm(host, registry, key, tools, seed = null) {
       case 'table':
         return h('fieldset', {},
           h('legend', { text: 'таблица' }),
-          h('div', { class: 'inputs' }, draft.rows.map(([name, value], index) => h('div', { class: 'inp two' },
+          h('div', { class: 'inputs' }, draft.rows.map(([name, value], index) => h('div', {
+            class: 'inp two' + (opts.highlight && name === opts.highlight ? ' lit' : ''),
+          },
             h('input', { value: name, placeholder: 'ключ', list: 'all-names',
               oninput: (event) => { draft.rows[index][0] = event.target.value; growRows(); } }),
             h('input', { class: 'mono', value, placeholder: 'число или слово',
@@ -303,6 +321,21 @@ export function constantForm(host, registry, key, tools, seed = null) {
     }
   }
 
+  //: Moving the mark is not re-rendering. The row the reader came for can
+  //: change under an open form -- another planet is picked -- and re-making
+  //: the form to move a border would throw away everything typed into it,
+  //: silently, in the one place where the typing is the work. A class on a
+  //: live row costs nothing and keeps the draft.
+  function highlight(name) {
+    opts.highlight = name;
+    for (const row of host.querySelectorAll('.inp.two')) {
+      //: The key is read off the row on screen rather than out of the draft:
+      //: both are edited, and the row that lights up must be the seen one.
+      const key = row.querySelector('input')?.value;
+      row.classList.toggle('lit', Boolean(name) && key === name);
+    }
+  }
+
   render();
-  return { save };
+  return { save, highlight };
 }

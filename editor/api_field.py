@@ -171,7 +171,15 @@ def _lock_path(session: Session) -> Path:
 
 
 def _take_lock(session: Session, job: Job, force: bool) -> None:
-    """Claim the vault's field directory, or say who is holding it."""
+    """Claim the vault's field directory, or say who is holding it.
+
+    `force` has no button and is not meant to grow one: breaking somebody
+    else's mark is not a thing to offer beside «Запустить», where it would be
+    pressed to get past a refusal rather than because the other process is
+    known to be dead. It stays on the route for a caller that knows -- the
+    tests, and a terminal -- and the refusal tells a person to delete the
+    file, which is the same act with the other process's name in front of it.
+    """
     path = _lock_path(session)
     path.parent.mkdir(parents=True, exist_ok=True)
     if force and path.exists():
@@ -192,8 +200,8 @@ def _take_lock(session: Session, job: Job, force: bool) -> None:
         raise vault.VaultError(
             f"поле этого вольта уже строит процесс {held.get('pid', '?')}"
             f" ({held.get('kind', '?')} над {', '.join(held.get('planets') or ['?'])},"
-            f" {old // 60} мин назад). Если он умер, снимите отметку:"
-            f" удалите {path} или запустите ещё раз с «снять чужую отметку»"
+            f" {old // 60} мин назад). Если он умер, снимите отметку сами:"
+            f" удалите {path}"
         ) from error
 
 
@@ -329,7 +337,11 @@ def _run_job(session: Session, job: Job) -> None:
         if job.stopping:
             break
         job.done.append(planet)
-    job.at = ""
+    #: The planet stays named when the walk broke on it: the progress bar has
+    #: no other way to tell which chip failed, and cleared it showed the one
+    #: that fell over as still waiting its turn.
+    if not job.failed:
+        job.at = ""
     job.stage = "остановлено" if job.stopping else ("отказ" if job.failed else "готово")
     #: The mark goes **before** the run is called over. `ended` is what every
     #: reader watches for, and between it and the mark's removal a next run

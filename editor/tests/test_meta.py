@@ -210,21 +210,27 @@ def test_the_rest_of_the_file_is_left_alone(recipes: Path):
     assert comments == [line for line in before if line.lstrip().startswith("#")]
 
 
-def test_the_maps_arithmetic_is_checked_too() -> None:
-    """`node --test` over `world.test.mjs`, in this run and not beside it.
+def test_the_arithmetic_in_javascript_is_checked_too() -> None:
+    """`node --test` over every `*.test.mjs` here, in this run and not beside it.
 
-    Half the «Мир» tab is arithmetic -- where a pin lands, what the drag
-    writes back -- and it lives in JavaScript because that is where the map is
-    drawn. Left to a runner of its own it would be run the day it was written
-    and never again; two real defects (a pin measured from the wrong origin, a
-    cosine the wrong way up) reached the file precisely because nothing ran.
-    So it runs here, with everything else, and is skipped where node is not.
+    Half of some tabs is arithmetic -- where a pin lands, what the drag writes
+    back, whether a number belongs to one planet -- and it lives in JavaScript
+    because that is where the drawing is. Left to a runner of its own it would
+    be run the day it was written and never again; two real defects (a pin
+    measured from the wrong origin, a cosine the wrong way up) reached the
+    file precisely because nothing ran. So it runs here, with everything else,
+    and is skipped where node is not.
+
+    A **pattern** is handed over rather than a file: a set that has to be
+    named in python to be run is a set that the next one will not join. Not a
+    bare directory -- node reads that as a module to import and dies -- but
+    the glob it does understand, matched from the editor's own root.
     """
-    tests = Path(__file__).with_name("world.test.mjs")
+    tests = Path(__file__).parent
     try:
         done = subprocess.run(
-            ["node", "--test", str(tests)],
-            cwd=tests.parent.parent,
+            ["node", "--test", f"{tests.name}/*.test.mjs"],
+            cwd=tests.parent,
             capture_output=True,
             timeout=120,
             check=False,

@@ -9,7 +9,8 @@
 // клеток у этой планеты» в проекте нет и заводить её незачем: она разошлась
 // бы со сборщиком на первой же правке.
 
-import { h, plural } from './ui.js';
+import * as constants from './constants.js';
+import { h, num, plural } from './ui.js';
 
 const FRAME_WORDS = { planet: 'планета целиком', region: 'область', city: 'город' };
 const LAYER_WORDS = {
@@ -21,6 +22,34 @@ const PLANET_WORDS = {
 
 export function planetWord(id) {
   return PLANET_WORDS[id] || id;
+}
+
+//: Своё ли это число у каждой планеты. Узнаётся по самому значению, а не по
+//: списку ключей: таблица, у которой все строки — планеты, планетная и есть.
+//: Заведут пятую такую константу — она сама поедет за выбором, и не будет
+//: второго места, куда об этом надо не забыть дописать.
+export function perPlanet(entry) {
+  const value = entry.kind === 'value' ? entry.value : null;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const keys = Object.keys(value);
+  return keys.length > 0 && keys.every((one) => one in PLANET_WORDS);
+}
+
+//: `num` округляет до тысячных, а доля суши — это 1.5e-05: в списке она стала
+//: бы нулём, одинаковым у всех четырёх планет.
+function spellNumber(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return value == null ? '—' : String(value);
+  return value !== 0 && Math.abs(value) < 0.001 ? value.toExponential(3) : num(value);
+}
+
+/** Строка списка глазами выбранной планеты: у планетного числа — её число.
+ *
+ *  Без единицы, хотя число тут настоящее: строка узкая, и «1.526e-5 доля
+ *  площади Земли · Аврора» ужимает ключ слева до «l…». Единица стоит в форме,
+ *  а здесь важнее, что число планетное и какой планеты оно. */
+export function spellForPlanet(entry, planet) {
+  if (!perPlanet(entry)) return constants.spellRow(entry);
+  return `${spellNumber(entry.value[planet])} · ${planetWord(planet)}`;
 }
 
 export function spellSeconds(seconds) {
@@ -36,6 +65,15 @@ function spellCells(count) {
   if (count >= 1e6) return `${(count / 1e6).toFixed(2)} млн`;
   if (count >= 1e3) return `${Math.round(count / 1e3)} тыс.`;
   return String(count);
+}
+
+//: Слово согласуется с тем, что написано, а не с точным счётом: у «3.11 млн»
+//: и у «512 тыс.» это всегда «клеток», сколько бы там ни было на самом деле,
+//: а «3 108 972 клетки» на экран не выходит вовсе.
+function spellCellsWord(count) {
+  return count >= 1e3
+    ? `${spellCells(count)} клеток`
+    : `${count} ${plural(count, 'клетка', 'клетки', 'клеток')}`;
 }
 
 function ago(stamp) {
@@ -123,10 +161,18 @@ function cell(name, value, title) {
     h('b', { text: value }));
 }
 
-//: Пульт: что запускать, над чем и с какими числами поверх реестра. Зерно и
-//: шаг здесь именно **поверх**: их пробуют, а не записывают (план §4.1, §4.4),
-//: и записываются они формой константы слева, как всё остальное.
-export function runPanel(host, state, view, tools) {
+//: Пульт: что запускать и с какими числами поверх реестра. Зерно и шаг здесь
+//: именно **поверх**: их пробуют, а не записывают (план §4.1, §4.4), и
+//: записываются они формой константы слева, как всё остальное.
+//:
+//: Над **выбранной** планетой, а не над отмеченными галочками (владелец,
+//: 2026-09-10). Галочки заводили на вкладке второй выбор рядом с первым:
+//: карточки, список и снимки говорили про Терру, а кнопка собирала Аврору,
+//: и какая из двух планет на экране — было не прочесть. Прогон сразу над
+//: четырьмя из окна ушёл; он остался у терминала, которому это и место:
+//: `tools/landscape.py build --planet ...` час работы не показывает, а
+//: делает, и ради него никто не держит вкладку открытой.
+export function runPanel(host, state, view, tools, picked) {
   const job = state.job;
   const running = Boolean(job && job.running);
   const box = h('div', { class: 'field-run' });
@@ -149,19 +195,6 @@ export function runPanel(host, state, view, tools) {
     }, word));
   }
 
-  const whoBox = h('div', { class: 'field-who' });
-  for (const world of state.worlds) {
-    const on = view.planets.has(world.planet);
-    whoBox.append(h('label', { class: `field-who-one ${on ? 'on' : ''}` },
-      h('input', {
-        type: 'checkbox',
-        checked: on || null,
-        disabled: running || null,
-        onchange: () => tools.togglePlanet(world.planet),
-      }),
-      planetWord(world.planet)));
-  }
-
   const overrides = h('div', { class: 'field-overrides' },
     field('зерно', 'seed', view.seed, 'terrain.seed на один прогон; пусто — как в реестре'),
     field('шаг, м', 'step', view.step, 'terrain.step_m на один прогон'),
@@ -177,28 +210,33 @@ export function runPanel(host, state, view, tools) {
       }));
   }
 
-  const chosen = state.worlds.filter((one) => view.planets.has(one.planet));
-  const cells = chosen.reduce((sum, one) => sum + one.cells, 0);
-  const seconds = chosen.reduce((sum, one) => sum + one.about_seconds, 0);
+  //: Пока работа идёт — пульт про неё, а не про карточку: карточку щёлкают,
+  //: чтобы посмотреть чужие снимки, и панель, оставшаяся на выбранном мире,
+  //: писала бы «сборка: Аврора» над полосой, которая строит Терру.
+  const named = running && job.planets.length ? job.planets[0] : picked;
+  const world = state.worlds.find((one) => one.planet === picked);
   const actions = h('div', { class: 'field-actions' },
     h('button', {
-      class: 'primary', type: 'button', disabled: running || !chosen.length || null,
+      class: 'primary', type: 'button', disabled: running || !world || null,
       onclick: () => tools.start(),
-    }, running ? 'идёт…' : 'Запустить'),
+    }, running ? 'идёт…' : `Запустить: ${planetWord(picked)}`),
     running ? h('button', { class: 'danger', type: 'button', onclick: () => tools.stop() }, 'Остановить') : null,
     h('span', {
       class: 'note-line',
-      text: chosen.length
-        ? `${chosen.length} ${plural(chosen.length, 'планета', 'планеты', 'планет')}`
-          + ` · ${spellCells(cells)} ${plural(cells, 'клетка', 'клетки', 'клеток')}`
-          + (view.kind === 'build' || view.kind === 'all' ? ` · около ${spellSeconds(seconds)}` : '')
-        : 'выберите хотя бы одну планету',
+      text: world
+        ? spellCellsWord(world.cells)
+          + (view.kind === 'build' || view.kind === 'all'
+            ? ` · около ${spellSeconds(world.about_seconds)}` : '')
+        : 'выберите планету карточкой выше',
     }),
   );
 
-  box.append(
-    h('h4', { text: 'сборка' }),
-    kindBox, whoBox, overrides,
+  //: `filter` не для порядка: `Element.append` — не `h`, и `null` он кладёт
+  //: строкой «null». Слово это стояло под полями пульта всё время, пока
+  //: реестр не был новее сборки, то есть почти всегда.
+  box.append(...[
+    h('h4', { text: `сборка: ${planetWord(named)}` }),
+    kindBox, overrides,
     //: Конвейер читает собранный реестр, а карточки — исходный файл. Между
     //: ними лежит всё записанное и ещё не собранное, и запуск построил бы
     //: прежний мир, показывая новый. Вольт соберётся первым шагом, и об этом
@@ -209,7 +247,7 @@ export function runPanel(host, state, view, tools) {
     }) : null,
     actions,
     progress(job),
-  );
+  ].filter(Boolean));
   host.append(box);
   return box;
 }
@@ -223,9 +261,11 @@ function progress(job) {
   const done = new Set(job.done);
   const bar = h('div', { class: 'field-bar' });
   for (const planet of job.planets) {
+    //: «Упал» — раньше «идёт»: обе ветки смотрят на одну планету, и,
+    //: стоя второй, «упал» не загорался никогда.
     const state = done.has(planet) ? 'done'
-      : job.at === planet ? 'now'
-      : job.failed && job.at === planet ? 'bad' : 'wait';
+      : job.at !== planet ? 'wait'
+      : job.failed ? 'bad' : 'now';
     bar.append(h('span', { class: `field-bar-one ${state}`, text: planetWord(planet) }));
   }
   box.append(bar);

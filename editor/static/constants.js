@@ -26,6 +26,12 @@ export function spellValue(entry) {
   return `${keys.length} ${keys.length === 1 ? 'строка' : keys.length < 5 ? 'строки' : 'строк'}`;
 }
 
+/** Значение вместе с единицей — то, что стоит в строке списка справа. */
+export function spellRow(entry) {
+  const unit = entry.unit && typeof entry.value === 'number' ? ` ${entry.unit}` : '';
+  return `${spellValue(entry)}${unit}`;
+}
+
 export function isRange(value) {
   return value && typeof value === 'object' && !Array.isArray(value)
     && Object.keys(value).length === 2 && 'min' in value && 'max' in value;
@@ -43,7 +49,10 @@ export function matches(entry, needle) {
 
 // ---------------------------------------------------------------------- список
 
-export function renderList(root, groups, { selected, query, onSelect }) {
+//: `spell` — чем подписано значение справа. Своё оно нужно вкладке, у которой
+//: список читают не сам по себе, а под что-то выбранное: «Планеты» показывают
+//: там число выбранной планеты, а не «4 строки», одинаковые для всех четырёх.
+export function renderList(root, groups, { selected, query, onSelect, spell = spellRow }) {
   const needle = (query || '').trim().toLowerCase();
   const out = [];
   for (const group of groups) {
@@ -59,7 +68,7 @@ export function renderList(root, groups, { selected, query, onSelect }) {
       },
       h('span', { class: 'dot', style: `background:${entry.building ? 'var(--kind-station)' : 'var(--kind-money)'}` }),
       h('span', { class: 'nm mono', text: entry.key.slice(entry.key.indexOf('.') + 1) }),
-      h('span', { class: 'st', text: `${spellValue(entry)}${entry.unit && typeof entry.value === 'number' ? ` ${entry.unit}` : ''}` }),
+      h('span', { class: 'st', text: spell(entry) }),
       ));
     }
   }

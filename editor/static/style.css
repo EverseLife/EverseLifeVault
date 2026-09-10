@@ -329,6 +329,9 @@ legend { color: var(--text-faint); font-size: 11px; padding: 0 4px; }
 .inp .star.on { color: var(--warn); }
 .inp .del:hover { color: var(--danger); }
 .inp input[readonly] { color: var(--text-faint); }
+/* Строка таблицы, за которой сюда пришли: планетное число правится всей
+   таблицей сразу, а ищут в ней одну планету (`constantForm` opts.highlight). */
+.inp.lit input { border-color: var(--accent); }
 
 /* Время правится долями: часы, минуты, секунды — все три всегда. Ряд узкий,
    поэтому клетки равной ширины и подписи в один-три знака. */
@@ -735,15 +738,6 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
   color: var(--muted, #8a93a6);
   font-weight: normal;
 }
-.field-who { display: flex; flex-wrap: wrap; gap: 10px; }
-.field-who-one {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 13px;
-  color: var(--muted, #8a93a6);
-}
-.field-who-one.on { color: inherit; }
 .field-overrides { display: flex; flex-wrap: wrap; gap: 10px; }
 .field-override {
   display: inline-flex;
