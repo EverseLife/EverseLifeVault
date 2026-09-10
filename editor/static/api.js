@@ -67,13 +67,6 @@ export const api = {
   fieldRun: (body) => req('POST', '/api/field/run', null, body),
   fieldJob: (since = 0) => req('GET', '/api/field/job', { since: String(since) }),
   fieldStop: () => req('POST', '/api/field/stop'),
-  // Рельеф (D-319, D-321, D-323): поле считает движок, редактор его только
-  // показывает. `overrides` — числа, которые примеряют, не записывая.
-  terrainReady: () => req('GET', '/api/terrain/ready'),
-  terrain: (planet, overrides = []) => req('GET', '/api/terrain', [
-    ['planet', planet],
-    ...overrides.map((one) => ['set', one]),
-  ]),
   createConstant: (body) => req('POST', '/api/constant', null, body),
   updateConstant: (key, body) => req('PUT', '/api/constant', { key }, body),
   removeConstant: (key) => req('DELETE', '/api/constant', { key }, { with_comment: true }),

@@ -13,7 +13,6 @@ import { api } from './api.js';
 import { ask, h } from './ui.js';
 import * as worldmap from './world.js';
 import * as worldform from './worldform.js';
-import { terrainPanel } from './terrainpanel.js';
 
 /**
  * `ctx` is what the tab borrows from the page: the shared state, the DOM it
@@ -53,24 +52,15 @@ export function createWorldTab(ctx) {
     if (!app.world) return;
     dom.filters.replaceChildren(
       ...worldmap.groups(app.world.nodes).map(({ group, members }) => h('button', {
-        class: 'chip' + (group === app.worldGroup && !app.worldTerrain ? ' on' : ''),
+        class: 'chip' + (group === app.worldGroup ? ' on' : ''),
         text: `${worldmap.groupTitle(group, app.world.nodes)} · ${members.length}`,
         onclick: () => {
           app.worldGroup = group;
-          app.worldTerrain = false;
           renderFilters();
           draw();
           openForm();
         },
       })),
-      //: Рельеф — не группа узлов, а то, на чём они стоят: своя фишка, и
-      //: открывается он в той же колонке, где формы (D-319, D-323).
-      h('button', {
-        class: 'chip' + (app.worldTerrain ? ' on' : ''),
-        title: 'зерно и числа генерации: примерить и посмотреть, прежде чем записать',
-        text: 'Рельеф ⛰',
-        onclick: () => { app.worldTerrain = true; renderFilters(); openForm(); },
-      }),
     );
   }
 
@@ -141,10 +131,6 @@ export function createWorldTab(ctx) {
 
   function openForm() {
     const host = document.getElementById('panel');
-    if (app.worldTerrain) {
-      void openTerrain(host);
-      return;
-    }
     if (!app.worldPick) {
       host.replaceChildren(h('div', { class: 'empty', text: 'Выберите узел на карте или слева.' }));
       return;
@@ -154,39 +140,6 @@ export function createWorldTab(ctx) {
       return;
     }
     worldform.nodeForm(host, app.world, app.worldPick, tools);
-  }
-
-  //: Числа рельефа читаются реестром при открытии панели, а не возятся с
-  //: раскладкой: их девять, а карту открывают ради узлов.
-  async function openTerrain(host) {
-    host.replaceChildren(h('div', { class: 'empty', text: 'читаю числа рельефа…' }));
-    let registry;
-    try {
-      registry = await api.constants();
-    } catch (error) {
-      host.replaceChildren(h('div', { class: 'empty', text: String(error.message || error) }));
-      return;
-    }
-    const constants = {};
-    for (const group of registry.groups) {
-      for (const one of group.constants) constants[one.key] = one.value;
-    }
-    const planet = app.worldGroup?.startsWith('planet:') ? app.worldGroup.slice(7) : 'terra';
-    terrainPanel(host, {
-      constants,
-      planet,
-      tools: {
-        save: async (key, value) => {
-          const entry = registry.groups
-            .flatMap((group) => group.constants)
-            .find((one) => one.key === key);
-          if (!entry) throw new Error(`нет такой константы: ${key}`);
-          const result = await api.updateConstant(key, { data: { ...entry, value } });
-          if (result && result.check) reportRun(result.check, 'проверка вольта');
-        },
-        notify: (text, bad) => say(text, bad),
-      },
-    });
   }
 
   // Новый узел заводится там же, где стоит выбранный: группа и якорь берутся у

@@ -225,8 +225,7 @@ def _python(vault_root: Path | None = None) -> str:
     """The interpreter that has numpy.
 
     The one running the editor where it has it, and otherwise the vault's own
-    `.venv` -- an editor started on a bare python can still drive a build, the
-    same way `api_terrain` finds the engine's interpreter rather than giving up.
+    `.venv`: an editor started on a bare python can still drive a build.
     """
     if vault_root is not None:
         for candidate in (

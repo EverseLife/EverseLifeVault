@@ -33,7 +33,6 @@ import api_buildings
 import api_field
 import api_plants
 import api_space
-import api_terrain
 import api_world
 import store
 import vaultfile as vault
@@ -180,7 +179,6 @@ ROUTES = {
     **api_field.ROUTES,
     **api_plants.ROUTES,
     **api_space.ROUTES,
-    **api_terrain.ROUTES,
     **api_world.ROUTES,
     ("POST", "/api/masses"): masses,
     ("POST", "/api/check"): check,

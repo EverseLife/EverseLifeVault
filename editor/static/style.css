@@ -652,58 +652,6 @@ pre.src .cmt { color: var(--text-faint); font-style: italic; }
 
 /* Панель рельефа во вкладке «Мир»: числа генерации и поле, которое они дают.
    Поле считает движок (`api_terrain`), здесь только показ. */
-.terrain-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-}
-.terrain-panel h3 {
-  margin: 0;
-  font-size: 15px;
-}
-.terrain-planets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.terrain-canvas {
-  width: 100%;
-  height: auto;
-  border: 1px solid var(--line, #2a3142);
-  border-radius: 4px;
-  background: #0d1117;
-  image-rendering: auto;
-}
-.terrain-summary {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 2px 10px;
-  margin: 0;
-  font-size: 12px;
-}
-.terrain-summary dt { color: var(--muted, #8a93a6); }
-.terrain-summary dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
-.terrain-knobs {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.terrain-knob {
-  display: grid;
-  grid-template-columns: 1fr 90px;
-  gap: 4px 8px;
-  align-items: center;
-  font-size: 12px;
-}
-.terrain-knob .hint {
-  grid-column: 1 / -1;
-  color: var(--muted, #8a93a6);
-  font-size: 11px;
-}
-/* Примеренное, но не записанное: видно, что файл этого ещё не знает. */
-.terrain-knob.changed .label { color: var(--warn, #c8a34a); }
-.terrain-knob.changed input { border-color: var(--warn, #c8a34a); }
 .note-line.bad { color: var(--bad, #f7768e); }
 .space-system {
   width: 100%;
