@@ -5,34 +5,18 @@
   },
   "nodes": [
     {
-      "key": "terra.capital",
-      "name": "Столица Терры",
-      "layer": "planet",
-      "planet": "terra",
-      "parent": "terra",
-      "anchor": null,
-      "area_m2": 1,
-      "place": {
-        "lat": 32.66,
-        "lon": -105.56
-      },
-      "city": true,
-      "properties": {},
-      "machines": [],
-      "relics": [],
-      "veins": [],
-      "items": []
-    },
-    {
       "key": "terra.capital.core",
       "name": "Ядро: Принтер Предтеч",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra",
       "anchor": null,
       "area_m2": 120,
-      "place": null,
-      "city": false,
+      "place": {
+        "lat": 32.9035,
+        "lon": -105.884431
+      },
+      "city": "Столица Терры",
       "properties": {
         "лес": false,
         "предтечи": true
@@ -47,14 +31,14 @@
       "name": "Библиотека",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": -60,
-        "y": 24
+        "x": -20,
+        "y": 8
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -72,14 +56,14 @@
       "name": "Рынок",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.core",
       "area_m2": 200,
       "place": {
-        "x": 33,
+        "x": 11,
         "y": 0
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -102,14 +86,14 @@
       "name": "Администрация",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.core",
       "area_m2": 180,
       "place": {
         "x": 0,
-        "y": 21
+        "y": 15
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -127,14 +111,14 @@
       "name": "Мастерская",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.market",
       "area_m2": 260,
       "place": {
-        "x": 90,
-        "y": -36
+        "x": 30,
+        "y": -12
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -247,14 +231,14 @@
       "name": "Забой у стены",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.forge",
       "area_m2": 300,
       "place": {
-        "x": -198,
-        "y": -69
+        "x": -66,
+        "y": -23
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [],
       "relics": [],
@@ -272,14 +256,14 @@
       "name": "Окраина",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.core",
       "area_m2": 80,
       "place": {
-        "x": -27,
-        "y": -39
+        "x": -9,
+        "y": -13
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [],
       "relics": [],
@@ -291,14 +275,14 @@
       "name": "Космодром",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.gate",
       "area_m2": 240,
       "place": {
-        "x": 63,
-        "y": 111
+        "x": 21,
+        "y": 37
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -321,14 +305,14 @@
       "name": "Каторжный забой",
       "layer": "planet",
       "planet": "terra",
-      "parent": "terra.capital",
+      "parent": "terra.capital.core",
       "anchor": "terra.capital.gate",
       "area_m2": 120,
       "place": {
-        "x": -111,
-        "y": -21
+        "x": -37,
+        "y": -7
       },
-      "city": false,
+      "city": null,
       "properties": {},
       "machines": [
         {
@@ -365,8 +349,11 @@
       "parent": "terra",
       "anchor": "terra.capital.gate",
       "area_m2": 400,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": -40,
+        "y": -32
+      },
+      "city": null,
       "properties": {
         "лес": true,
         "камни": true,
@@ -396,8 +383,11 @@
       "parent": "terra",
       "anchor": "terra.capital.gate",
       "area_m2": 400,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": -28,
+        "y": -50
+      },
+      "city": null,
       "properties": {
         "вода": "река",
         "плодородие": 55,
@@ -428,10 +418,10 @@
       "anchor": "terra.capital.gate",
       "area_m2": 400,
       "place": {
-        "x": 9,
-        "y": -27
+        "x": 3,
+        "y": -9
       },
-      "city": false,
+      "city": null,
       "properties": {
         "вода": "нет"
       },
@@ -458,7 +448,7 @@
         "lat": -8.0,
         "lon": 112.0
       },
-      "city": false,
+      "city": null,
       "properties": {
         "предтечи": true,
         "город": "столица"
@@ -476,8 +466,11 @@
       "parent": "aurora.merid",
       "anchor": null,
       "area_m2": 600,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 0,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 1,
         "предтечи": true
@@ -498,8 +491,11 @@
       "parent": "aurora.merid",
       "anchor": "aurora.merid.hall",
       "area_m2": 240,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 15,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 0,
         "предтечи": true
@@ -523,7 +519,7 @@
         "lat": -20.5,
         "lon": 118.5
       },
-      "city": false,
+      "city": null,
       "properties": {
         "предтечи": true,
         "город": "цех"
@@ -541,8 +537,11 @@
       "parent": "aurora.caldar",
       "anchor": null,
       "area_m2": 600,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 0,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 1,
         "предтечи": true
@@ -563,8 +562,11 @@
       "parent": "aurora.caldar",
       "anchor": "aurora.caldar.hall",
       "area_m2": 240,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 15,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 0,
         "предтечи": true
@@ -588,7 +590,7 @@
         "lat": 3.0,
         "lon": 131.0
       },
-      "city": false,
+      "city": null,
       "properties": {
         "предтечи": true,
         "город": "улей"
@@ -606,8 +608,11 @@
       "parent": "aurora.veyr",
       "anchor": null,
       "area_m2": 600,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 0,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 1,
         "предтечи": true
@@ -628,8 +633,11 @@
       "parent": "aurora.veyr",
       "anchor": "aurora.veyr.hall",
       "area_m2": 240,
-      "place": null,
-      "city": false,
+      "place": {
+        "x": 15,
+        "y": 0
+      },
+      "city": null,
       "properties": {
         "глубина": 0,
         "предтечи": true

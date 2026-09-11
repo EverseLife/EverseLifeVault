@@ -48,7 +48,10 @@ export function nodeForm(host, world, key, tools) {
   const external = world.external || [];
   fields.parent = pick([...external, ...keys].filter((one) => one !== key), draft.parent, 'без группы');
   fields.anchor = pick(keys.filter((one) => one !== key), draft.anchor, 'без якоря');
-  fields.city = h('input', { type: 'checkbox', checked: !!draft.city });
+  //: Город — имя, а не галочка (D-330). Живому городу отдельного
+  //: узла-пустышки больше не положено: город стоит на узле с биопринтером, и
+  //: вблизи у того своё имя, а издали — имя города.
+  fields.city = h('input', { type: 'text', value: draft.city || '' });
 
   //: Пин бывает двух видов, и форма показывает тот, что у узла: градусы у
   //: узла поверхности (D-319, D-324), метры от якоря у всех остальных.
@@ -88,7 +91,7 @@ export function nodeForm(host, world, key, tools) {
     anchor: fields.anchor.value || null,
     area_m2: Number(fields.area.value),
     place: placeOf(fields, geographic),
-    city: fields.city.checked,
+    city: fields.city.value.trim() || null,
     properties: properties.value(),
     machines: machines.value(),
     relics: relics.value().map((one) => one.class).filter(Boolean),
@@ -116,9 +119,9 @@ export function nodeForm(host, world, key, tools) {
     line('площадь, м²', fields.area),
     line('якорь на карте', fields.anchor,
       'рядом с кем узел встаёт, если место не прибито (D-237)'),
-    h('label', { class: 'field row' }, fields.city,
-      h('span', { class: 'label', text: 'здесь основывается город' }),
-      h('span', { class: 'hint', text: 'устав, казна и законы — дело движка (D-154)' })),
+    line('город здесь', fields.city,
+      'имя города, который здесь основывается: издали карта подписывает узел '
+      + 'им, вблизи — своим. Устав, казна и законы — дело движка (D-154, D-330)'),
     h('div', { class: 'field' },
       h('span', {
         class: 'label',

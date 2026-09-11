@@ -200,7 +200,7 @@ def test_a_field_inserted_before_one_that_changed(world: Path) -> None:
     kept = again.node("terra.capital.pit")
     assert kept["layer"] == "location"
     assert kept["name"] == "Забой у стены, нижний ярус"
-    assert kept["parent"] == "terra.capital"
+    assert kept["parent"] == "terra.capital.core"
 
 
 def test_a_key_that_already_exists_is_not_quietly_overwritten(world: Path) -> None:
@@ -252,10 +252,10 @@ def test_a_place_in_degrees_survives_being_written(world: Path) -> None:
     gesture the whole map exists for, and it refused every time.
     """
     file = open_world(world)
-    node = copy.deepcopy(file.node("terra.capital"))
+    node = copy.deepcopy(file.node("terra.capital.core"))
     node["place"] = {"lat": 41.017267, "lon": -23.500001}
     again = save(file, file.put_node(node))
-    assert again.node("terra.capital")["place"] == {"lat": 41.017267, "lon": -23.500001}
+    assert again.node("terra.capital.core")["place"] == {"lat": 41.017267, "lon": -23.500001}
 
 
 def test_a_road_length_that_is_not_a_number_is_refused_by_name(world: Path) -> None:
@@ -268,7 +268,7 @@ def test_a_road_length_that_is_not_a_number_is_refused_by_name(world: Path) -> N
     road into a computed one, and nothing anywhere said so.
     """
     file = open_world(world)
-    pair = {"a": "terra.capital", "b": "terra.coal"}
+    pair = {"a": "terra.capital.core", "b": "terra.coal"}
     with pytest.raises(vault.VaultError, match="секунды"):
         file.put_edge({**pair, "seconds": "4o"})
     _, doc = file.put_edge({**pair, "seconds": "45"})
@@ -434,10 +434,10 @@ def test_a_number_that_must_be_positive_is_not_nought(world: Path) -> None:
     live in shared code now (`blockfile.number_of`), and a lower bound that
     quietly began admitting its own value would let all three through."""
     file = open_world(world)
-    node = copy.deepcopy(file.node("terra.capital"))
+    node = copy.deepcopy(file.node("terra.capital.core"))
     with pytest.raises(vault.VaultError, match="площадь"):
         layout.clean_node({**node, "area_m2": 0})
     with pytest.raises(vault.VaultError, match="запас жилы"):
         layout.clean_node({**node, "veins": [{"resource": "Железная руда", "richness": 50, "remaining": 0}]})
     with pytest.raises(vault.VaultError, match="секунды"):
-        layout.clean_edge({"a": "terra.capital", "b": "terra.capital.mine", "seconds": 0})
+        layout.clean_edge({"a": "terra.capital.core", "b": "terra.capital.mine", "seconds": 0})

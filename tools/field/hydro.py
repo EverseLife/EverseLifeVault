@@ -12,6 +12,10 @@
 3. **Накопление**: клетки перебираются сверху вниз, и каждая отдаёт свою
    площадь приёмнику. Где площади много — река; река сливается с рекой
    сама собой, без единой нитки, нарисованной рукой.
+4. **Захват** (только у последнего стока конвейера, `CAPTURE_*`): русло в
+   нескольких клетках от русла крупнее и ниже отдаёт ему воду, а перемычка
+   между ними прорезается. Спуск по самому крутому уклону сам этого не
+   делает: он ведёт вниз по склону, а не вбок.
 
 Заливка и накопление — циклы на Python: у них есть порядок, который numpy
 не выражает. Это цена одной сборки вольта, не старта сервера (план §4.8).
@@ -39,6 +43,33 @@ LAKE_DEPTH_M = 3.0
 #: Предвзятость выбора спуска: во столько раз уклон в глазах клетки может
 #: быть больше или меньше честного.
 WOBBLE = 0.6
+#: Захват русла: русло отдаёт воду более крупному руслу, которое течёт не
+#: дальше `terrain.capture_reach_m` от него (реестр; конвейер переводит в
+#: клетки) и **ниже** его. Спуск по
+#: самому крутому уклону кладёт на ровный склон **параллельные** русла: у
+#: каждой клетки честный спуск — вниз по склону, а не вбок, и два ручья идут
+#: в ногу, разделённые гребнем в метр-другой, которого ни один не режет
+#: (эрозия режет только под руслом). Так на Терре две реки по 20 и 60 км²
+#: шли в 130–250 м друг от друга последние полкилометра и впадали в один
+#: залив двумя устьями (владелец 2026-09-11: «реки не сливаются, хотя там
+#: логично что они сливаются»).
+#:
+#: Настоящая река такой гребень прорывает — подмывом или перехватом, — и
+#: здесь это отдельный ход после спуска: перемычка между руслами
+#: прорезается до уровня, спадающего от меньшего русла к большему, и
+#: меньшее течёт по ней. Берёт **ниже** и **крупнее**: ниже — потому что
+#: вода не идёт вверх, и это же держит сток без колец (каждое звено, старое
+#: или новое, строго ниже предыдущего по залитой высоте); крупнее — чтобы у
+#: двух русел был один ответ, кто в кого, иначе они менялись бы водой на
+#: каждом шаге и сплетались в косу. Слияние только с соседом (как стояло
+#: сперва) не сводило ничего: параллельные русла держат две-пять клеток
+#: между собой, а не одну.
+#:
+#: Два прохода: слившись, русло встаёт рядом с третьим, которому раньше
+#: было не с чем сливаться; и русло, потерявшее воду, само стало меньше
+#: соседей и само идёт к ним. Число проходов — сходимость, процесс; а вот
+#: досягаемость — ручка географии, и живёт она в реестре.
+CAPTURE_PASSES = 2
 
 
 def _jitter(grid: Grid, salt: int = 0) -> np.ndarray:
@@ -113,7 +144,10 @@ def fill(height: np.ndarray, sea: np.ndarray, grid: Grid) -> np.ndarray:
 
 
 def receivers(
-    filled: np.ndarray, grid: Grid, wobble: float = 0.0
+    filled: np.ndarray,
+    grid: Grid,
+    wobble: float = 0.0,
+    pull: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Приёмник каждой клетки, уклон к нему и расстояние до него.
 
@@ -122,6 +156,10 @@ def receivers(
     стороны: на гладком склоне честно самый крутой — одна и та же прямая
     через всю гору, а чуть предвзятый выбор ломает её в русло, которое
     вьётся. Уклон возвращается честный.
+
+    `pull` — множитель очка соседа, если кому-то нужен предвзятый спуск;
+    сам конвейер его не подаёт: тяга к соседу с большей водой параллельные
+    русла не сводит, они на одной высоте (см. `CAPTURE_*`).
     """
     count = grid.count
     best_score = np.zeros(count)
@@ -132,6 +170,8 @@ def receivers(
         dist = grid.distances[k]
         slope = (filled - filled[grid.near[k]]) / dist
         score = slope * (1.0 + wobble * _jitter(grid, k)) if wobble else slope
+        if pull is not None:
+            score = score * pull[grid.near[k]]
         better = (slope > 0.0) & (score > best_score)
         best_score = np.where(better, score, best_score)
         best_slope = np.where(better, slope, best_slope)
@@ -151,11 +191,211 @@ def accumulate(receiver: np.ndarray, order: np.ndarray, area: np.ndarray) -> np.
     return np.array(total)
 
 
-def route(height: np.ndarray, sea: np.ndarray, grid: Grid) -> Flow:
+def widths(
+    flow: Flow,
+    river: np.ndarray,
+    *,
+    narrow_m: float,
+    wide_m: float,
+    merge: float,
+) -> np.ndarray:
+    """Ширина русла в каждой клетке реки, метры.
+
+    **Слияние берёт долю суммы, а не сумму** (владелец 2026-09-11: «если две
+    реки вливаются в одну, то ширина получившейся — сумма ширин входящих на
+    0,5»). Прежде ширина бралась у расхода по закону `k·√A`, и две равные
+    реки давали в полтора раза более широкую; теперь они дают ровно такую же.
+
+    Две оговорки, обе нужны, иначе правило само себя съедает.
+
+    * **Русло не сужается.** У клетки реки впадающая чаще всего одна, и
+      половина от одной ширины — это половина реки на каждом шаге вниз:
+      правило, взятое буквально, свело бы всякую реку к нулю через десяток
+      клеток. Поэтому берётся то, что больше, — самая широкая из впадающих
+      или доля их суммы. Для двух равных это и есть доля суммы, как сказано;
+      для магистрали, в которую впал ручей, — сама магистраль.
+    * **Пол.** Исток начинается с `narrow_m`, и уже этого лента не бывает.
+
+    Что из правила выходит на деле, стоит сказать прямо: слияний по три и
+    больше в одной клетке мало, а слияния по два ширину не меняют вовсе, —
+    значит река почти всюду одной ширины, и это осознанный выбор владельца, а
+    не побочный эффект.
+    """
+    count = river.size
+    width = np.zeros(count)
+    #: Сумма ширин впадающих и самая широкая из них — накапливаются, пока
+    #: обход идёт сверху вниз, и к своей клетке приходят готовыми.
+    carried = np.zeros(count)
+    biggest = np.zeros(count)
+    recv = flow.receiver.tolist()
+    wet = river.tolist()
+    total = carried.tolist()
+    top = biggest.tolist()
+    out = width.tolist()
+    for i in flow.order.tolist():
+        if not wet[i]:
+            continue
+        w = max(narrow_m, top[i], merge * total[i])
+        w = min(w, wide_m)
+        out[i] = w
+        j = recv[i]
+        if j != i:
+            total[j] += w
+            top[j] = max(top[j], w)
+    return np.array(out)
+
+
+def capture(
+    filled: np.ndarray,
+    grid: Grid,
+    receiver: np.ndarray,
+    slope: np.ndarray,
+    distance: np.ndarray,
+    area: np.ndarray,
+    sea: np.ndarray,
+    threshold_m2: float,
+    reach_cells: int,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, int]:
+    """Один проход захвата (`CAPTURE_*`): каждое русло — клетка, через
+    которую идёт не меньше `threshold_m2` меры `area` — ищет в `reach_cells`
+    шагах по суше русло крупнее и ниже себя; берёт ближайшее кольцо, а в
+    нём крупнейшее. Перемычка прорезается: залитая высота её клеток
+    опускается до прямой от русла к руслу, и каждая клетка пути течёт в
+    следующую. `area` — та мера, которой конвейер решает реку: расход, а не
+    площадь, иначе захват резал бы гребни под русла, которых рекой не будет.
+
+    Возвращает залитую высоту (прорезанную), приёмник, уклон, расстояние и
+    сколько русел сменили приёмник. Кольцо невозможно: звено идёт строго
+    вниз по залитой высоте, старое (спуск) и новое (прямая вниз к цели), а
+    у клетки перемычки, чья высота опущена, доноры остались выше прежней.
+    """
+    count = grid.count
+    flat = np.arange(count)
+    dry = ~np.asarray(sea)
+    river = (area >= threshold_m2) & dry & (receiver != flat)
+    #: Списки, не массивы: ход ниже трогает по одной клетке, а поштучная
+    #: индексация numpy в разы дороже списка.
+    level = filled.tolist()
+    recv = receiver.tolist()
+    size = area.tolist()
+    wet = river.tolist()
+    land = dry.tolist()
+    ways = _ways(grid)
+    dist_k = grid.distances
+    new_slope = slope.tolist()
+    new_dist = distance.tolist()
+    moved = 0
+    far = 2 * reach_cells
+    #: Сверху вниз. Мера `size` внутри прохода не пересчитывается: старое
+    #: продолжение захваченного русла в этом же проходе ещё числится
+    #: крупным, и нижнее русло может отдать воду ему; следующий проход, с
+    #: пересчитанной мерой, это разбирает (`CAPTURE_PASSES`).
+    for c in np.flatnonzero(river)[np.argsort(filled[river])[::-1]].tolist():
+        if recv[c] == c:
+            continue
+        own_level = level[c]
+        own_size = size[c]
+        #: Куда русло и так придёт в ближайшие шаги: туда захват не нужен.
+        ahead = set()
+        j = c
+        for _ in range(far):
+            j = recv[j]
+            ahead.add(j)
+        parent = {c: -1}
+        frontier = [c]
+        target = -1
+        best = 0.0
+        for _ in range(reach_cells):
+            reached = []
+            for p in frontier:
+                for n in ways[p * WAYS : p * WAYS + WAYS]:
+                    if n == p or n in parent or not land[n]:
+                        continue
+                    parent[n] = p
+                    reached.append(n)
+                    if wet[n] and size[n] > own_size and level[n] < own_level and n not in ahead and size[n] > best:
+                        target = n
+                        best = size[n]
+            if target >= 0:
+                break
+            frontier = reached
+        if target < 0:
+            continue
+        path = [target]
+        while path[-1] != c:
+            path.append(parent[path[-1]])
+        path.reverse()
+        steps = len(path) - 1
+        #: Перемычка должна лечь строго вниз к цели, на `FILL_EPS` за шаг:
+        #: и от самого русла до цели должно хватать перепада на все шаги —
+        #: на залитом дне устья уровни идут ступенями по `FILL_EPS`, и цель
+        #: на одну ступень ниже в трёх шагах недостижима без подъёма, — и
+        #: клетка пути, лежащая ниже своей ступени, — впадина, через
+        #: которую прямой дороги нет.
+        floor = level[target]
+        if own_level - floor <= FILL_EPS * steps:
+            continue
+        if any(level[p] <= floor + FILL_EPS * (steps - i) for i, p in enumerate(path[1:-1], start=1)):
+            continue
+        cut = [own_level]
+        for i, p in enumerate(path[1:-1], start=1):
+            straight = own_level + (floor - own_level) * i / steps
+            cut.append(min(level[p], straight, cut[-1] - FILL_EPS))
+        cut.append(floor)
+        for i in range(steps):
+            p, q = path[i], path[i + 1]
+            level[p] = cut[i]
+            recv[p] = q
+            k = ways[p * WAYS : p * WAYS + WAYS].index(q)
+            d = float(dist_k[k, p])
+            new_dist[p] = d
+            new_slope[p] = (cut[i] - cut[i + 1]) / d
+        moved += 1
+    return (
+        np.array(level),
+        np.array(recv, dtype=receiver.dtype),
+        np.array(new_slope),
+        np.array(new_dist),
+        moved,
+    )
+
+
+def route(
+    height: np.ndarray,
+    sea: np.ndarray,
+    grid: Grid,
+    capture_m2: float | None = None,
+    capture_reach_cells: int = 0,
+    capture_yield: np.ndarray | None = None,
+) -> Flow:
+    """Сток по высотам. С `capture_m2` — порогом русла, м² — после спуска
+    идёт захват (`capture`): параллельные русла сливаются, а залитая высота
+    в `Flow.filled` несёт прорезанные перемычки. Русло для захвата мерится
+    тем же, чем конвейер мерит реку: `capture_yield` — отдача клетки, доля
+    (`yield_share`), и порог сравнивается с площадью, взвешенной ею; без
+    `capture_yield` — с голой площадью. `Flow.area_m2` при этом остаётся
+    площадью: ею живёт эрозия. Эрозия зовёт без захвата: она режет долины
+    под руслами, какие есть, а захват — последнее слово конвейера над
+    готовым рельефом."""
     filled = fill(height, sea, grid)
+    own = np.full(grid.count, grid.area_m2)
     receiver, slope, distance = receivers(filled, grid, WOBBLE)
     order = np.argsort(filled)[::-1]
-    acc = accumulate(receiver, order, np.full(grid.count, grid.area_m2))
+    acc = accumulate(receiver, order, own)
+    if capture_m2 is not None and capture_reach_cells > 0:
+        weight = own if capture_yield is None else own * np.asarray(capture_yield, dtype=float)
+        measure = acc if capture_yield is None else accumulate(receiver, order, weight)
+        for _ in range(CAPTURE_PASSES):
+            filled, receiver, slope, distance, moved = capture(
+                filled, grid, receiver, slope, distance, measure, sea, capture_m2, capture_reach_cells
+            )
+            if not moved:
+                break
+            #: Порядок по высоте остаётся верным: каждое звено, старое или
+            #: новое, строго ниже предыдущего по залитой высоте.
+            order = np.argsort(filled)[::-1]
+            acc = accumulate(receiver, order, own)
+            measure = acc if capture_yield is None else accumulate(receiver, order, weight)
     lake = (filled - height > LAKE_DEPTH_M) & ~sea
     return Flow(
         filled=filled,
@@ -166,6 +406,53 @@ def route(height: np.ndarray, sea: np.ndarray, grid: Grid) -> Flow:
         area_m2=acc,
         lake=lake,
     )
+
+
+def channel_distance(
+    grid: Grid, river: np.ndarray, receiver: np.ndarray, reach_cells: int
+) -> tuple[np.ndarray, np.ndarray]:
+    """Ближайшая клетка русла и расстояние до **линии** русла, метры.
+
+    Русло — ломаная через середины клеток реки, звено — от клетки к её
+    приёмнику. Расстояние до ближайшей **клетки** русла (`grid.nearest`)
+    врёт рядом с руслом, идущим по диагонали сетки: боковая клетка стоит
+    в полуклетке от линии (35 м при клетке 50), а до ближайшей середины
+    клетки русла ей 50, — и лента, записанная по такому расстоянию, на
+    диагональных плёсах выходила вдвое уже, а между клетками русла
+    пережималась в чётки. Считается по хорде на единичном шаре: на
+    десятках метров дуга и хорда — одно.
+
+    Проверяются звенья ближайшей клетки русла — вниз, к её приёмнику, и
+    вверх, от каждого её притока-соседа: ближайшая точка ломаной лежит на
+    одном из них, кроме углов ломаной, где разница — доли метра.
+    """
+    source, _ = grid.nearest(river, reach_cells)
+    found = source >= 0
+    seat = np.maximum(source, 0)
+    xyz = grid.xyz
+    p = xyz
+    a = xyz[seat]
+
+    def to_segment(b_index: np.ndarray, live: np.ndarray) -> np.ndarray:
+        b = xyz[b_index]
+        ab = b - a
+        along = (ab * ab).sum(axis=1)
+        t = np.where(along > 0.0, ((p - a) * ab).sum(axis=1) / np.maximum(along, 1e-30), 0.0)
+        t = np.clip(t, 0.0, 1.0)
+        foot = a + ab * t[:, None]
+        chord = np.sqrt(((p - foot) ** 2).sum(axis=1))
+        return np.where(live, chord, np.inf)
+
+    #: Звено вниз: приёмник ближайшей клетки русла, если он не она сама.
+    down = receiver[seat]
+    best = to_segment(down, found & (down != seat))
+    #: Звенья вверх: соседи ближайшей клетки, что текут в неё и сами русло.
+    for k in range(WAYS):
+        n = grid.near[k][seat]
+        best = np.minimum(best, to_segment(n, found & (n != seat) & (receiver[n] == seat) & river[n]))
+    #: Без звеньев (одинокая клетка русла) — до самой клетки.
+    best = np.minimum(best, np.where(found, np.sqrt(((p - a) ** 2).sum(axis=1)), np.inf))
+    return source, best * grid.radius_m
 
 
 def discharge(flow: Flow, grid: Grid, yield_: np.ndarray, land: np.ndarray) -> np.ndarray:
@@ -187,8 +474,17 @@ def discharge(flow: Flow, grid: Grid, yield_: np.ndarray, land: np.ndarray) -> n
     получает ровно прежние реки; сухой — реки только там, где ему мокрее
     обычного; мир, не отдающий ничего, не получает ни одной.
     """
+    return accumulate(flow.receiver, flow.order, yield_share(yield_, land) * grid.area_m2)
+
+
+def yield_share(yield_: np.ndarray, land: np.ndarray) -> np.ndarray:
+    """Отдача клетки, нормированная на среднее по суше: чем `discharge`
+    взвешивает площадь, и чем `route` мерит русло для захвата — одна мера
+    на оба, иначе захват резал бы гребни под русла, которых рекой не будет.
+    """
+    land = np.asarray(land)
     if not land.any():
-        return np.zeros(grid.count)
+        return np.zeros(land.size)
     mean = float(np.asarray(yield_)[land].mean())
     if mean <= 0.0:
         #: Планете нечем течь: ни рек, ни озёр. Не край случая, а Аврора —
@@ -202,9 +498,8 @@ def discharge(flow: Flow, grid: Grid, yield_: np.ndarray, land: np.ndarray) -> n
         #: `terrain.ice_c`, а тёплый край Авроры (−25 °C) ниже него, так что
         #: маска пуста на всей планете при любом зерне. Поднимут её края
         #: выше −8 °C — правило кончится, и кончится оно резко.
-        return np.zeros(grid.count)
-    share = np.where(land, np.asarray(yield_, dtype=float) / mean, 0.0)
-    return accumulate(flow.receiver, flow.order, share * grid.area_m2)
+        return np.zeros(land.size)
+    return np.where(land, np.asarray(yield_, dtype=float) / mean, 0.0)
 
 
 def downstream(

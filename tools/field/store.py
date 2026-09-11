@@ -67,6 +67,7 @@ def save(r: Rasters, directory: Path) -> tuple[Path, Path]:
         uplift=np.round(r.uplift * 255).astype(np.uint8),
         ice=r.ice.astype(np.uint8),
         plants=np.round(np.clip(r.plants, 0.0, 1.0) * 255).astype(np.uint8),
+        stream=np.round(np.clip(r.stream, 0.0, 1.0) * 255).astype(np.uint8),
         province=r.province.astype(np.uint8),
     )
     meta = {
@@ -162,6 +163,9 @@ def load(directory: Path, planet: str) -> Rasters:
             ice=z["ice"].astype(bool),
             plants=z["plants"].astype(float) / 255.0
             if "plants" in z
+            else np.zeros(z["water"].shape, dtype=float),
+            stream=z["stream"].astype(float) / 255.0
+            if "stream" in z
             else np.zeros(z["water"].shape, dtype=float),
             province=z["province"] if "province" in z else np.zeros(z["water"].shape, dtype=np.uint8),
             provinces=[

@@ -21,9 +21,14 @@ def problems(*nodes: dict) -> list[str]:
     return world.check_world(doc, EMPTY_RECIPES, lambda _doc: ())
 
 
-def city(name, key: str = KEY) -> dict:
-    return {"key": key, "name": name, "layer": "planet", "parent": "terra",
-            "area_m2": 1, "city": True}
+def city(title, key: str = KEY) -> dict:
+    """Узел, на котором основывается город: `city` — его имя (D-330).
+
+    Узла-пустышки под живым городом больше нет, и имя города носит тот же
+    узел, что стоит на карте своим.
+    """
+    return {"key": key, "name": "Ядро", "layer": "planet",
+            "parent": "terra", "area_m2": 1, "city": title}
 
 
 #: Ожидается целиком, а не по слову: жалоба, отобранная по подстроке, тихо
@@ -54,9 +59,23 @@ def test_the_ceiling_is_only_asked_of_cities():
 
 
 def test_a_name_that_is_not_a_string_is_reported():
-    """`name: 2026` разберётся в int, пройдёт проверку «без имени» и уедет в
-    `City.name` целым числом — это своя жалоба, а не длина чего попало."""
-    assert f"мир: имя города «{KEY}» — не строка" in problems(city(2026))
+    """`city: 2026` разберётся в int и уехало бы в `City.name` целым числом —
+    это своя жалоба, а не длина чего попало."""
+    assert f"мир: у «{KEY}» в `city` не имя города, а 2026 — " in " ".join(
+        problems(city(2026))
+    )
+
+
+def test_the_old_flag_says_what_to_write_instead():
+    """`city: true` — прежняя запись, когда имя города брали у узла (D-330).
+    Молча она значила бы «город по имени True»: жалоба говорит, что делать."""
+    found = " ".join(problems(city(True)))
+    assert "городом теперь помечает имя, а не галочка (D-330)" in found
+
+
+def test_an_empty_city_name_is_reported():
+    """Пустая строка — не имя: город вышел бы безымянным, и канал тоже."""
+    assert f"мир: имя города «{KEY}» — пустое" in problems(city("   "))
 
 
 def test_two_cities_of_one_name_are_reported():

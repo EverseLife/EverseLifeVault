@@ -428,8 +428,12 @@ def clean_node(data: dict) -> dict:
     place = data.get("place")
     if place:
         out["place"] = clean_place(place, layer)
-    if data.get("city"):
-        out["city"] = True
+    #: The city's own name, and the mark that one is founded here (D-330). A
+    #: living city has no empty node of its own any more: the bioprinter wears
+    #: both names, its own near and the city's from afar.
+    city = data.get("city")
+    if city is not None and str(city).strip():
+        out["city"] = str(city).strip()
     properties = data.get("properties") or {}
     if properties:
         if not isinstance(properties, dict):

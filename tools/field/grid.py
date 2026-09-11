@@ -255,6 +255,19 @@ class Grid:
         carried = np.where(within, np.asarray(value).ravel()[np.clip(best, 0, None)], 0.0)
         return carried, np.minimum(np.where(best >= 0, cells, np.inf), float(max_cells))
 
+    def blur(self, a: np.ndarray, rounds: int) -> np.ndarray:
+        """`a`, сглаженное `rounds` раундами среднего по клетке и её соседям.
+        Свободное место соседа — сама клетка, и она весит на раунд чуть
+        больше; на сглаживание это не влияет. Сигма — около `sqrt(2·rounds/3)`
+        клеток."""
+        out = np.asarray(a, dtype=float)
+        for _ in range(rounds):
+            total = out.copy()
+            for k in range(WAYS):
+                total = total + out[self.near[k]]
+            out = total / (WAYS + 1.0)
+        return out
+
     def laplacian(self, a: np.ndarray) -> np.ndarray:
         """Безразмерная кривизна в тех же долях, в каких её брала прежняя
         сетка средним по восьми соседям минус своё (см. `_fit`)."""

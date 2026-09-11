@@ -27,7 +27,7 @@
     "dry_belt_lat": 27.0,
     "dry_belt_width": 10.0,
     "dry_belt_strength": 0.4,
-    "version": 7,
+    "version": 11,
     "coarse_factor": 4,
     "coarse_iterations": 60,
     "fine_iterations": 24,
@@ -336,9 +336,13 @@
     "plant_warm_c": 32.0,
     "plant_cold_c": -5.0,
     "plant_rain": 0.45,
-    "plant_wet_km": 0.5
+    "plant_wet_km": 0.5,
+    "river_narrow_m": 60.0,
+    "river_wide_m": 120.0,
+    "river_merge": 0.5,
+    "capture_reach_m": 250.0
   },
-  "digest": "90482d8cdf21",
+  "digest": "8f0d0d8a16bc",
   "grid": {
     "kind": "healpix",
     "nside": 147,
@@ -347,7 +351,7 @@
     "side_m": 50.012,
     "radius_m": 7184.176884650027
   },
-  "land_share": 0.8597,
+  "land_share": 0.8623,
   "height_max_m": 375.0,
   "forms": [
     {

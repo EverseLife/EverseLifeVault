@@ -31,7 +31,10 @@
 #   place       прибитое место: {lat, lon} на глобусе планеты (D-319, D-324)
 #               либо {x, y} — метры на восток и на север от якоря; без него
 #               место раздаёт движок рядом с якорем
-#   city        true — здесь основывается институциональный город (D-154)
+#   city        имя города, который здесь основывается (D-154). Стоит он на
+#               этом самом узле, а не на пустышке рядом (D-330): вблизи узел
+#               подписан своим именем, издали — этим. Узлов-пустышек у живых
+#               городов нет
 #   properties  свойства места: лес, вода, плодородие, глубина...
 #               Кольца у узла нет: сколько узлов до биопринтера, движок меряет
 #               сам, обходя рёбра (D-089, D-220) — по ним город и ходят.
@@ -64,37 +67,37 @@ names:
   pyroxis_field: "Чёрное поле №{number}"
 
 nodes:
-  - key: terra.capital
-    name: Столица Терры
-    parent: terra
-    area_m2: 1
-    place: {lat: 32.66, lon: -105.56}
-    city: true
-
   # Ядро: каждый умерший приходит к биопринтеру, с него город и начинается.
   # Свойство «предтечи» — не украшение: по нему движок узнаёт вечную машину,
   # которая печатает бесплатно и медленно (D-028).
+  #
+  # Город стоит на этом узле, а не рядом с ним (D-330): под столицей больше
+  # нет пустого узла площадью в метр, чьей единственной работой было носить
+  # имя города. Издали карта подписывает ядро именем города, вблизи — его
+  # собственным, и это тот же узел, в который приходит каждый напечатанный.
   - key: terra.capital.core
     name: "Ядро: Принтер Предтеч"
-    parent: terra.capital
+    parent: terra
     area_m2: 120
+    place: {lat: 32.9035, lon: -105.884431}
+    city: Столица Терры
     properties: {лес: false, предтечи: true}
 
   - key: terra.capital.library
     name: Библиотека
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: -60, y: 24}
+    place: {x: -20, y: 8}
     machines:
       - {class: Библиотека, quality: 70}
 
   - key: terra.capital.market
     name: Рынок
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 200
     anchor: terra.capital.core
-    place: {x: 33, y: 0}
+    place: {x: 11, y: 0}
     machines:
       - {class: Терминал, quality: 70}
       # Монеты чеканят там, где им ходить (D-016). Гражданское здание.
@@ -104,19 +107,19 @@ nodes:
   # решает станок в нём (D-106). Власть тоже где-то живёт.
   - key: terra.capital.hall
     name: Администрация
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 180
     anchor: terra.capital.core
-    place: {x: 0, y: 21}
+    place: {x: 0, y: 15}
     machines:
       - {name: Администрация, quality: 65}
 
   - key: terra.capital.forge
     name: Мастерская
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 260
     anchor: terra.capital.market
-    place: {x: 90, y: -36}
+    place: {x: 30, y: -12}
     machines:
       # Городской принтер: минуты вместо часов, но за энергию и железо.
       # Город продаёт не жизнь, а скорость (D-028, D-033).
@@ -150,10 +153,10 @@ nodes:
 
   - key: terra.capital.pit
     name: Забой у стены
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 300
     anchor: terra.capital.forge
-    place: {x: -198, y: -69}
+    place: {x: -66, y: -23}
     veins:
       - {resource: Железная руда, richness: 62, remaining: 50000}
 
@@ -162,17 +165,17 @@ nodes:
   # остаётся единственной дверью для кораблей.
   - key: terra.capital.gate
     name: Окраина
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 80
     anchor: terra.capital.core
-    place: {x: -27, y: -39}
+    place: {x: -9, y: -13}
 
   - key: terra.capital.port
     name: Космодром
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 240
     anchor: terra.capital.gate
-    place: {x: 63, y: 111}
+    place: {x: 21, y: 37}
     machines:
       - {class: Верфь, quality: 60}
       # Сид альфы (2026-09-02): скафандры и корабельные узлы тестируются здесь.
@@ -182,10 +185,10 @@ nodes:
   # стеной. Тюрьмой узел делает станция «Каторга», а не свойство.
   - key: terra.capital.jail
     name: Каторжный забой
-    parent: terra.capital
+    parent: terra.capital.core
     area_m2: 120
     anchor: terra.capital.gate
-    place: {x: -111, y: -21}
+    place: {x: -37, y: -7}
     machines:
       - {class: Биопринтер, quality: 50}
       - {class: Терминал, quality: 50}
@@ -202,6 +205,7 @@ nodes:
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
+    place: {x: -40, y: -32}
     # Лес и каменистая земля у шахты: первый топор делается здесь, голыми
     # руками и без чьей-либо помощи (D-196).
     properties: {лес: true, камни: true, вода: нет}
@@ -215,6 +219,7 @@ nodes:
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
+    place: {x: -28, y: -50}
     # Луг у воды: здесь растёт дикий лён, и волокно начинается с него (D-196).
     properties: {вода: река, плодородие: 55, луг: true}
     machines:
@@ -232,7 +237,7 @@ nodes:
     parent: terra
     area_m2: 400
     anchor: terra.capital.gate
-    place: {x: 9, y: -27}
+    place: {x: 3, y: -9}
     properties: {вода: нет}
     veins:
       - {resource: Нефть, richness: 55, remaining: 40000}
@@ -263,6 +268,7 @@ nodes:
     name: Купольный зал
     parent: aurora.merid
     area_m2: 600
+    place: {x: 0, y: 0}
     # Глубина считается от космодрома, и комнаты идут отсюда вглубь (D-061, D-232).
     properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
@@ -272,6 +278,7 @@ nodes:
     parent: aurora.merid
     area_m2: 240
     anchor: aurora.merid.hall
+    place: {x: 15, y: 0}
     properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 
@@ -286,6 +293,7 @@ nodes:
     name: Литейный двор
     parent: aurora.caldar
     area_m2: 600
+    place: {x: 0, y: 0}
     properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
 
@@ -294,6 +302,7 @@ nodes:
     parent: aurora.caldar
     area_m2: 240
     anchor: aurora.caldar.hall
+    place: {x: 15, y: 0}
     properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 
@@ -308,6 +317,7 @@ nodes:
     name: Нулевой ярус
     parent: aurora.veyr
     area_m2: 600
+    place: {x: 0, y: 0}
     properties: {глубина: 1, предтечи: true}
     relics: [ТЭЦ, Реактор Предтеч]
 
@@ -316,6 +326,7 @@ nodes:
     parent: aurora.veyr
     area_m2: 240
     anchor: aurora.veyr.hall
+    place: {x: 15, y: 0}
     properties: {глубина: 0, предтечи: true}
     relics: [Верфь]
 

@@ -2591,9 +2591,17 @@ def check_zonal(constants: dict) -> list[str]:
 def check_field_freshness(constants: dict) -> list[str]:
     """Поле в `build/field/` — производное реестра (план ландшафта §4.8): его
     паспорт несёт хеш параметров, и поле, собранное под другие зерно, шаг или
-    долю моря, обманет и картинку, и, когда поле приедет в игру, движок.
-    Предупреждение, а не проблема: пока движок поле не читает, ломается
-    только линейка. Без numpy — молчит: сборка без него обходится."""
+    уровень моря, обманет и картинку, и движок.
+
+    **Проблема, а не предупреждение.** Предупреждением это стояло, пока поле
+    в игру не приезжало: ломалась одна линейка. Теперь движок сверяет паспорт
+    сам и **отказывается поднимать планету** (`field._check_passport`,
+    `FieldStale`), и разойтись стороны могут только так: вольт говорит
+    «проверка прошла», а сервер не встаёт. Ровно это и случилось 2026-09-11 —
+    `terrain.version` подняли до 8, три планеты остались седьмой версии, и
+    двадцать девять тестов покраснели при зелёной сборке вольта.
+
+    Без numpy — молчит: сборка без него обходится."""
     field_dir = BUILD / "field"
     if not field_dir.exists():
         return []
@@ -2714,7 +2722,12 @@ def main() -> int:
     warnings += [(LINKS_DEAD, one) for one in check_doc_links()]
     warnings += [(RECORDS_UNKNOWN, one) for one in check_named_records()]
     warnings += [(STATUS_MISSING, one) for one in check_statuses()]
-    warnings += [(FIELD_STALE, one) for one in check_field_freshness(flatten_constants(constants_doc))]
+    #: Поле под другими числами — отказ движка, а не кривая картинка:
+    #: сверяется он тем же хешем и планету не поднимает.
+    problems += [
+        f"{FIELD_STALE}: {one}"
+        for one in check_field_freshness(flatten_constants(constants_doc))
+    ]
     problems += check_building_types(constants_doc, recipes_doc)
     problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()

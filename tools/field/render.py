@@ -144,6 +144,31 @@ def _greened(r: Rasters, rgb: np.ndarray) -> np.ndarray:
     return rgb * (1.0 - share) + np.array(PLANTS) * share
 
 
+def _with_stream(r: Rasters, rgb: np.ndarray, river: tuple) -> np.ndarray:
+    """Река лентой, а не клетками: тем же растром, каким её режет игра.
+
+    Клетка поля — полсотни метров, и река, крашенная целыми клетками, выходит
+    цепью квадратов с прямыми углами. Игра рисует её мерой ленты (`stream`:
+    расстояние до русла против его полуширины, `pipeline.ribbon`) и режет
+    по половине — по берегу. Рисовать здесь иначе значило бы держать две
+    картинки одной реки, и расходились бы они молча: владелец смотрит на
+    снимок вольта, а играет в другое.
+
+    Одно отличие остаётся и остаётся знаемо: игра читает меру **между**
+    клетками, с четырёх сторон на полклетки, и оттого гнёт берег и ведёт
+    ленту на полклетки шире, а снимок красит клетку целиком по её середине.
+    Разница не косметическая: на диагональном шаге русла снимок показывает
+    чётки при всякой ширине меньше ста метров, а игра рисует связную ленту
+    уже от пятидесяти. **Ширину реки сверять в игре, а не здесь.**
+
+    Лава сюда не заходит: у неё своя лента (`_lava`), и ширины по расходу у
+    неё нет — поток идёт от конуса, а не от водосбора.
+    """
+    if r.params.fluid == FLUID_LAVA:
+        return np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
+    return np.where((r.stream > 0.5)[..., None], np.array(river), rgb)
+
+
 def layer_relief(r: Rasters) -> np.ndarray:
     share = np.clip(r.height_m / r.params.relief_m, 0.0, 1.0)
     rgb = _greened(r, _ramp(share, HYPSO_BASALT if r.params.fluid == FLUID_LAVA else HYPSO))
@@ -154,7 +179,7 @@ def layer_relief(r: Rasters) -> np.ndarray:
     sea = np.array(shallow) * (1 - depth)[..., None] + np.array(deep) * depth[..., None]
     rgb = np.where((r.water == WATER_SEA)[..., None], sea, rgb)
     rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
-    rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
+    rgb = _with_stream(r, rgb, river)
     rgb = np.where(r.ice[..., None], np.array(ICE) * (0.6 + 0.4 * shade)[..., None], rgb)
     return rgb
 
@@ -178,7 +203,7 @@ def layer_forms(r: Rasters) -> np.ndarray:
         #: суши.
         rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
         rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
-        rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
+        rgb = _with_stream(r, rgb, river)
     shade = hillshade(r.grid, r.height_m)
     return rgb * (0.6 + 0.4 * shade)[..., None]
 
@@ -229,7 +254,7 @@ def layer_plants(r: Rasters) -> np.ndarray:
     _, deep, lake, river = _fluid_colours(r)
     rgb = np.where((r.water == WATER_SEA)[..., None], np.array(deep), rgb)
     rgb = np.where((r.water == WATER_LAKE)[..., None], np.array(lake), rgb)
-    rgb = np.where((r.water == WATER_RIVER)[..., None], np.array(river), rgb)
+    rgb = _with_stream(r, rgb, river)
     rgb = np.where(r.ice[..., None], np.array(ICE), rgb)
     shade = hillshade(r.grid, r.height_m)
     return rgb * (0.65 + 0.35 * shade)[..., None]
