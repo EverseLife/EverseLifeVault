@@ -27,7 +27,7 @@
     "dry_belt_lat": 27.0,
     "dry_belt_width": 10.0,
     "dry_belt_strength": 0.4,
-    "version": 12,
+    "version": 13,
     "coarse_factor": 4,
     "coarse_iterations": 60,
     "fine_iterations": 24,
@@ -229,7 +229,7 @@
     "valley_width_m": 600.0,
     "capture_reach_m": 250.0
   },
-  "digest": "8f95c143eb0c",
+  "digest": "7f27b69de296",
   "grid": {
     "kind": "healpix",
     "nside": 255,

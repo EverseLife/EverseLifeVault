@@ -688,6 +688,32 @@
     "aurora": 18,
     "pyroxis": 25
   },
+  "season.tilt_deg": {
+    "terra": 23,
+    "aquatica": 8,
+    "aurora": 28,
+    "pyroxis": 3
+  },
+  "season.swing_c": {
+    "terra": 18,
+    "aquatica": 6,
+    "aurora": 30,
+    "pyroxis": 4
+  },
+  "season.snow_c": 0,
+  "season.snow_band_c": 4,
+  "season.ice_c": -2,
+  "season.snow_dry_rain": 25,
+  "season.snow_dry_share": 50,
+  "weather.cell_km": 3,
+  "weather.wind_deg_per_day": 90,
+  "weather.change_days": 1.5,
+  "weather.wet_bias": 0.4,
+  "weather.cloud_from": 0.45,
+  "weather.cloud_full": 0.65,
+  "weather.rain_from": 0.6,
+  "weather.rain_full": 0.85,
+  "weather.gain": 2.4,
   "site.river_share": 25,
   "site.coast_share": 15,
   "site.forest_share": {
@@ -953,7 +979,7 @@
   "terrain.capture_reach_m": 250,
   "terrain.river_narrow_m": 60,
   "terrain.river_wide_m": 200,
-  "terrain.version": 12,
+  "terrain.version": 13,
   "terrain.ice_c": -8,
   "terrain.ice_rain": 0.25,
   "terrain.ice_deep_c": -20,

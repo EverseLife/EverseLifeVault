@@ -1730,7 +1730,7 @@ def check_biome_figure(constants_doc: dict) -> list[str]:
 
     Клиент рисует биом без записи в `biome.figure` ничем и не жалуется
     (`figures.ts`: нет знака — нет фигуры), без записи в `biome.grain` —
-    зерном по умолчанию (`shade.GRAIN_FALLBACK`), а реестр движка проверяет
+    зерном по умолчанию (`grain.GRAIN_FALLBACK`), а реестр движка проверяет
     только слова (`registry_map.BIOME_FIGURE`, `BIOME_GRAIN`): пропущенный
     биом узнали бы по пустой карте. Сверяются три карты по биомам —
     `biome.figure`, `biome.grain` и `biome.marks` — со словарём `biome.names`.

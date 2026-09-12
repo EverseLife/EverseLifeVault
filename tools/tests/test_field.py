@@ -854,5 +854,3 @@ def test_a_channel_near_a_larger_lower_one_is_captured_by_it():
         return (sea[f.receiver] & land & (f.area_m2 >= 3 * grid.area_m2)).sum()
 
     assert mouths(flow) <= mouths(plain)
-
-
