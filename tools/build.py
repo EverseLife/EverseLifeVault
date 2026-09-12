@@ -1726,20 +1726,21 @@ BUILDING_MAPS = (
 
 
 def check_biome_figure(constants_doc: dict) -> list[str]:
-    """У каждого биома есть знак растительности и доли меток, и лишних нет (D-331).
+    """У каждого биома есть знак растительности, зерно и доли меток, и лишних нет (D-331).
 
     Клиент рисует биом без записи в `biome.figure` ничем и не жалуется
-    (`figures.ts`: нет знака — нет фигуры), а реестр движка проверяет только
-    слова (`registry_map.BIOME_FIGURE`): пропущенный биом узнали бы по пустой
-    карте. Сверяются обе карты по биомам — `biome.figure` и `biome.marks` —
-    со словарём `biome.names`.
+    (`figures.ts`: нет знака — нет фигуры), без записи в `biome.grain` —
+    зерном по умолчанию (`shade.GRAIN_FALLBACK`), а реестр движка проверяет
+    только слова (`registry_map.BIOME_FIGURE`, `BIOME_GRAIN`): пропущенный
+    биом узнали бы по пустой карте. Сверяются три карты по биомам —
+    `biome.figure`, `biome.grain` и `biome.marks` — со словарём `biome.names`.
     """
     flat = flatten_constants(constants_doc)
     names = flat.get("biome.names")
     if not isinstance(names, dict):
         return ["biome.names: нет словаря биомов"]
     problems: list[str] = []
-    for key in ("biome.figure", "biome.marks"):
+    for key in ("biome.figure", "biome.grain", "biome.marks"):
         table = flat.get(key)
         if not isinstance(table, dict):
             problems.append(f"{key}: нет карты по биомам")

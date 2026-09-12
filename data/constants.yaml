@@ -3528,6 +3528,11 @@ groups:
         unit: знак
         note: "Каким знаком карта рисует растительность биома на ближних кадрах (владелец 2026-09-12: луга, леса, джунгли, тундра — каждый по-своему, своим рисунком): fir — ель, broadleaf — лиственное с круглой кроной, palm — пальма, acacia — зонтичная крона, bush — куст, grass — пучок травы, reed — камыш, moss — мох и лишайник, none — ничего. Густота знаков — по `biome.marks`: деревья и кусты по `woods`, травы, камыш и мох по `meadow`. Клиент берёт знак и густоту из `/public/constants` по имени биома (D-225: паспорт растров их не дублирует); закрывает OQ-166"
         decision: D-331
+      - key: biome.grain
+        value: {coast: sand, floodplain: turf, forest: canopy, steppe: blades, desert: dunes, taiga: needles, tundra: polygons, marsh: pools, foothills: rubble, alpine: scree, ice: cracks, cinder: clinker, rainforest: jungle, savanna: tussocks, semidesert: patches, woodland: groves}
+        unit: зерно
+        note: "Каким зерном карта шершавит землю биома на ближних кадрах (владелец 2026-09-12: шум слишком одинаковый, у каждого биома должен быть свой): sand — рябь пляжа, turf — мягкие пятна луга, canopy — кроны лиственного леса, blades — степная трава, причёсанная ветром, dunes — волны дюн поперёк ветра, needles — тайга, мельче и темнее, polygons — сеть морозных трещин тундры, pools — тёмные лужи болота, rubble — крупный крап предгорья, scree — мелкая резкая осыпь, cracks — трещины льда, clinker — крупный громкий шлак, jungle — крупные мягкие кроны, tussocks — трава саванны с тёмными купами, patches — светлая полупустыня с тёмными латками кустарника, groves — редкие крупные кроны сухолесья. Слово — содержание, числа зерна (масштаб, растяжка, контраст, форма) — картинка, `shade.GRAIN_KINDS`; форма рельефа остаётся материалом поверх биома: дюны ложатся волнами, лёд трескается, твёрдая порода режет резче. Клиент берёт слово из `/public/constants` по имени биома, как `biome.figure`"
+        decision: D-331
       - key: biome.vein_k
         value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5, rainforest: 0.6, savanna: 0.8, semidesert: 1.0, woodland: 0.8}
         unit: раз

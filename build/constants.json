@@ -1174,6 +1174,24 @@
     "semidesert": "bush",
     "woodland": "broadleaf"
   },
+  "biome.grain": {
+    "coast": "sand",
+    "floodplain": "turf",
+    "forest": "canopy",
+    "steppe": "blades",
+    "desert": "dunes",
+    "taiga": "needles",
+    "tundra": "polygons",
+    "marsh": "pools",
+    "foothills": "rubble",
+    "alpine": "scree",
+    "ice": "cracks",
+    "cinder": "clinker",
+    "rainforest": "jungle",
+    "savanna": "tussocks",
+    "semidesert": "patches",
+    "woodland": "groves"
+  },
   "biome.vein_k": {
     "coast": 0.5,
     "floodplain": 0.3,
