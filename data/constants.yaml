@@ -3233,6 +3233,23 @@ groups:
           река почти всюду одной ширины, и это выбор, а не побочный эффект.
           Вернуть рост можно, подняв долю выше 0,5
         decision: 90-production/12
+      - key: terrain.valley_depth_m
+        value: 30
+        unit: м
+        note: >-
+          На сколько самая полноводная река планеты опускает своё русло в
+          долину (`pipeline._carve_valleys`, D-331); прочие — на долю корня
+          из своего расхода. Ноль — без долин. Владелец 2026-09-12: «реки
+          размывают ландшафт, чтобы они выглядели правильнее»
+        decision: D-331
+      - key: terrain.valley_width_m
+        value: 600
+        unit: м
+        note: >-
+          На сколько метров в стороны от русла сходит на нет долина самой
+          полноводной реки; у прочих — от трети до всей ширины по расходу.
+          Земля в долине опущена по параболе от русла к краю
+        decision: D-331
       - key: terrain.capture_reach_m
         value: 250
         unit: м
@@ -3273,20 +3290,28 @@ groups:
 
           **Снимок вольта тут врёт в худшую сторону**: он красит клетку
           целиком и потому показывает чётки там, где игра рисует ленту.
-          Сверять ширину надо в игре
+          Сверять ширину надо в игре.
+
+          С версии 12 линия русла под ленту сглажена (`hydro.smooth_channel`)
+          и отходит от середины клетки до трети клетки; чтобы запас у ножа
+          не ушёл, клетка русла читается как стоящая на линии (пол меры в
+          `pipeline`), и арифметика выше держится для неё; между клетками
+          лента идёт дугой и во внутреннем углу уже на пятую долю клетки
         decision: 90-production/12
       - key: terrain.river_wide_m
-        value: 120
+        value: 200
         unit: м
         note: >-
           Потолок ширины ленты. Окно поиска ближайшего русла — его половина и
           полсклона меры (`pipeline.STREAM_RAMP_M`), дальше мера ноль. С
-          правилом слияния потолка почти не достигают — его берут лишь редкие
-          клетки, куда впадает три русла и больше. Вдвое от пола: большая река
-          вдвое шире ручья, и это весь разброс, какой сетка даёт
-        decision: 90-production/12
+          правилом слияния потолка достигают лишь низовья больших рек. Втрое
+          с лишним от пола (2026-09-12, было вдвое: владелец — «все с
+          одинаковой шириной»): большая река заметно шире ручья, а на дальних
+          кадрах шейдер читает долю пикселя под водой, и разброс ширин виден
+          там как разброс линий
+        decision: D-331
       - key: terrain.version
-        value: 11
+        value: 12
         unit: версия
         note: >-
           Версия алгоритма поля рядом с зерном (план §4.8, OQ-149): правка
@@ -3360,7 +3385,13 @@ groups:
           `coast_cliff` 6082 → 4373 — они жили на швах Вороного и на
           сплющенной кромке (OQ-167); десяток клеток русла в первом кольце
           стоит выше соседа вверх по течению — сток считан до профиля, и
-          лестница `filled` от этого не меняется
+          лестница `filled` от этого не меняется.
+          Версия 12 — 2026-09-12 (D-331): линия русла сглажена перед лентой
+          (`hydro.smooth_channel`, `CHANNEL_SMOOTH`) — на ближних кадрах
+          река идёт дугой, а не коленом; долины по расходу
+          (`pipeline._carve_valleys`, `terrain.valley_depth_m`,
+          `terrain.valley_width_m`, озёра не роются); потолок ширины 200 м;
+          клетка русла читается стоящей на линии (пол меры ленты)
         decision: 90-production/12
       - key: terrain.ice_c
         value: -8
@@ -3485,13 +3516,18 @@ groups:
       - key: biome.swing_c
         value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, cinder: 15, rainforest: 4, savanna: 12, semidesert: 16, woodland: 8}
         unit: °C
-        note: Суточный перепад температуры узла (`temperature_swing`) — днём на половину теплее средней, ночью на половину холоднее; пустыня жарка днём и холодна ночью
+        note: Суточное качание температуры узла (`temperature_swing`) — днём на столько теплее средней, ночью на столько холоднее (D-261 и `climate.temperature_now` — среднее ± качание; предпросмотр разведки пишет это как «± перепад»); пустыня жарка днём и холодна ночью
         decision: D-321
       - key: biome.marks
         value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}, rainforest: {woods: 100, stones: 5, meadow: 0}, savanna: {woods: 25, stones: 15, meadow: 70}, semidesert: {woods: 5, stones: 35, meadow: 20}, woodland: {woods: 60, stones: 15, meadow: 35}}
         unit: "% мест"
-        note: Доля найденных мест биома с лесом, камнями и лугом; заменяет `ground.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений
+        note: "Доля найденных мест биома с лесом, камнями и лугом; заменяет `ground.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений. Вторая роль с D-331: густота знаков растительности на ближних кадрах карты — деревья и кусты по `woods`, травы, камыш и мох по `meadow`, на долю, которую держит картинка (`figures.ts`; числа — картинка, не содержание, D-331 п. 4 и дополнение), чтобы лес был рассыпью, а не ковром чернил"
         decision: D-321
+      - key: biome.figure
+        value: {coast: grass, floodplain: broadleaf, forest: broadleaf, steppe: grass, desert: none, taiga: fir, tundra: moss, marsh: reed, foothills: bush, alpine: none, ice: none, cinder: none, rainforest: palm, savanna: acacia, semidesert: bush, woodland: broadleaf}
+        unit: знак
+        note: "Каким знаком карта рисует растительность биома на ближних кадрах (владелец 2026-09-12: луга, леса, джунгли, тундра — каждый по-своему, своим рисунком): fir — ель, broadleaf — лиственное с круглой кроной, palm — пальма, acacia — зонтичная крона, bush — куст, grass — пучок травы, reed — камыш, moss — мох и лишайник, none — ничего. Густота знаков — по `biome.marks`: деревья и кусты по `woods`, травы, камыш и мох по `meadow`. Клиент берёт знак и густоту из `/public/constants` по имени биома (D-225: паспорт растров их не дублирует); закрывает OQ-166"
+        decision: D-331
       - key: biome.vein_k
         value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5, rainforest: 0.6, savanna: 0.8, semidesert: 1.0, woodland: 0.8}
         unit: раз

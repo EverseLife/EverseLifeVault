@@ -1725,6 +1725,32 @@ BUILDING_MAPS = (
 )
 
 
+def check_biome_figure(constants_doc: dict) -> list[str]:
+    """У каждого биома есть знак растительности и доли меток, и лишних нет (D-331).
+
+    Клиент рисует биом без записи в `biome.figure` ничем и не жалуется
+    (`figures.ts`: нет знака — нет фигуры), а реестр движка проверяет только
+    слова (`registry_map.BIOME_FIGURE`): пропущенный биом узнали бы по пустой
+    карте. Сверяются обе карты по биомам — `biome.figure` и `biome.marks` —
+    со словарём `biome.names`.
+    """
+    flat = flatten_constants(constants_doc)
+    names = flat.get("biome.names")
+    if not isinstance(names, dict):
+        return ["biome.names: нет словаря биомов"]
+    problems: list[str] = []
+    for key in ("biome.figure", "biome.marks"):
+        table = flat.get(key)
+        if not isinstance(table, dict):
+            problems.append(f"{key}: нет карты по биомам")
+            continue
+        for biome in sorted(set(names) - set(table)):
+            problems.append(f"{key}: нет записи для биома «{biome}»")
+        for biome in sorted(set(table) - set(names)):
+            problems.append(f"{key}: биом «{biome}», которого нет в biome.names")
+    return problems
+
+
 def check_building_types(constants_doc: dict, recipes_doc: dict) -> list[str]:
     """Тип здания живёт в трёх картах, и они обязаны совпадать (D-218, D-219).
 
@@ -2164,6 +2190,7 @@ def build_renames(
     code_laws: list[dict] = (),
     provinces: dict[str, list[dict]] | None = None,
     facets: dict[str, list[dict]] | None = None,
+    biomes: dict[str, str] | None = None,
 ) -> dict:
     """build/renames.json — таблица соответствий «русское имя -> id».
 
@@ -2230,6 +2257,11 @@ def build_renames(
         for row in rows
         if row.get("id") and row.get("name")
     }
+    #: Биомы (дополнение к D-331): слово биома в легенде карты и о найденном
+    #: узле. Само слово живёт константой `biome.names` (D-321), домен здесь —
+    #: чтобы у него был второй язык: клиент читал константу и по-английски
+    #: показывал «Тайга».
+    out["biomes"] = {name: bid for bid, name in (biomes or {}).items() if bid and name}
     out["names_ru"] = {
         domain: {v: k for k, v in table.items()} for domain, table in out.items()
     }
@@ -2729,6 +2761,7 @@ def main() -> int:
         for one in check_field_freshness(flatten_constants(constants_doc))
     ]
     problems += check_building_types(constants_doc, recipes_doc)
+    problems += check_biome_figure(constants_doc)
     problems += check_class_tables(constants_doc, recipes_doc)
     world_doc = worldfile.load_world_doc()
     problems += worldfile.check_world(world_doc, recipes_doc, all_recipes)
@@ -2754,6 +2787,7 @@ def main() -> int:
             recipes_doc, vocabulary, plants, code_laws=laws_doc["code_laws"],
             provinces=provinces_doc,
             facets=facets_doc,
+            biomes=flatten_constants(constants_doc).get("biome.names", {}),
         ),
         locales,
     )
@@ -2959,7 +2993,8 @@ def main() -> int:
     write(BUILD / "renames.json",
           json.dumps(build_renames(recipes_doc, vocabulary, plants, locales,
                                    code_laws=laws_doc["code_laws"],
-                                   provinces=provinces_doc, facets=facets_doc),
+                                   provinces=provinces_doc, facets=facets_doc,
+                                   biomes=flatten_constants(constants_doc).get("biome.names", {})),
                      ensure_ascii=False, indent=2) + "\n")
     #: Провинции (план ландшафта §7): конвейер поля читает отсюда, сколько
     #: областей резать на планете и чем каждая сдвигает климат.

@@ -560,6 +560,24 @@
     "Сухой лог": "dry_hollow",
     "Лысина": "bald_top"
   },
+  "biomes": {
+    "Берег": "coast",
+    "Пойма": "floodplain",
+    "Лес": "forest",
+    "Степь": "steppe",
+    "Пустыня": "desert",
+    "Тайга": "taiga",
+    "Тундра": "tundra",
+    "Болото": "marsh",
+    "Предгорье": "foothills",
+    "Горный склон": "alpine",
+    "Ледяное поле": "ice",
+    "Чёрное поле": "cinder",
+    "Дождевой лес": "rainforest",
+    "Саванна": "savanna",
+    "Полупустыня": "semidesert",
+    "Сухолесье": "woodland"
+  },
   "names_ru": {
     "goods": {
       "spelt_seeds": "Семена полбы",
@@ -1122,6 +1140,24 @@
       "dry_hollow": "Сухой лог",
       "bald_top": "Лысина"
     },
+    "biomes": {
+      "coast": "Берег",
+      "floodplain": "Пойма",
+      "forest": "Лес",
+      "steppe": "Степь",
+      "desert": "Пустыня",
+      "taiga": "Тайга",
+      "tundra": "Тундра",
+      "marsh": "Болото",
+      "foothills": "Предгорье",
+      "alpine": "Горный склон",
+      "ice": "Ледяное поле",
+      "cinder": "Чёрное поле",
+      "rainforest": "Дождевой лес",
+      "savanna": "Саванна",
+      "semidesert": "Полупустыня",
+      "woodland": "Сухолесье"
+    },
     "plant_care": {
       "spelt": "Хлеб этого мира: из полбы мелют муку, и с неё начинают всякий двор. Сеют её, чтобы есть самому, — зерно кормит дом, пока хозяйство не встало на ноги. С полбы и учатся ходить за делянкой.",
       "turnip": "Еда первых дней: репу сеют, когда в мешке пусто. Что не съедено сразу — сушат впрок, тем и живут до первого хлеба. Кормить её нужно с оглядкой: чего репа не просит, то её жжёт.",
@@ -1180,6 +1216,24 @@
     }
   },
   "names_en": {
+    "biomes": {
+      "coast": "Coast",
+      "floodplain": "Floodplain",
+      "forest": "Forest",
+      "steppe": "Steppe",
+      "desert": "Desert",
+      "taiga": "Taiga",
+      "tundra": "Tundra",
+      "marsh": "Marsh",
+      "foothills": "Foothills",
+      "alpine": "Mountain slope",
+      "ice": "Ice field",
+      "cinder": "Cinder field",
+      "rainforest": "Rainforest",
+      "savanna": "Savanna",
+      "semidesert": "Semi-desert",
+      "woodland": "Dry woodland"
+    },
     "building_kinds": {
       "wooden": "wooden",
       "stone": "stone",

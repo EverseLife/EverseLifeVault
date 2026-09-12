@@ -186,6 +186,11 @@ class Params:
     river_narrow_m: float = 60.0
     river_wide_m: float = 120.0
     river_merge: float = 0.5
+    #: Долина реки (`terrain.valley_depth_m`, `terrain.valley_width_m`,
+    #: D-331): на сколько метров самая полноводная река опускает своё русло
+    #: и на сколько метров в стороны её долина сходит на нет (`_carve_valleys`).
+    valley_depth_m: float = 0.0
+    valley_width_m: float = 600.0
     #: Досягаемость захвата русла, м (`terrain.capture_reach_m`): русло не
     #: дальше этого от русла крупнее и ниже отдаёт ему воду (`hydro.capture`).
     capture_reach_m: float = 250.0
@@ -278,6 +283,8 @@ class Params:
             river_wide_m=float(constants["terrain.river_wide_m"]),
             river_merge=float(constants["terrain.river_merge"]),
             capture_reach_m=float(constants["terrain.capture_reach_m"]),
+            valley_depth_m=float(constants["terrain.valley_depth_m"]),
+            valley_width_m=float(constants["terrain.valley_width_m"]),
             #: Ключ пока «на весь размах» (реестр); в градусы на километр его
             #: переведёт волна климата — здесь только пересчёт.
             lapse_per_km=lapse_range / (relief_m / 1000.0),
@@ -358,6 +365,52 @@ class Rasters:
     def land_share(self) -> float:
         #: Доля клеток и доля площади — одно и то же: сетка равноплощадная (D-328).
         return float(self.land.mean())
+
+
+def _carve_valleys(
+    height: np.ndarray,
+    grid: Grid,
+    land: np.ndarray,
+    lake: np.ndarray,
+    carried: np.ndarray,
+    params: Params,
+) -> np.ndarray:
+    """Долины рек (D-331, владелец 2026-09-12: «реки размывают ландшафт»).
+
+    Эрозия режет русло силой потока, но её срез — метры на клетке русла, и
+    долины как формы у реки не было: на близком кадре река лежала на ровной
+    земле трубой. Здесь у каждой клетки реки долина глубиной
+    `valley_depth_m` на долю корня из расхода против самого полноводного
+    русла планеты и шириной `valley_width_m` на ту же долю (не уже трети):
+    земля в долине опущена по параболе от русла к краю. Русло не ниже трети
+    своей высоты: долина не роет море, и берег остаётся берегом.
+
+    Река — по расходу и **не озеро**: котловина несёт весь приток и рылась
+    бы на всю глубину, а её берег уходил бы под залитую поверхность (ревью
+    2026-09-12). Лёд не исключён: долина под ледником допустима. Расход
+    берётся с окончательного стока, так что вниз по руслу долина только
+    глубже; два места, где русло всё же не спуск, названы и оставлены:
+    полоса берега (`_shore_by_base`, идёт следом) имеет приоритет над
+    долиной, и у устья дно последних клеток поднимается к профилю; пол в
+    треть высоты срабатывает ниже по руслу раньше, чем выше, — доли метра.
+    Приёмник в игру не едет, движок высоту вдоль русла не читает.
+    """
+    if params.valley_depth_m <= 0.0:
+        return height
+    river = land & ~np.asarray(lake, dtype=bool) & (carried >= params.river_area_km2 * 1e6)
+    if not river.any():
+        return height
+    top = float(carried[river].max())
+    share = np.sqrt(np.clip(carried / max(top, 1e-9), 0.0, 1.0))
+    depth_at = np.where(river, params.valley_depth_m * share, 0.0)
+    width_at = np.where(river, params.valley_width_m * (0.3 + 0.7 * share), 0.0)
+    reach = grid.cells_for_metres(params.valley_width_m)
+    depth, cells = grid.spread(depth_at, river, reach)
+    width, _ = grid.spread(width_at, river, reach)
+    gap_m = np.asarray(cells, dtype=float) * grid.side_m
+    profile = np.clip(1.0 - (gap_m / np.maximum(width, 1.0)) ** 2, 0.0, 1.0)
+    carved = np.maximum(height - depth * profile, height * 0.3)
+    return np.where(land, carved, height)
 
 
 def _shore_profile(base: np.ndarray, sea_level: float, relief_m: float) -> np.ndarray:
@@ -688,6 +741,17 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
         capture_yield=hydro.yield_share(_yield(params, rain, temperature), land),
     )
     height = np.where(land, np.minimum(height, flow.filled), height)
+    #: Долины (D-331): река размывает ландшафт по своему расходу, прежде
+    #: чем берег сведётся к профилю основы -- долина у устья входит в
+    #: полосу берега, и профиль её учтёт.
+    height = _carve_valleys(
+        height,
+        fine,
+        land,
+        flow.lake,
+        hydro.discharge(flow, fine, _yield(params, rain, temperature), land),
+        params,
+    )
     height = _shore_by_base(height, shore, sea, fine)
     #: Перемычки опустили клетки на метры: температура пересчитывается по
     #: окончательной высоте — это формула, и растр обязан сходиться с
@@ -758,7 +822,10 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: за берегом; дальше ближайшее русло не ищется, и мера там ноль.
     #: Расстояние — до линии русла, не до его клетки (`hydro.channel_distance`).
     wide_cells = fine.cells_for_metres(params.river_wide_m / 2.0 + STREAM_RAMP_M / 2.0)
-    source, gap_m = hydro.channel_distance(fine, river, flow.receiver, wide_cells)
+    #: По сглаженной линии русла (`hydro.smooth_channel`): клетки реки
+    #: остаются клетками, лента идёт дугой там, где русло шагает углом.
+    line = hydro.smooth_channel(fine, river, flow.receiver, carried)
+    source, gap_m = hydro.channel_distance(fine, river, flow.receiver, wide_cells, points=line)
     channel = hydro.widths(
         flow,
         river,
@@ -768,6 +835,18 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     )
     width_m = np.where(source >= 0, channel[np.maximum(source, 0)], params.river_narrow_m)
     stream = ribbon(gap_m, width_m)
+    #: Клетка русла читается как стоящая **на** линии. Сглаженная линия
+    #: (`hydro.smooth_channel`) отходит от середины клетки до трети клетки,
+    #: и собственная мера клетки на диагональном плёсе падала к ножу —
+    #: чтение между клетками в углу лестницы теряло ленту, а тест растров
+    #: игры («клетка русла не суше») падал (ревью 2026-09-12).
+    stream = np.where(river, np.maximum(stream, ribbon(0.0, width_m)), stream)
+    #: Клетка русла читается как стоящая **на** линии. Сглаженная линия
+    #: (`hydro.smooth_channel`) отходит от середины клетки до трети клетки,
+    #: и собственная мера клетки на диагональном плёсе падала к ножу —
+    #: чтение между клетками в углу лестницы теряло ленту, а тест растров
+    #: игры («клетка русла не суше») падал (ревью 2026-09-12).
+    stream = np.where(river, np.maximum(stream, ribbon(0.0, width_m)), stream)
     #: Классификатор читает растры такими, какими их хранит файл (целые
     #: градусы, осадки в 1/255): рендер судит то, что получит узел, а не
     #: то, что видел конвейер до записи.

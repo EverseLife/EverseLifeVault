@@ -408,10 +408,68 @@ def route(
     )
 
 
+#: Сколько раз ломаная русла сглаживается (`smooth_channel`), прежде чем
+#: по ней считать ленту. Русло шагает по клеткам — по осям и диагоналям
+#: решётки, — и лента, считанная от такой ломаной, на ближних кадрах шла
+#: трубой с прямыми коленами (владелец 2026-09-12: «реки выглядят
+#: странно»). Точка клетки русла сдвигается к середине между главным
+#: притоком и приёмником на четверть с каждой стороны; два раунда
+#: расходят угол в девяносто градусов в дугу радиусом около клетки, а
+#: прямой плёс не трогают. Клетки русла остаются клетками: сглажена
+#: только линия, по которой меряется лента.
+CHANNEL_SMOOTH = 2
+
+
+def smooth_channel(
+    grid: Grid,
+    river: np.ndarray,
+    receiver: np.ndarray,
+    carried: np.ndarray,
+    rounds: int = CHANNEL_SMOOTH,
+) -> np.ndarray:
+    """Точки ломаной русла на единичном шаре, сглаженные (`CHANNEL_SMOOTH`):
+    у клетки реки — её середина, сдвинутая к середине между её главным
+    притоком (тем из соседей-рек, что течёт в неё с наибольшим расходом) и
+    её приёмником; у прочих клеток — их середины как есть. Исток без притока
+    и устье без приёмника-реки тянутся только к той стороне, что есть."""
+    river = np.asarray(river, dtype=bool)
+    carried = np.asarray(carried, dtype=float)
+    cells = np.arange(grid.count)
+    main = np.full(grid.count, -1, dtype=np.int64)
+    best = np.full(grid.count, -np.inf)
+    for k in range(WAYS):
+        n = grid.near[k]
+        feeds = river & river[n] & (receiver[n] == cells)
+        better = feeds & (carried[n] > best)
+        main = np.where(better, n, main)
+        best = np.where(better, carried[n], best)
+    has_up = main >= 0
+    has_down = river & (receiver != cells) & river[receiver]
+    up_w = np.where(has_up, 0.25, 0.0)[:, None]
+    down_w = np.where(has_down, 0.25, 0.0)[:, None]
+    points = np.asarray(grid.xyz, dtype=float).copy()
+    for _ in range(rounds):
+        moved = (
+            points * (1.0 - up_w - down_w)
+            + points[np.maximum(main, 0)] * up_w
+            + points[receiver] * down_w
+        )
+        moved = moved / np.linalg.norm(moved, axis=1, keepdims=True)
+        points = np.where(river[:, None], moved, points)
+    return points
+
+
 def channel_distance(
-    grid: Grid, river: np.ndarray, receiver: np.ndarray, reach_cells: int
+    grid: Grid,
+    river: np.ndarray,
+    receiver: np.ndarray,
+    reach_cells: int,
+    points: np.ndarray | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Ближайшая клетка русла и расстояние до **линии** русла, метры.
+
+    `points` — где стоят вершины ломаной, если не в серединах клеток
+    (`smooth_channel`); расстояние всегда меряется от середины клетки.
 
     Русло — ломаная через середины клеток реки, звено — от клетки к её
     приёмнику. Расстояние до ближайшей **клетки** русла (`grid.nearest`)
@@ -424,17 +482,22 @@ def channel_distance(
 
     Проверяются звенья ближайшей клетки русла — вниз, к её приёмнику, и
     вверх, от каждого её притока-соседа: ближайшая точка ломаной лежит на
-    одном из них, кроме углов ломаной, где разница — доли метра.
+    одном из них, кроме углов ломаной, где разница — доли метра. Со
+    сглаженными вершинами (`points`) ближайшая **клетка** по-прежнему ищется
+    по серединам, а её вершина ушла до трети клетки: во внутренних углах
+    лестницы ошибка односторонняя — зазор завышен, лента уже — и до пятой
+    доли клетки; конвейер держит клетку русла на линии (`pipeline`, пол
+    меры), остальное — цена дуги вместо колена.
     """
     source, _ = grid.nearest(river, reach_cells)
     found = source >= 0
     seat = np.maximum(source, 0)
-    xyz = grid.xyz
-    p = xyz
-    a = xyz[seat]
+    line = grid.xyz if points is None else np.asarray(points, dtype=float)
+    p = grid.xyz
+    a = line[seat]
 
     def to_segment(b_index: np.ndarray, live: np.ndarray) -> np.ndarray:
-        b = xyz[b_index]
+        b = line[b_index]
         ab = b - a
         along = (ab * ab).sum(axis=1)
         t = np.where(along > 0.0, ((p - a) * ab).sum(axis=1) / np.maximum(along, 1e-30), 0.0)

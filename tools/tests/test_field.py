@@ -41,6 +41,7 @@ def tiny(seed: int = 5, *, temp_hot: bool = False, **overrides) -> pipeline.Para
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=300.0,
         warm_c=120.0 if temp_hot else 35.0, cold_c=70.0 if temp_hot else -15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
         continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
+        valley_depth_m=30.0, valley_width_m=600.0,
         climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,
         dry_belt_wander_deg=8.0, rain_noise=0.3, dry_belt_lat=27.0, dry_belt_width=10.0, dry_belt_strength=0.4, version=1,
         coarse_factor=2, coarse_iterations=6, fine_iterations=2,
@@ -603,6 +604,101 @@ def test_the_shore_keeps_the_slope_of_the_base_on_both_sides():
     #: столько же, на сколько насыпь над ним, — ноль между ними посередине.
     sea_first_now = sea_now & (grid.dilate_distance(~sea_now, 3) < 1.5)
     assert np.median(-out_now[sea_first_now]) == pytest.approx(np.median(out_now[laid]), rel=0.5)
+
+
+def _staircase(grid, start, steps):
+    """Русло лестницей по решётке: от `start` шаг на восток, шаг на север и
+    так `steps` раз; возвращает клетки цепи и приёмники."""
+    cells = [int(start)]
+    for step in range(steps):
+        here = cells[-1]
+        near = grid.near[:, here]
+        lat, lon = grid.lat[near], grid.lon[near]
+        pick = int(near[np.argmax(lon)]) if step % 2 == 0 else int(near[np.argmax(lat)])
+        cells.append(pick)
+    receiver = np.arange(grid.count)
+    for a, b in pairwise(cells):
+        receiver[a] = b
+    return cells, receiver
+
+
+def test_the_channel_line_is_smoothed_between_its_cells():
+    """Ломаная русла сглажена (`hydro.smooth_channel`, `CHANNEL_SMOOTH`):
+    лестница по решётке идёт дугой, её точки ближе к прямой между концами,
+    чем середины клеток, и клетки не-реки стоят где стояли. Владелец
+    2026-09-12: река на ближнем кадре шла коленом.
+    """
+    grid = Grid.of(99_600.0, 3_000.0)
+    start = int(np.argmin(np.abs(grid.lat) + np.abs(grid.lon)))
+    cells, receiver = _staircase(grid, start, 10)
+    river = np.zeros(grid.count, dtype=bool)
+    river[cells] = True
+    carried = np.zeros(grid.count)
+    carried[cells] = np.arange(1, len(cells) + 1, dtype=float)
+    points = hydro.smooth_channel(grid, river, receiver, carried)
+    #: Прочие клетки — как были.
+    assert np.array_equal(points[~river], grid.xyz[~river])
+    #: Излом в вершинах: угол между звеном к вершине и звеном от неё, у
+    #: середин клеток и у сглаженных точек. Лестница ломается на прямой
+    #: угол в каждой вершине; дуга — на малый.
+    def turning(q):
+        p = q[cells]
+        a = p[1:-1] - p[:-2]
+        b = p[2:] - p[1:-1]
+        cos = (a * b).sum(axis=1) / (np.linalg.norm(a, axis=1) * np.linalg.norm(b, axis=1))
+        return np.degrees(np.arccos(np.clip(cos, -1.0, 1.0))).mean()
+
+    before = turning(grid.xyz)
+    after = turning(points)
+    assert before > 45.0, before
+    assert after < 0.5 * before, (before, after)
+    inner = cells[1:-1]
+    #: И вершины ушли недалеко: угол лестницы срезается на четверть
+    #: диагонали за раунд, два раунда — около половины клетки, не больше
+    #: трёх четвертей.
+    moved = np.linalg.norm(points[inner] - grid.xyz[inner], axis=1) * grid.radius_m
+    assert moved.max() < 0.75 * grid.side_m
+
+
+def test_a_river_carves_its_valley_by_its_flow():
+    """Долина реки (`pipeline._carve_valleys`, D-331): русло опущено на долю
+    глубины по корню из расхода, земля рядом — по параболе до края долины,
+    дальше нетронута, и ничто не ниже трети своей высоты.
+    """
+    grid = Grid.of(99_600.0, 3_000.0)
+    start = int(np.argmin(np.abs(grid.lat) + np.abs(grid.lon)))
+    cells, _ = _staircase(grid, start, 12)
+    land = np.ones(grid.count, dtype=bool)
+    height = np.full(grid.count, 100.0)
+    carried = np.zeros(grid.count)
+    carried[cells] = np.linspace(0.25, 1.0, len(cells)) * 1e9
+    params = tiny(valley_depth_m=40.0, valley_width_m=9_000.0, river_area_km2=0.1)
+    no_lake = np.zeros(grid.count, dtype=bool)
+    out = pipeline._carve_valleys(height, grid, land, no_lake, carried, params)
+    #: Русло: самая полноводная клетка на всю глубину, исток на половину.
+    assert out[cells[-1]] == pytest.approx(60.0)
+    assert out[cells[0]] == pytest.approx(100.0 - 40.0 * 0.5)
+    #: Вниз по руслу только глубже.
+    assert (np.diff(out[cells]) <= 1e-9).all()
+    #: Рядом с руслом — опущено, за краем долины — как было.
+    beside = int(grid.near[0, cells[-1]])
+    assert 60.0 < out[beside] < 100.0
+    far = grid.dilate_distance(np.isin(np.arange(grid.count), cells), 6) >= 5.0
+    assert np.array_equal(out[far], height[far])
+    #: Не ниже трети своей высоты, даже у глубокой долины над низкой землёй.
+    low = np.full(grid.count, 30.0)
+    assert (pipeline._carve_valleys(low, grid, land, no_lake, carried, params) >= 9.0).all()
+    #: Озеро — не река: котловина с самым большим притоком не роется, и её
+    #: берег остаётся где был (ревью 2026-09-12).
+    lake = np.zeros(grid.count, dtype=bool)
+    lake[cells[-1]] = True
+    kept = pipeline._carve_valleys(height, grid, land, lake, carried, params)
+    #: Not dug as a river is -- the neighbour's valley still reaches it.
+    assert kept[cells[-1]] > out[cells[-1]] + 1.0
+    assert kept[cells[-2]] < 100.0
+    #: Без глубины — без долин.
+    still = tiny(valley_depth_m=0.0)
+    assert np.array_equal(pipeline._carve_valleys(height, grid, land, no_lake, carried, still), height)
 
 
 def test_the_ribbon_read_between_cells_keeps_its_width_on_the_diagonal():

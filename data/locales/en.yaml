@@ -644,3 +644,20 @@ provinces:
   windy_rise: Windy Rise
   wormwood_plain: Wormwood Plain
   yellow_steppe: Yellow Steppe
+biomes:
+  coast: Coast
+  floodplain: Floodplain
+  forest: Forest
+  steppe: Steppe
+  desert: Desert
+  taiga: Taiga
+  tundra: Tundra
+  marsh: Marsh
+  foothills: Foothills
+  alpine: Mountain slope
+  ice: Ice field
+  cinder: Cinder field
+  rainforest: Rainforest
+  savanna: Savanna
+  semidesert: Semi-desert
+  woodland: Dry woodland
