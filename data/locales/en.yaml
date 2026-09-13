@@ -481,6 +481,7 @@ facets:
   bald_top: Bald top
   bare_patch: Bare patch
   bare_summit: Bare summit
+  black_boulders: Black boulders
   bog_ridge: Bog ridge
   bottomland_wood: Bottomland wood
   boulder_field: Boulder field
@@ -497,6 +498,8 @@ facets:
   crest: Crest
   crevasses: Crevasse field
   deadfall: Deadfall
+  deep_snow: Deep snow
+  drift_ridges: Snow drifts
   dry_hollow: Dry hollow
   dry_lake: Dry lake
   dry_wash: Dry wash
@@ -509,6 +512,7 @@ facets:
   firn_plain: Firn plain
   forest_glade: Forest glade
   frost_mound: Frost mound
+  frozen_hollow: Frozen hollow
   glade: Glade
   glaze_ice: Bare ice
   glen: Glen
@@ -564,7 +568,7 @@ facets:
   shingle: Shingle
   shore_wood: Shore wood
   smooth_lava: Smooth lava
-  snowfield: Snowfield
+  snowfield: Snow patch
   spruce_stand: Spruce stand
   steep_bank: Steep bank
   steep_gully: Steep gully
@@ -577,6 +581,7 @@ facets:
   tidal_flat: Salt meadow
   water_meadow: Water meadow
   willow_brake: Willow brake
+  wind_crust: Wind crust
   windthrow: Windthrow
   wormwood_flat: Wormwood flat
 
@@ -588,8 +593,8 @@ provinces:
   black_pinewood: Black Pinewood
   black_teeth: Black Teeth
   blue_mountains: Blue Mountains
-  blue_rifts: Blue Rifts
-  broken_ice: Broken Ice
+  blue_rifts: Blue Drifts
+  broken_ice: Broken Edge
   burnt_hollow: Burnt Hollow
   cold_field: Cold Field
   cold_glen: Cold Glen
@@ -610,12 +615,12 @@ provinces:
   hot_plain: Hot Plain
   hot_slope: Hot Slope
   hummock_field: Hummock Field
-  ice_rampart: Ice Rampart
+  ice_rampart: High Rampart
   lichen_flats: Lichen Flats
   long_spit: Long Spit
   loose_snows: Loose Snows
-  melt_edge: Melt Edge
-  mirror_ice: Mirror Ice
+  melt_edge: Rime Dale
+  mirror_ice: Bare Plain
   oak_cape: Oak Cape
   ore_ridge: Ore Ridge
   pine_sands: Pine Sands
@@ -634,7 +639,7 @@ provinces:
   sulphur_springs: Sulphur Springs
   sunken_edge: Sunken Edge
   thorn_field: Thorn Field
-  warm_lead: Warm Lead
+  warm_lead: Misty Glen
   warm_ravine: Warm Ravine
   wet_ridge: Wet Ridge
   wet_wilds: Wet Wilds
@@ -657,6 +662,7 @@ biomes:
   foothills: Foothills
   alpine: Mountain slope
   ice: Ice field
+  snow: Snow field
   cinder: Cinder field
   rainforest: Rainforest
   savanna: Savanna

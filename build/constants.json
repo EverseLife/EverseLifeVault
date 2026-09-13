@@ -109,7 +109,9 @@
   "farm.dry_temp_ref": 15,
   "farm.dry_per_degree": 3,
   "farm.river_dry_share": 50,
+  "farm.rain_per_hour": 2,
   "farm.stress_per_point": 0.5,
+  "farm.temp_stress_per_degree": 2,
   "farm.heal_per_day": 5,
   "farm.stage_bounds": {
     "leaf": 20,
@@ -681,7 +683,6 @@
     "min": 0,
     "max": 100
   },
-  "site.rain_water_offset": 60,
   "planet.temp_swing": {
     "terra": 5,
     "aquatica": 3,
@@ -708,7 +709,7 @@
   "weather.cell_km": 3,
   "weather.wind_deg_per_day": 90,
   "weather.change_days": 1.5,
-  "weather.wet_bias": 0.2,
+  "weather.wet_bias": 0.5,
   "weather.cloud_from": 0.45,
   "weather.cloud_full": 0.65,
   "weather.rain_from": 0.6,
@@ -914,6 +915,7 @@
   "map.eye_m": 2,
   "map.sight_step_m": 10,
   "travel.walk_speed_kmh": 8,
+  "travel.snow_multiplier": 2,
   "terrain.river_reach_km": 0.1,
   "road.wild_multiplier": 4,
   "path.wear_threshold": 20,
@@ -983,8 +985,19 @@
   "terrain.river_wide_m": 200,
   "terrain.version": 13,
   "terrain.ice_c": -8,
+  "terrain.ice_cap_c": {
+    "terra": -8,
+    "aquatica": -8,
+    "pyroxis": -8,
+    "aurora": -68
+  },
   "terrain.ice_rain": 0.25,
-  "terrain.ice_deep_c": -20,
+  "terrain.ice_deep_c": {
+    "terra": -20,
+    "aquatica": -20,
+    "pyroxis": -20,
+    "aurora": -78
+  },
   "terrain.continental_c": 5,
   "terrain.climate_noise_c": 5,
   "terrain.climate_noise_km": 2.5,
@@ -1012,6 +1025,7 @@
     "foothills": "Предгорье",
     "alpine": "Горный склон",
     "ice": "Ледяное поле",
+    "snow": "Снежное поле",
     "cinder": "Чёрное поле",
     "rainforest": "Дождевой лес",
     "savanna": "Саванна",
@@ -1063,6 +1077,10 @@
       "min": 20,
       "max": 80
     },
+    "snow": {
+      "min": 20,
+      "max": 80
+    },
     "cinder": {
       "min": 10,
       "max": 60
@@ -1096,6 +1114,7 @@
     "foothills": 9,
     "alpine": 12,
     "ice": 6,
+    "snow": 6,
     "cinder": 15,
     "rainforest": 4,
     "savanna": 12,
@@ -1158,6 +1177,11 @@
       "stones": 30,
       "meadow": 0
     },
+    "snow": {
+      "woods": 0,
+      "stones": 30,
+      "meadow": 0
+    },
     "cinder": {
       "woods": 0,
       "stones": 80,
@@ -1196,6 +1220,7 @@
     "foothills": "bush",
     "alpine": "none",
     "ice": "none",
+    "snow": "none",
     "cinder": "none",
     "rainforest": "palm",
     "savanna": "acacia",
@@ -1214,6 +1239,7 @@
     "foothills": "rubble",
     "alpine": "scree",
     "ice": "cracks",
+    "snow": "sand",
     "cinder": "clinker",
     "rainforest": "jungle",
     "savanna": "tussocks",
@@ -1232,6 +1258,7 @@
     "foothills": 1.5,
     "alpine": 2.0,
     "ice": 1.5,
+    "snow": 1.5,
     "cinder": 1.5,
     "rainforest": 0.6,
     "savanna": 0.8,
@@ -1449,7 +1476,7 @@
   },
   "complex.chance": {
     "aurora": {
-      "ice": 20
+      "snow": 20
     },
     "terra": {
       "floodplain": 15,
@@ -1460,7 +1487,7 @@
   "complex.schemes": {
     "forerunner_mine": {
       "planet": "aurora",
-      "biome": "ice",
+      "biome": "snow",
       "weight": 6,
       "nodes": [
         {
@@ -1487,7 +1514,7 @@
     },
     "forerunner_outpost": {
       "planet": "aurora",
-      "biome": "ice",
+      "biome": "snow",
       "weight": 3,
       "nodes": [
         {
@@ -1509,7 +1536,7 @@
     },
     "lost_city": {
       "planet": "aurora",
-      "biome": "ice",
+      "biome": "snow",
       "weight": 1,
       "city": true
     },
