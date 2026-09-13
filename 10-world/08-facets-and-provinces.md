@@ -1629,21 +1629,21 @@ provinces:
       favours: [black_boulders]
       note: чёрные валуны торчат из снега рядом, у их подножия единственный камень на планете
     - id: broken_ice
-      ru: Рваный наст
-      en: Torn Crust
+      ru: Рваный край
+      en: Broken Edge
       rain_shift: 0
       temp_shift_c: 0
       vein_k: 0.8
       favours: [wind_crust, drift_ridges, pressure_ridges, crevasses]
-      note: к полюсу наст рвётся о торосы шапки, путь втрое длиннее прямой
+      note: к полюсу снег рвётся о торосы шапки, путь втрое длиннее прямой
     - id: warm_lead
       ru: Туманная падь
-      en: Misty Hollow
+      en: Misty Glen
       rain_shift: 15
       temp_shift_c: 4
       vein_k: 0.9
       favours: [frozen_hollow, deep_snow]
-      note: теплее, чем везде: снег оседает, стоит туман, в низинах — старый лёд
+      note: теплее соседей: снег оседает, стоит морозный туман, в низинах — старый лёд
     - id: wind_ridge
       ru: Ветровой гребень
       en: Wind Ridge
@@ -1659,7 +1659,7 @@ provinces:
       temp_shift_c: -2
       vein_k: 1.1
       favours: [drift_ridges]
-      note: в тени сугробы синие, между ними ветер выметает канавы до камня
+      note: в тени сугробы синие, между ними ветер выметает канавы до старого льда
     - id: still_basin
       ru: Тихая котловина
       en: Still Basin
@@ -1685,29 +1685,29 @@ provinces:
       favours: [deep_snow]
       note: снег валит неделями, по пояс, дороги торят заново
     - id: ice_rampart
-      ru: Снежный вал
-      en: Snow Rampart
+      ru: Высокий вал
+      en: High Rampart
       rain_shift: -5
       temp_shift_c: -1
       vein_k: 1.0
       favours: [drift_ridges, pressure_ridges]
       note: гряда надувов в высоту дома тянется через всю область, к полюсу переходит в торосы
     - id: mirror_ice
-      ru: Голый наст
-      en: Bare Crust
+      ru: Голая равнина
+      en: Bare Plain
       rain_shift: -20
       temp_shift_c: -4
       vein_k: 1.2
       favours: [wind_crust]
       note: ветер сдувает снег до наста, блестит, как стекло, не устоять
     - id: melt_edge
-      ru: Мокрые снега
-      en: Wet Snows
+      ru: Инейный дол
+      en: Rime Dale
       rain_shift: 10
       temp_shift_c: 5
       vein_k: 0.9
       favours: [deep_snow, frozen_hollow]
-      note: самый тёплый край: днём снег мокнет, к утру схватывается коркой
+      note: самый тёплый край: сырой воздух оседает инеем, к утру всё в корке
 
   pyroxis:
     - id: black_level
