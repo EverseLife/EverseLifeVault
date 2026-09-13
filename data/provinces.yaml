@@ -389,82 +389,82 @@ provinces:
       rain_shift: -5
       temp_shift_c: -2
       vein_k: 0.7
-      favours: [firn_plain, glaze_ice]
+      favours: [wind_crust, deep_snow]
       note: "ровно, как стол, на три дня пути, вешки — единственная примета"
     - id: black_teeth
       name: Чёрные зубья
       rain_shift: -10
       temp_shift_c: -3
       vein_k: 1.9
-      favours: [bare_summit]
-      note: "гольцы торчат из льда рядом, у их подножия единственный камень на планете"
+      favours: [black_boulders]
+      note: "чёрные валуны торчат из снега рядом, у их подножия единственный камень на планете"
     - id: broken_ice
-      name: Ломаный лёд
+      name: Рваный наст
       rain_shift: 0
       temp_shift_c: 0
       vein_k: 0.8
-      favours: [pressure_ridges, crevasses]
-      note: "путь втрое длиннее прямой, ночью лёд трещит"
+      favours: [wind_crust, drift_ridges, pressure_ridges, crevasses]
+      note: "к полюсу наст рвётся о торосы шапки, путь втрое длиннее прямой"
     - id: warm_lead
-      name: Тёплая полынья
+      name: Туманная падь
       rain_shift: 15
       temp_shift_c: 4
       vein_k: 0.9
-      favours: [melt_pool, glaze_ice]
-      note: "вода не замерзает, стоит туман, здесь единственные мокрые ноги на Авроре"
+      favours: [frozen_hollow, deep_snow]
+      note: "теплее, чем везде: снег оседает, стоит туман, в низинах — старый лёд"
     - id: wind_ridge
       name: Ветровой гребень
       rain_shift: -15
       temp_shift_c: -5
       vein_k: 0.8
-      favours: [sastrugi]
-      note: "ветер несёт снег стеной, заструги в рост, стоять нельзя"
+      favours: [drift_ridges, wind_crust]
+      note: "ветер несёт снег стеной, сугробы в рост, стоять нельзя"
     - id: blue_rifts
-      name: Синие трещины
+      name: Синие сугробы
       rain_shift: 0
       temp_shift_c: -2
       vein_k: 1.1
-      favours: [crevasses]
-      note: "ледник течёт, разломы каждый год на новом месте"
+      favours: [drift_ridges]
+      note: "в тени сугробы синие, между ними ветер выметает канавы до камня"
     - id: still_basin
       name: Тихая котловина
       rain_shift: 5
       temp_shift_c: -6
       vein_k: 0.6
-      favours: [firn_plain, melt_pool]
+      favours: [frozen_hollow, deep_snow]
       note: "ветра нет, зато самый лютый холод — воздух стекает и стоит"
     - id: stone_edge
       name: Каменный берег
       rain_shift: 5
       temp_shift_c: 2
       vein_k: 1.5
-      favours: [bare_summit, glaze_ice]
-      note: "край ледника упирается в камень, тут ставят первые дома"
+      favours: [black_boulders, wind_crust]
+      note: "снежное поле упирается в камень, тут ставят первые дома"
     - id: loose_snows
       name: Рыхлые снега
       rain_shift: 20
       temp_shift_c: 1
       vein_k: 0.5
-      favours: [firn_plain]
+      favours: [deep_snow]
       note: "снег валит неделями, по пояс, дороги торят заново"
     - id: ice_rampart
-      name: Ледяной вал
+      name: Снежный вал
       rain_shift: -5
       temp_shift_c: -1
       vein_k: 1.0
-      favours: [pressure_ridges]
-      note: "гряда торосов в высоту дома тянется через всю область"
+      favours: [drift_ridges, pressure_ridges]
+      note: "гряда надувов в высоту дома тянется через всю область, к полюсу переходит в торосы"
     - id: mirror_ice
-      name: Зеркальный лёд
+      name: Голый наст
       rain_shift: -20
       temp_shift_c: -4
       vein_k: 1.2
-      favours: [glaze_ice]
-      note: "ветер сдувает снег дочиста, лёд как стекло, не устоять"
+      favours: [wind_crust]
+      note: "ветер сдувает снег до наста, блестит, как стекло, не устоять"
     - id: melt_edge
-      name: Талый край
+      name: Мокрые снега
       rain_shift: 10
       temp_shift_c: 5
       vein_k: 0.9
-      favours: [melt_pool, crevasses]
-      note: "летом лёд течёт ручьями, зимой всё это застывает буграми"
+      favours: [deep_snow, frozen_hollow]
+      note: "самый тёплый край: днём снег мокнет, к утру схватывается коркой"

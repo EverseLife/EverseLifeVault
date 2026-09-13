@@ -592,8 +592,8 @@ provinces:
   black_pinewood: Black Pinewood
   black_teeth: Black Teeth
   blue_mountains: Blue Mountains
-  blue_rifts: Blue Rifts
-  broken_ice: Broken Ice
+  blue_rifts: Blue Drifts
+  broken_ice: Torn Crust
   burnt_hollow: Burnt Hollow
   cold_field: Cold Field
   cold_glen: Cold Glen
@@ -614,12 +614,12 @@ provinces:
   hot_plain: Hot Plain
   hot_slope: Hot Slope
   hummock_field: Hummock Field
-  ice_rampart: Ice Rampart
+  ice_rampart: Snow Rampart
   lichen_flats: Lichen Flats
   long_spit: Long Spit
   loose_snows: Loose Snows
-  melt_edge: Melt Edge
-  mirror_ice: Mirror Ice
+  melt_edge: Wet Snows
+  mirror_ice: Bare Crust
   oak_cape: Oak Cape
   ore_ridge: Ore Ridge
   pine_sands: Pine Sands
@@ -638,7 +638,7 @@ provinces:
   sulphur_springs: Sulphur Springs
   sunken_edge: Sunken Edge
   thorn_field: Thorn Field
-  warm_lead: Warm Lead
+  warm_lead: Misty Hollow
   warm_ravine: Warm Ravine
   wet_ridge: Wet Ridge
   wet_wilds: Wet Wilds
