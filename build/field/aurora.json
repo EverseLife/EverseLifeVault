@@ -13,8 +13,9 @@
     "cold_c": -75.0,
     "lapse_per_km": 52.0,
     "ice_c": -8.0,
+    "ice_cap_c": -68.0,
     "ice_rain": 0.25,
-    "ice_deep_c": -20.0,
+    "ice_deep_c": -78.0,
     "continental_c": 5.0,
     "continental_reach_r": 0.5,
     "climate_noise_c": 5.0,
@@ -344,7 +345,7 @@
     "valley_width_m": 600.0,
     "capture_reach_m": 250.0
   },
-  "digest": "44cb580331a8",
+  "digest": "46e247b03d27",
   "grid": {
     "kind": "healpix",
     "nside": 255,

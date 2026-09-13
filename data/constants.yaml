@@ -469,13 +469,16 @@ groups:
           делает его редким; вода из неё бесплатна
         decision: D-296
       - key: farm.rain_per_hour
-        value: 3
+        value: 2
         unit: влаги/час ливня
         note: Столько влаги даёт делянке час ливня (дождь силы 1 по закону
           погоды D-335), дождь слабее — свою долю. Не выше верха полосы
-          культуры — лишнее уходит в землю, дождь не заливает. В столице Терры
-          дождь идёт около 11 % часов и возвращает примерно то, что прежде
-          закрывала годовая доля осадков
+          культуры — лишнее уходит в землю, дождь не заливает. У ядра столицы
+          Терры (32,9° с. ш.) при `weather.wet_bias` 0,5 дождь идёт в 16 %
+          часов, 3,4 «часа ливня» за сутки Терры — около 7 пунктов влаги в
+          сутки, примерно столько, сколько середине полосы полбы прежде
+          закрывала годовая доля осадков (6,4); пришедшее пачками и выше верха
+          полосы теряется, так что в среднем грядка получает меньше
         decision: D-338
       - key: farm.stress_per_point
         value: 0.5
@@ -2291,12 +2294,12 @@ groups:
       - key: season.swing_c
         value: {terra: 18, aquatica: 6, aurora: 30, pyroxis: 4}
         unit: "°C"
-        note: "Сезонное качание средней температуры на полюсе: у точки на широте φ оно `swing · sin φ · sin(угол орбиты)` — экватор сезона не знает, полушария в противофазе. Запаздывания за инсоляцией нет: сезон и подсолнечная широта идут в одной фазе. Движок читает его в температуру момента (`climate.temperature_now`), которой дышат делянки и окно земли; калитка посева и биом судят по среднему года. Числа стартовые, на глаз: у Земли на полюсах больше, у Терры год в неделю и качание помягче"
+        note: "Сезонное качание средней температуры на полюсе: у точки на широте φ оно `swing · sin φ · sin(угол орбиты)` — экватор сезона не знает, полушария в противофазе. Запаздывания за инсоляцией нет: сезон и подсолнечная широта идут в одной фазе. Движок читает его в температуру момента (`climate.temperature_now`), которой дышат делянки и окно земли; калитка посева с D-338 судит по сезону на начало суток, биом — по среднему года. Числа стартовые, на глаз: у Земли на полюсах больше, у Терры год в неделю и качание помягче"
         decision: D-334
       - key: season.snow_c
         value: 0
         unit: "°C"
-        note: "Ниже этой сезонной температуры земля на карте под снегом; белизна полная на `season.snow_band_c` градусов холоднее, между ними переход. Сухая земля держит снег хуже: от нуля осадков до `season.snow_dry_rain` доля снега растёт от `season.snow_dry_share` до целого (рампа, не порог). Закон снега живёт в шейдере на этих числах; движок снега как свойства узла пока не знает"
+        note: "Ниже этой сезонной температуры земля на карте под снегом; белизна полная на `season.snow_band_c` градусов холоднее, между ними переход. Сухая земля держит снег хуже: от нуля осадков до `season.snow_dry_rain` доля снега растёт от `season.snow_dry_share` до целого (рампа, не порог). Закон снега живёт в шейдере на этих числах, и тот же закон — у движка (`weather.snow_cover`, D-338): бездорожье под снегом дольше в `travel.snow_multiplier` раз; контрольные числа сверены в обоих деревьях"
         decision: D-334
       - key: season.snow_band_c
         value: 4
@@ -2334,9 +2337,9 @@ groups:
         note: "Срок среза: система живёт два таких (D-336 п. 13) — рождается пустой, набирает силу к середине жизни и тает, каждая на своей фазе, так что небо меняется непрерывно, а не срезами"
         decision: D-335
       - key: weather.wet_bias
-        value: 0.2
+        value: 0.5
         unit: доля покрова
-        note: "Насколько годовая доля осадков земли (растр осадков, 0…1) растягивает покров неба — множителем, не слагаемым (D-336): `покров · (1 + bias · (2·осадки − 1))`, при 0,2 — от 0,8 до 1,2 раза (было 0,4: облака повторяли берега — D-336 п. 10). Над морем растр осадков пуст — марш не пишет, что выпало на море, — и небо там читает нейтральную половину. Мокрый наветренный склон утолщает то, что принёс ветер, сухое подветрие истончает, и из ясного неба гора погоды не делает: облако на хребте приходит и уходит с потоком"
+        note: "Насколько годовая доля осадков земли (растр осадков, 0…1) растягивает покров неба — множителем, не слагаемым (D-336): `покров · (1 + bias · (2·осадки − 1))`, при 0,5 — от половины до полутора раз. Было 0,4 (облака повторяли берега — D-336 п. 10), потом 0,2, и при 0,2 дождь с растром почти не был связан: полупустыня получала дождь в трети часов, место у столицы с осадками 68 — в девятой части. Когда дождь стал поливать делянку (D-338), владелец выбрал «привязать погоду к растру» — 0,5: связь дождя с осадками по суше Терры 0,54 → 0,85, суша с осадками ниже 10 из 100 дождя не видит, 10–25 — в 11 % часов и слабого, выше 75 — в половине часов; облачность суши 0,31 → 0,24, над морем без перемен (прогон 240 точек суши за год Терры, 2026-09-13). Над морем растр осадков пуст — марш не пишет, что выпало на море, — и небо там читает нейтральную половину. Мокрый наветренный склон утолщает то, что принёс ветер, сухое подветрие истончает, и из ясного неба гора погоды не делает: облако на хребте приходит и уходит с потоком"
         decision: D-335
       - key: weather.cloud_from
         value: 0.45
@@ -2937,6 +2940,20 @@ groups:
         unit: км/ч
         note: "Скорость хода по **дороге** до множителей покрытия (D-107): множитель дороги единица, а бездорожье вчетверо медленнее, тропа в два с половиной, мощёная быстрее в полтора. Время любого ребра, и по городу тоже, — расстояние на скорость, но меряется оно **один раз**, когда ребро прокладывают (`travel.connect` кладёт секунды в базу): правка этого числа ускоряет дороги, проложенные после неё, а не уже стоящие. Чтобы увидеть новую скорость на старом мире, мир надо засеять заново. Было 4 км/ч, удвоено владельцем 2026-09-08: ходьба должна быть почти бесплатной (10-world/07), а на планете D-322 она такой не выходила. Примечание до того говорило «по бездорожью» — это неверно и было исправлено там же"
         decision: D-319
+      - key: travel.snow_multiplier
+        value: 2
+        unit: раз
+        note: >-
+          Во столько раз дольше бездорожье под полным снегом (D-338, владелец
+          2026-09-13: «снег замедляет перемещение по бездорожью, это касается
+          всех планет»): дикое ребро и тропа — те, где не проходит повозка, —
+          и путь разведчика; дорога и мощёная расчищены и снега не знают. Снег —
+          закон карты (`season.snow_c`, `snow_band_c`, `snow_dry_*`) по среднему
+          места и сезону широты, под частичным снегом — своя доля. На ребре —
+          среднее двух концов, у разведки — снег узла, откуда вышли. Аврора
+          под снегом всегда: её бездорожье длиннее круглый год — вдвое на
+          влажной земле, в полтора раза на сухой (`season.snow_dry_share`)
+        decision: D-338
       - key: terrain.river_reach_km
         value: 0.1
         unit: км
@@ -3124,8 +3141,9 @@ groups:
           собранном поле это +27 °C — то есть льда (`terrain.ice_c` = −8) не
           бывает нигде и никогда, с запасом в тридцать пять градусов.
           Аврора −75…−25: теплее всего на экваторе у моря −25 °C, то есть
-          ниже `terrain.ice_deep_c` (−20) везде, и лёд лежит по всей суше при
-          любой сухости — на собранном поле ровно 100 %. Оба края выбраны так, чтобы описание
+          ниже `terrain.ice_deep_c` (−20) везде, и лёд лежал по всей суше при
+          любой сухости — на собранном поле ровно 100 %; с D-338 пороги шапки
+          свои у планеты, и лёд Авроры — 9,2 % суши у полюсов. Оба края выбраны так, чтобы описание
           планеты держалось арифметикой, а не удачей зерна
         decision: D-319
       - key: terrain.plant_temp
@@ -3512,6 +3530,19 @@ groups:
           `site.temp_range` −15…35 линия льда на уровне моря — около 68°
           широты вместо 60°
         decision: 90-production/12
+      - key: terrain.ice_cap_c
+        value: {terra: -8, aquatica: -8, pyroxis: -8, aurora: -68}
+        unit: "°C"
+        note: >-
+          Ниже этой средней мокрая земля ложится под шапку — свой порог у
+          планеты. У трёх миров он равен `terrain.ice_c`; у Авроры, холодной
+          везде (−25 °C на экваторе), общий порог клал лёд на всю сушу, и
+          строить и сеять там было бы негде (D-338): владелец 2026-09-13 —
+          «убрать лёд с Авроры, лёд оставить на полюсах, пусть Аврора будет
+          в снегу». При −68 и `terrain.ice_deep_c` −78 шапка Авроры на
+          пересобранном поле — 9,2 % суши в среднем на 68,5° широты и ни клетки
+          южнее 45,6°, как у Терры (8,5 %). Реки и эрозия по-прежнему мёрзнут по `terrain.ice_c`
+        decision: D-338
       - key: terrain.ice_rain
         value: 0.25
         unit: доля осадков
@@ -3523,9 +3554,12 @@ groups:
           на влажные берега и горы, а сухие полярные равнины остаются землёй
         decision: 90-production/12
       - key: terrain.ice_deep_c
-        value: -20
+        value: {terra: -20, aquatica: -20, pyroxis: -20, aurora: -78}
         unit: "°C"
-        note: Ниже этой средней земля подо льдом при любой сухости — сердце шапки
+        note: >-
+          Ниже этой средней земля подо льдом при любой сухости — сердце шапки.
+          Своё у планеты с D-338: Аврора холоднее −20 вся, и сердце её шапки —
+          только у полюсов
         decision: 90-production/12
       - key: terrain.continental_c
         value: 5
@@ -3614,36 +3648,36 @@ groups:
         note: Шаг решётки планеты, к которой прижимается точка разведки; ключ узла — ячейка решётки, поэтому найденное одинаково для всех (D-237)
         decision: D-321
       - key: biome.names
-        value: {coast: Берег, floodplain: Пойма, forest: Лес, steppe: Степь, desert: Пустыня, taiga: Тайга, tundra: Тундра, marsh: Болото, foothills: Предгорье, alpine: Горный склон, ice: Ледяное поле, cinder: Чёрное поле, rainforest: Дождевой лес, savanna: Саванна, semidesert: Полупустыня, woodland: Сухолесье}
-        note: "Слово о найденном узле в отказах и сводке; сам узел безымянен — его тип показывает знак на карте (владелец 2026-09-06). Шестнадцать классов с волной 4 плана ландшафта: четыре зональных (дождевой лес, саванна, полупустыня, сухолесье) добавлены под словарь 10-world/08"
+        value: {coast: Берег, floodplain: Пойма, forest: Лес, steppe: Степь, desert: Пустыня, taiga: Тайга, tundra: Тундра, marsh: Болото, foothills: Предгорье, alpine: Горный склон, ice: Ледяное поле, snow: Снежное поле, cinder: Чёрное поле, rainforest: Дождевой лес, savanna: Саванна, semidesert: Полупустыня, woodland: Сухолесье}
+        note: "Слово о найденном узле в отказах и сводке; сам узел безымянен — его тип показывает знак на карте (владелец 2026-09-06). Шестнадцать классов с волной 4 плана ландшафта: четыре зональных (дождевой лес, саванна, полупустыня, сухолесье) добавлены под словарь 10-world/08. Семнадцатый — снежное поле Авроры (D-338): лёд у неё остался только у полюсов"
         decision: D-321
       - key: biome.reach_m
-        value: {coast: {min: 5, max: 20}, floodplain: {min: 5, max: 20}, forest: {min: 5, max: 20}, steppe: {min: 10, max: 30}, desert: {min: 20, max: 80}, taiga: {min: 10, max: 30}, tundra: {min: 20, max: 80}, marsh: {min: 5, max: 20}, foothills: {min: 10, max: 50}, alpine: {min: 20, max: 100}, ice: {min: 20, max: 80}, cinder: {min: 10, max: 60}, rainforest: {min: 5, max: 20}, savanna: {min: 10, max: 40}, semidesert: {min: 15, max: 60}, woodland: {min: 5, max: 25}}
+        value: {coast: {min: 5, max: 20}, floodplain: {min: 5, max: 20}, forest: {min: 5, max: 20}, steppe: {min: 10, max: 30}, desert: {min: 20, max: 80}, taiga: {min: 10, max: 30}, tundra: {min: 20, max: 80}, marsh: {min: 5, max: 20}, foothills: {min: 10, max: 50}, alpine: {min: 20, max: 100}, ice: {min: 20, max: 80}, snow: {min: 20, max: 80}, cinder: {min: 10, max: 60}, rainforest: {min: 5, max: 20}, savanna: {min: 10, max: 40}, semidesert: {min: 15, max: 60}, woodland: {min: 5, max: 25}}
         unit: м
         note: "Как близко и как далеко можно разведать из узла этого биома (владелец 2026-09-06: равнина 5–20 м, горы 20–100 м); четыре новых класса — стартовые калибровки по словарю 10-world/08"
         decision: D-321
       - key: biome.swing_c
-        value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, cinder: 15, rainforest: 4, savanna: 12, semidesert: 16, woodland: 8}
+        value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, snow: 6, cinder: 15, rainforest: 4, savanna: 12, semidesert: 16, woodland: 8}
         unit: °C
         note: Суточное качание температуры узла (`temperature_swing`) — днём на столько теплее средней, ночью на столько холоднее (D-261 и `climate.temperature_now` — среднее ± качание; предпросмотр разведки пишет это как «± перепад»); пустыня жарка днём и холодна ночью
         decision: D-321
       - key: biome.marks
-        value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}, rainforest: {woods: 100, stones: 5, meadow: 0}, savanna: {woods: 25, stones: 15, meadow: 70}, semidesert: {woods: 5, stones: 35, meadow: 20}, woodland: {woods: 60, stones: 15, meadow: 35}}
+        value: {coast: {woods: 20, stones: 40, meadow: 30}, floodplain: {woods: 30, stones: 5, meadow: 60}, forest: {woods: 90, stones: 10, meadow: 10}, steppe: {woods: 5, stones: 15, meadow: 80}, desert: {woods: 0, stones: 40, meadow: 0}, taiga: {woods: 85, stones: 20, meadow: 5}, tundra: {woods: 0, stones: 50, meadow: 20}, marsh: {woods: 20, stones: 0, meadow: 40}, foothills: {woods: 40, stones: 60, meadow: 20}, alpine: {woods: 0, stones: 100, meadow: 0}, ice: {woods: 0, stones: 30, meadow: 0}, snow: {woods: 0, stones: 30, meadow: 0}, cinder: {woods: 0, stones: 80, meadow: 0}, rainforest: {woods: 100, stones: 5, meadow: 0}, savanna: {woods: 25, stones: 15, meadow: 70}, semidesert: {woods: 5, stones: 35, meadow: 20}, woodland: {woods: 60, stones: 15, meadow: 35}}
         unit: "% мест"
         note: "Доля найденных мест биома с лесом, камнями и лугом; заменяет `ground.forest_share`/`stones_share`/`meadow_share` для находок, те остаются для помещений. Вторая роль с D-331: густота знаков растительности на ближних кадрах карты — деревья и кусты по `woods`, травы, камыш и мох по `meadow`, на долю, которую держит картинка (`figures.ts`; числа — картинка, не содержание, D-331 п. 4 и дополнение), чтобы лес был рассыпью, а не ковром чернил"
         decision: D-321
       - key: biome.figure
-        value: {coast: grass, floodplain: broadleaf, forest: broadleaf, steppe: grass, desert: none, taiga: fir, tundra: moss, marsh: reed, foothills: bush, alpine: none, ice: none, cinder: none, rainforest: palm, savanna: acacia, semidesert: bush, woodland: broadleaf}
+        value: {coast: grass, floodplain: broadleaf, forest: broadleaf, steppe: grass, desert: none, taiga: fir, tundra: moss, marsh: reed, foothills: bush, alpine: none, ice: none, snow: none, cinder: none, rainforest: palm, savanna: acacia, semidesert: bush, woodland: broadleaf}
         unit: знак
         note: "Каким знаком карта рисует растительность биома на ближних кадрах (владелец 2026-09-12: луга, леса, джунгли, тундра — каждый по-своему, своим рисунком): fir — ель, broadleaf — лиственное с круглой кроной, palm — пальма, acacia — зонтичная крона, bush — куст, grass — пучок травы, reed — камыш, moss — мох и лишайник, none — ничего. Густота знаков — по `biome.marks`: деревья и кусты по `woods`, травы, камыш и мох по `meadow`. Клиент берёт знак и густоту из `/public/constants` по имени биома (D-225: паспорт растров их не дублирует); закрывает OQ-166"
         decision: D-331
       - key: biome.grain
-        value: {coast: sand, floodplain: turf, forest: canopy, steppe: blades, desert: dunes, taiga: needles, tundra: polygons, marsh: pools, foothills: rubble, alpine: scree, ice: cracks, cinder: clinker, rainforest: jungle, savanna: tussocks, semidesert: patches, woodland: groves}
+        value: {coast: sand, floodplain: turf, forest: canopy, steppe: blades, desert: dunes, taiga: needles, tundra: polygons, marsh: pools, foothills: rubble, alpine: scree, ice: cracks, snow: sand, cinder: clinker, rainforest: jungle, savanna: tussocks, semidesert: patches, woodland: groves}
         unit: зерно
-        note: "Каким зерном карта шершавит землю биома на ближних кадрах (владелец 2026-09-12: шум слишком одинаковый, у каждого биома должен быть свой): sand — рябь пляжа, turf — мягкие пятна луга, canopy — кроны лиственного леса, blades — степная трава, причёсанная ветром, dunes — волны дюн поперёк ветра, needles — тайга, мельче и темнее, polygons — сеть морозных трещин тундры, pools — тёмные лужи болота, rubble — крупный крап предгорья, scree — мелкая резкая осыпь, cracks — трещины льда, clinker — крупный громкий шлак, jungle — крупные мягкие кроны, tussocks — трава саванны с тёмными купами, patches — светлая полупустыня с тёмными латками кустарника, groves — редкие крупные кроны сухолесья. Слово — содержание, числа зерна (масштаб, растяжка, контраст, форма) — картинка, `grain.GRAIN_KINDS`; форма рельефа остаётся материалом поверх биома: дюны ложатся волнами, лёд трескается, твёрдая порода режет резче. Клиент берёт слово из `/public/constants` по имени биома, как `biome.figure`"
+        note: "Каким зерном карта шершавит землю биома на ближних кадрах (владелец 2026-09-12: шум слишком одинаковый, у каждого биома должен быть свой): sand — рябь пляжа и наметённого снега (снежное поле Авроры, D-338), turf — мягкие пятна луга, canopy — кроны лиственного леса, blades — степная трава, причёсанная ветром, dunes — волны дюн поперёк ветра, needles — тайга, мельче и темнее, polygons — сеть морозных трещин тундры, pools — тёмные лужи болота, rubble — крупный крап предгорья, scree — мелкая резкая осыпь, cracks — трещины льда, clinker — крупный громкий шлак, jungle — крупные мягкие кроны, tussocks — трава саванны с тёмными купами, patches — светлая полупустыня с тёмными латками кустарника, groves — редкие крупные кроны сухолесья. Слово — содержание, числа зерна (масштаб, растяжка, контраст, форма) — картинка, `grain.GRAIN_KINDS`; форма рельефа остаётся материалом поверх биома: дюны ложатся волнами, лёд трескается, твёрдая порода режет резче. Клиент берёт слово из `/public/constants` по имени биома, как `biome.figure`"
         decision: D-331
       - key: biome.vein_k
-        value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, cinder: 1.5, rainforest: 0.6, savanna: 0.8, semidesert: 1.0, woodland: 0.8}
+        value: {coast: 0.5, floodplain: 0.3, forest: 0.8, steppe: 0.8, desert: 1.0, taiga: 0.8, tundra: 1.0, marsh: 0.2, foothills: 1.5, alpine: 2.0, ice: 1.5, snow: 1.5, cinder: 1.5, rainforest: 0.6, savanna: 0.8, semidesert: 1.0, woodland: 0.8}
         unit: раз
         note: Множитель `ground.vein_share` по биому; заменил `terrain.mountain_vein_k` — жилы в горах вдвое чаще, как и было. Сверху него — множитель провинции (`data/provinces.yaml`, волна 3)
         decision: D-321
@@ -3751,15 +3785,15 @@ groups:
         note: "Пороги азонального слоя, у которых нет формы: осадки выше wet в низине ниже marsh_relief — болото; берег — ближе coast_km к морю. Холод, сушь и широта пустыни ушли в `biome.zonal` (волна 4), предгорье и горы — в `biome.azonal` и горную черту поля"
         decision: D-321
       - key: complex.chance
-        value: {aurora: {ice: 20}, terra: {floodplain: 15, alpine: 15, desert: 10}}
+        value: {aurora: {snow: 20}, terra: {floodplain: 15, alpine: 15, desert: 10}}
         unit: "% находок"
         note: Как часто находка — комплекс, по планете и биому исходного узла
         decision: D-321
       - key: complex.schemes
         value:
-          forerunner_mine: {planet: aurora, biome: ice, weight: 6, nodes: [{role: shaft, name: Ствол шахты, vein: true}, {role: store, name: Склад руды, finds: склад}, {role: store, name: Склад руды, finds: склад}, {role: hall, name: Зал, finds: архив}]}
-          forerunner_outpost: {planet: aurora, biome: ice, weight: 3, nodes: [{role: hall, name: Зал, finds: архив}, {role: quarters, name: Квартира, finds: квартира}, {role: quarters, name: Квартира, finds: квартира}]}
-          lost_city: {planet: aurora, biome: ice, weight: 1, city: true}
+          forerunner_mine: {planet: aurora, biome: snow, weight: 6, nodes: [{role: shaft, name: Ствол шахты, vein: true}, {role: store, name: Склад руды, finds: склад}, {role: store, name: Склад руды, finds: склад}, {role: hall, name: Зал, finds: архив}]}
+          forerunner_outpost: {planet: aurora, biome: snow, weight: 3, nodes: [{role: hall, name: Зал, finds: архив}, {role: quarters, name: Квартира, finds: квартира}, {role: quarters, name: Квартира, finds: квартира}]}
+          lost_city: {planet: aurora, biome: snow, weight: 1, city: true}
           river_bend: {planet: terra, biome: floodplain, weight: 1, nodes: [{role: ford, name: Брод, ford: true}, {role: fishing, name: Рыбное место, water: river}]}
           mountain_pass: {planet: terra, biome: alpine, weight: 1, nodes: [{role: saddle, name: Перевал}, {role: slope, name: Склон, vein: true}]}
           oasis: {planet: terra, biome: desert, weight: 1, nodes: [{role: spring, name: Источник, water: river}, {role: grove, name: Пальмовая роща, woods: true}]}

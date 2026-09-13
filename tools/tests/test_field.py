@@ -39,7 +39,7 @@ def tiny(seed: int = 5, *, temp_hot: bool = False, **overrides) -> pipeline.Para
     base = dict(
         planet="terra", seed=seed, step_m=6000.0, radius_m=99_600.0, sea_level=0.55,
         relief_m=3000.0, plates=8, continental_share=0.5, river_area_km2=300.0,
-        warm_c=120.0 if temp_hot else 35.0, cold_c=70.0 if temp_hot else -15.0, lapse_per_km=6.5, ice_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
+        warm_c=120.0 if temp_hot else 35.0, cold_c=70.0 if temp_hot else -15.0, lapse_per_km=6.5, ice_c=-8.0, ice_cap_c=-8.0, ice_rain=0.25, ice_deep_c=-20.0,
         continental_c=5.0, continental_reach_r=0.5, climate_noise_c=3.0,
         valley_depth_m=30.0, valley_width_m=600.0,
         climate_noise_km=20.0, wind_trade_lat=30.0, wind_westerly_lat=60.0, wind_edge_deg=8.0,

@@ -133,9 +133,10 @@ class Params:
     warm_c: float
     cold_c: float
     lapse_per_km: float
-    ice_c: float
+    ice_c: float  # ниже этой температуры вода не течёт и море под припаем
+    ice_cap_c: float  # ниже этой температуры мокрая земля под шапкой — своё у планеты (D-338)
     ice_rain: float  # ниже этой доли осадков холодная земля — мерзлота без шапки
-    ice_deep_c: float  # ниже этой температуры — лёд при любой сухости
+    ice_deep_c: float  # ниже этой температуры — лёд при любой сухости, своё у планеты (D-338)
     continental_c: float  # на сколько глубина материка холоднее берега
     continental_reach_r: float  # на каком удалении от моря, доля радиуса
     climate_noise_c: float  # размах местных отклонений температуры
@@ -291,8 +292,14 @@ class Params:
             #: Лёд — свой порог, ниже тундры (владелец): шапка там, где
             #: мерзлота, а не везде, где тундра.
             ice_c=float(constants["terrain.ice_c"]),
+            #: Шапка — своя у планеты (D-338, владелец 2026-09-13: «убрать лёд с
+            #: Авроры, лёд оставить на полюсах, пусть Аврора будет в снегу»): на
+            #: мире, где холодно везде, общий порог клал лёд на всю сушу, и
+            #: строить и сеять там было бы негде. Вода и эрозия мёрзнут по
+            #: общему `terrain.ice_c` — Аврора остаётся без рек.
+            ice_cap_c=float(constants["terrain.ice_cap_c"][planet]),
             ice_rain=float(constants["terrain.ice_rain"]),
-            ice_deep_c=float(constants["terrain.ice_deep_c"]),
+            ice_deep_c=float(constants["terrain.ice_deep_c"][planet]),
             continental_c=float(constants["terrain.continental_c"]),
             continental_reach_r=float(constants["terrain.continental_reach_r"]),
             climate_noise_c=float(constants["terrain.climate_noise_c"]),
@@ -768,6 +775,9 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: считался после, растры спорили: 225 клеток Терры были разом рекой и
     #: ледяным полем, и шейдер рисовал в них лёд, а векторный слой — русло.
     cold = temperature < params.ice_c
+    #: Шапка на суше — по порогу планеты (D-338): на Терре он тот же, что у
+    #: воды, на Авроре — лишь у полюсов, и остальная её суша лежит под снегом.
+    capped = temperature < params.ice_cap_c
     #: Море замерзает тоже. Растр льда покрывал одну сушу, и Аврора, получив
     #: океаны (владелец 2026-09-11), вышла бы белым материком в синей воде
     #: при −25 °C на экваторе. Порог у моря тот же, `terrain.ice_c`: там, где
@@ -775,7 +785,7 @@ def build(params: Params, log: Callable[[str], None] = lambda _: None) -> Raster
     #: форма у неё `sea`, движок в неё не пускает, — и лёд на ней только
     #: цвет и слово. Терре та же строка дала полярные припаи, которых у неё
     #: не было вовсе.
-    ice = (land & ((cold & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))) | (
+    ice = (land & ((capped & (rain >= params.ice_rain)) | (temperature < params.ice_deep_c))) | (
         sea & cold
     )
 
