@@ -468,6 +468,8 @@
   "orbit.burn_share": 0.5,
   "orbit.corona_radius": 35,
   "orbit.longest_days": 12,
+  "orbit.route_gap": 2,
+  "orbit.flyby_floor_radii": 2.0,
   "orbit.period_days": {
     "pyroxis": 11,
     "terra": 28,
