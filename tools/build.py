@@ -262,15 +262,36 @@ def normalize_recipes(doc: dict) -> list[str]:
             problems.append(f"«{r['name']}»: `holds` бывает только `жидкость`, а не «{holds}»")
         if holds is not None and not r.get("store"):
             problems.append(f"«{r['name']}»: `holds` без `store` — тара без объёма")
+    #: Побочный выход рецепта (D-340): что ещё выходит из партии на единицу
+    #: главного выхода, как `byproduct` у культуры. Своей строки рецепта у
+    #: побочного нет — он описан в реестре материалов, там его масса.
+    byproducts: set[str] = set()
+    for _, _, r in all_recipes(doc):
+        shed = r.get("byproduct")
+        if shed is None:
+            continue
+        if not isinstance(shed, dict) or not shed:
+            problems.append(f"«{r['name']}»: `byproduct` — карта «вещь: количество на единицу»")
+            continue
+        for name, per in shed.items():
+            byproducts.add(name)
+            if name not in material_names:
+                problems.append(
+                    f"«{r['name']}»: побочный выход «{name}» не описан в реестре материалов"
+                )
+            if not isinstance(per, (int, float)) or per <= 0:
+                problems.append(f"«{r['name']}»: побочного «{name}» должно быть больше нуля")
+    meta["byproducts"] = sorted(byproducts)
     #: Сырьё — то, что берётся из мира, а не переделывается: материал,
     #: который не является выходом расходующей операции. Рубка и добыча
     #: (consumes пуст) берут материю из мира — их выходы остаются сырьём.
+    #: Побочный выход рецепта сырьём тоже не бывает: его делает партия.
     produced = {
         g
         for op in doc["operations"]
         if op.get("consumes")
         for g in (op["gives"] if isinstance(op["gives"], list) else [])
-    }
+    } | byproducts
     meta["raw"] = [m["name"] for m in materials if m.get("name") and m["name"] not in produced]
     #: Прежний вид для клиента и движка: класс, все члены которого —
     #: инструменты. Общая карта классов лежит рядом в `classes_map`.
@@ -413,6 +434,11 @@ def render_recipe_table(recipes: list[dict], amounts: dict | None = None) -> str
         inputs = ", ".join(parts)
         if r.get("amounts"):
             inputs += " *(количества заданы вручную)*"
+        shed = r.get("byproduct") or {}
+        if isinstance(shed, dict) and shed:
+            inputs += " → побочно " + ", ".join(
+                f"{lower_first(k)} ×{fmt_qty(v)}" for k, v in shed.items()
+            )
 
         cells = [name, type_cell, inputs] + ([r.get("station", "—")] if show_station else [])
         if r.get("note"):
@@ -742,6 +768,21 @@ def compute_mass(
             float(quantity) * settle(item, seen | {name})
             for item, quantity in (amounts or {}).get(recipe["name"], {}).items()
         )
+        #: Побочный выход уносит свою долю вошедшего (D-340): вода электролиза —
+        #: это кислород и водород вместе, и главному выходу достаётся остаток.
+        #: Побочного тяжелее вошедшего быть не может по тому же правилу.
+        shed = sum(
+            float(quantity) * settle(item, seen | {name})
+            for item, quantity in (recipe.get("byproduct") or {}).items()
+        )
+        if shed > 0 and into > 0:
+            if shed >= round(into, 6):
+                problems.append(
+                    f"«{recipe['name']}»: побочный выход {fmt_qty(round(shed, 3))} кг не меньше "
+                    f"вошедшей материи {fmt_qty(round(into, 3))} кг — главному выходу не остаётся "
+                    "веса: утяжели состав либо уменьши побочный (D-340)"
+                )
+            into = max(0.0, into - shed)
         own = authored.get(name)
         if own is not None:
             # Пустой состав не подрезает: вещь без известных входов взвесить не
@@ -797,6 +838,9 @@ def mass_report(doc: dict, amounts: dict, mass: dict[str, float]) -> list[str]:
         into = sum(
             float(quantity) * mass.get(canon(item), 0.0)
             for item, quantity in (amounts.get(name) or {}).items()
+        ) - sum(
+            float(quantity) * mass.get(canon(item), 0.0)
+            for item, quantity in (recipe.get("byproduct") or {}).items()
         )
         if recipe.get("mass") is None:
             derived.append((name, mass.get(canon(name), 0.0)))
@@ -849,7 +893,10 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
         name = canon(name)
         return classes.get(name, [name])
 
-    known = set(recipes) | raw | op_outputs | VIRTUAL_STATIONS | set(classes)
+    #: Побочные выходы рецептов (D-340) сырьём не считаются, но существуют:
+    #: их делает партия, и открываются они вместе со своим рецептом.
+    byproducts = set(meta.get("byproducts", []))
+    known = set(recipes) | raw | op_outputs | byproducts | VIRTUAL_STATIONS | set(classes)
 
     # 1. неизвестные входы и рабочие станции
     for name, r in recipes.items():
@@ -899,6 +946,7 @@ def check_recipes(doc: dict) -> tuple[list[str], list[str]]:
                 continue
             if all(any(o in available for o in options(i)) for i in r["inputs"]):
                 available.add(name)
+                available.update(r.get("byproduct") or {})
                 grew = True
         if not grew:
             break
@@ -2963,6 +3011,11 @@ def main() -> int:
                     "inputs": r["inputs"],
                     "amounts": amounts.get(r["name"], {}),
                     "manual_amounts": bool(r.get("amounts")),
+                    # побочный выход на единицу главного (D-340): водород
+                    # электролиза. Пусто — у партии один выход
+                    "byproduct": {
+                        k: float(v) for k, v in (r.get("byproduct") or {}).items()
+                    },
                     # Трудоёмкости здесь нет: она лежит одной картой ниже, и
                     # там же трудоёмкость сырья и продуктов операций. Второй
                     # экземпляр того же числа читать было некому
