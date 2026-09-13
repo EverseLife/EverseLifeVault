@@ -109,7 +109,9 @@
   "farm.dry_temp_ref": 15,
   "farm.dry_per_degree": 3,
   "farm.river_dry_share": 50,
+  "farm.rain_per_hour": 3,
   "farm.stress_per_point": 0.5,
+  "farm.temp_stress_per_degree": 2,
   "farm.heal_per_day": 5,
   "farm.stage_bounds": {
     "leaf": 20,
@@ -681,7 +683,6 @@
     "min": 0,
     "max": 100
   },
-  "site.rain_water_offset": 60,
   "planet.temp_swing": {
     "terra": 5,
     "aquatica": 3,
