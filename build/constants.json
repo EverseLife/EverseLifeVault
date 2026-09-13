@@ -1665,13 +1665,16 @@
     "frost": 12,
     "heat": 6
   },
-  "frost.warm_rate": 3,
+  "frost.warm_hours": 2,
   "frost.suit_k": {
     "Утеплённый костюм": 3
   },
   "frost.warmer_hours": 4,
   "frost.frozen_drain_k": 2,
-  "frost.frozen_stamina": 15,
+  "frost.frozen_stamina": {
+    "frost": 25,
+    "heat": 15
+  },
   "frost.plant_draw": 60,
   "frost.heater_draw": 20,
   "frost.brazier_fuel_draw": 2,
