@@ -5178,7 +5178,7 @@
       "food": false,
       "hot": false,
       "slot": null,
-      "store": 500,
+      "store": 200,
       "holds": null,
       "inputs": [
         "Стальная рама",
