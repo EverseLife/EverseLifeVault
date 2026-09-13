@@ -139,3 +139,26 @@ def test_report_names_the_pinned_and_the_counted():
     assert "· Слиток — 0.6 кг" in report
     assert "переопределён" in report
     assert "· Монета — задано 0.001 кг, из входов вышло бы 0.6 кг" in report
+
+
+def test_a_byproduct_takes_its_share_of_the_matter():
+    """Побочный выход уносит свою долю вошедшего (D-340): вода электролиза —
+    это кислород и водород вместе, главному выходу достаётся остаток."""
+    doc = vault(
+        {"name": "Кислород", "kind": "material", "inputs": ["Вода"], "byproduct": {"Водород": 2}},
+        materials={"Вода": 0.2, "Водород": 0.125},
+    )
+    mass, problems = build.compute_mass(doc, constants(), {}, {"Кислород": {"Вода": 11.25}})
+    assert problems == []
+    assert mass["Кислород"] == 2.0
+
+
+def test_a_byproduct_heavier_than_the_matter_is_a_problem():
+    """Побочного не бывает больше вошедшего: материя при переделе не появляется."""
+    doc = vault(
+        {"name": "Кислород", "kind": "material", "inputs": ["Вода"], "byproduct": {"Водород": 20}},
+        materials={"Вода": 0.2, "Водород": 0.125},
+    )
+    _, problems = build.compute_mass(doc, constants(), {}, {"Кислород": {"Вода": 10}})
+    assert len(problems) == 1
+    assert "побочный выход" in problems[0]

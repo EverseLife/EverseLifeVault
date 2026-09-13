@@ -64,7 +64,8 @@
       "Мясо"
     ],
     "Жидкость": [
-      "Вода"
+      "Вода",
+      "Водород"
     ],
     "Жизнеобеспечение": [
       "Система жизнеобеспечения"
@@ -222,6 +223,9 @@
     "Утеплённый костюм": [
       "Утеплённый костюм"
     ],
+    "Факел": [
+      "Факельная установка"
+    ],
     "Фунгицид": [
       "Серная присыпка"
     ]
@@ -250,6 +254,7 @@
     "Ветряк": "windmill",
     "Водяное колесо": "water_wheel",
     "Топливная станция": "fuel_plant",
+    "Факел": "flare",
     "Буровая": "rig",
     "Питомник": "nursery",
     "Жизнеобеспечение": "life_support",
@@ -671,6 +676,18 @@
         "handful": 20,
         "place": "вода"
       },
+      "relic": false,
+      "fuel": null
+    },
+    {
+      "name": "Водород",
+      "id": "hydrogen",
+      "class": "Жидкость",
+      "mass": 0.125,
+      "bulk": true,
+      "edible": false,
+      "rate": null,
+      "forage": null,
       "relic": false,
       "fuel": null
     },
@@ -1169,6 +1186,7 @@
     "Бобы",
     "Верёвка",
     "Вода",
+    "Водород",
     "Волокно",
     "Вольфрам",
     "Глина",
@@ -1251,6 +1269,7 @@
   ],
   "liquid": [
     "Вода",
+    "Водород",
     "Керосин",
     "Керосиновое топливо",
     "Кислород",
@@ -1260,6 +1279,9 @@
     "Ракетное топливо",
     "Смазка",
     "Спирт"
+  ],
+  "vent": [
+    "Водород"
   ],
   "gear_slots": [
     "спина",
@@ -1292,6 +1314,7 @@
     "Верёвка": 0.06,
     "Ветряк": 18.48,
     "Вода": 0.2,
+    "Водород": 0.125,
     "Водяное колесо": 18.0,
     "Волокно": 0.06,
     "Вольфрам": 0.02,
@@ -1464,6 +1487,7 @@
     "Уголь": 0.16,
     "Угольная станция": 71.68,
     "Утеплённый костюм": 1.08,
+    "Факельная установка": 54.92,
     "Химический реактор": 73.9,
     "Хлеб": 0.5,
     "Целебные травы": 0.02,
@@ -1536,7 +1560,7 @@
     "Керосин": 0.155,
     "Керосиновое топливо": 0.555,
     "Кирпич": 0.2,
-    "Кислород": 0.15,
+    "Кислород": 0.156,
     "Кислородный баллон": 10.218,
     "Компост": 0.2,
     "Консоль управления кораблём": 27.29,
@@ -1628,7 +1652,7 @@
     "Серебряная порода": 0.083,
     "Серная кислота": 0.2,
     "Серная присыпка": 0.5,
-    "Система жизнеобеспечения": 20.581,
+    "Система жизнеобеспечения": 20.643,
     "Скафандр на пироксите": 16.8,
     "Слиток железа": 0.203,
     "Смазка": 0.173,
@@ -1661,6 +1685,7 @@
     "Уголь": 0.017,
     "Угольная станция": 15.913,
     "Утеплённый костюм": 6.4,
+    "Факельная установка": 13.044,
     "Химический реактор": 19.505,
     "Хлеб": 0.43,
     "Целебные травы": 0.125,
@@ -1821,6 +1846,7 @@
     "Тяжёлый экзоскелет": 1.6,
     "Угольная станция": 6.0,
     "Утеплённый костюм": 0.4,
+    "Факельная установка": 4.0,
     "Химический реактор": 8.0,
     "Хлеб": 0.2,
     "Чистая мастерская": 10.0,
@@ -1855,6 +1881,7 @@
         "Лён": 3
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -1881,6 +1908,7 @@
         "Волокно": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -1911,6 +1939,7 @@
         "Верёвка": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -1941,6 +1970,7 @@
         "Верёвка": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -1967,6 +1997,7 @@
         "Верёвка": 5.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -1993,6 +2024,7 @@
         "Ткань": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -2019,6 +2051,7 @@
         "Глина": 7
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -2047,6 +2080,7 @@
         "Верёвка": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -2075,6 +2109,7 @@
         "Глина": 10.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2103,6 +2138,7 @@
         "Глина": 5.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2129,6 +2165,7 @@
         "Дерево": 3.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2155,6 +2192,7 @@
         "Волокно": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2183,6 +2221,7 @@
         "Верёвка": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2211,6 +2250,7 @@
         "Верёвка": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2239,6 +2279,7 @@
         "Верёвка": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2265,6 +2306,7 @@
         "Дерево": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2293,6 +2335,7 @@
         "Глина": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2323,6 +2366,7 @@
         "Верёвка": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2351,6 +2395,7 @@
         "Верёвка": 3.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2381,6 +2426,7 @@
         "Верёвка": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2409,6 +2455,7 @@
         "Гвозди": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2439,6 +2486,7 @@
         "Верёвка": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2469,6 +2517,7 @@
         "Дерево": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2499,6 +2548,7 @@
         "Гвозди": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2529,6 +2579,7 @@
         "Известняк": 2
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2557,6 +2608,7 @@
         "Олово": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2583,6 +2635,7 @@
         "Слиток железа": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2611,6 +2664,7 @@
         "Рукоять": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2639,6 +2693,7 @@
         "Рукоять": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2667,6 +2722,7 @@
         "Рукоять": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2695,6 +2751,7 @@
         "Рукоять": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2721,6 +2778,7 @@
         "Бронза": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2747,6 +2805,7 @@
         "Сталь": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2775,6 +2834,7 @@
         "Уголь": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2801,6 +2861,7 @@
         "Сталь": 3.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2829,6 +2890,7 @@
         "Труба": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -2859,6 +2921,7 @@
         "Ткань": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2887,6 +2950,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2915,6 +2979,7 @@
         "Известь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -2943,6 +3008,7 @@
         "Известь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2971,6 +3037,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -2999,6 +3066,7 @@
         "Спирт": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3029,6 +3097,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -3059,6 +3128,7 @@
         "Гвозди": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3085,6 +3155,7 @@
         "Зерно": 2
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мельница"
     },
     {
@@ -3113,6 +3184,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3141,6 +3213,7 @@
         "Соль": 1.5
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3167,6 +3240,7 @@
         "Овощи": 3
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3193,6 +3267,7 @@
         "Масличные семена": 1.8
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3219,6 +3294,7 @@
         "Сахарный стебель": 2
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3249,6 +3325,7 @@
         "Вода": 7
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3279,6 +3356,7 @@
         "Масло": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3307,6 +3385,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Очаг"
     },
     {
@@ -3333,6 +3412,7 @@
         "Ткань": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3363,6 +3443,7 @@
         "Ткань": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3391,6 +3472,7 @@
         "Гвозди": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3421,6 +3503,7 @@
         "Гвозди": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3451,6 +3534,38 @@
         "Труба": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
+      "station": "Мастерская"
+    },
+    {
+      "name": "Факельная установка",
+      "id": "flare_stack",
+      "level": 5,
+      "section": null,
+      "kind": "station",
+      "class": "Факел",
+      "key": false,
+      "built": true,
+      "powered": false,
+      "mix": false,
+      "roles": false,
+      "food": false,
+      "hot": false,
+      "slot": null,
+      "store": null,
+      "holds": null,
+      "inputs": [
+        "Кирпич",
+        "Сталь",
+        "Труба"
+      ],
+      "amounts": {
+        "Кирпич": 10.0,
+        "Сталь": 4.0,
+        "Труба": 6.0
+      },
+      "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -3481,6 +3596,7 @@
         "Труба": 8.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -3511,6 +3627,7 @@
         "Труба": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3539,6 +3656,7 @@
         "Уголь": 3
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -3567,6 +3685,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -3597,6 +3716,7 @@
         "Глиняный горшок": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3623,6 +3743,7 @@
         "Глина": 7
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -3649,6 +3770,7 @@
         "Известняк": 7
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -3679,6 +3801,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3705,6 +3828,7 @@
         "Камень": 8
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -3733,6 +3857,7 @@
         "Крошка": 1.8
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3761,6 +3886,7 @@
         "Щебень": 4
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3793,6 +3919,7 @@
         "Сталь": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3821,6 +3948,7 @@
         "Сталь": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3853,6 +3981,7 @@
         "Сталь": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3883,6 +4012,7 @@
         "Стекло": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3913,6 +4043,7 @@
         "Сталь": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -3941,6 +4072,7 @@
         "Дерево": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -3969,6 +4101,7 @@
         "Уголь": 3
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -3997,6 +4130,7 @@
         "Уголь": 3
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Печь"
     },
     {
@@ -4025,6 +4159,7 @@
         "Слиток железа": 0.1
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Монетная станция"
     },
     {
@@ -4053,6 +4188,7 @@
         "Слиток железа": 0.1
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Монетная станция"
     },
     {
@@ -4085,6 +4221,7 @@
         "Меха": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4115,6 +4252,7 @@
         "Бронза": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -4145,6 +4283,7 @@
         "Привод": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -4173,6 +4312,7 @@
         "Пластик": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Прокатный стан"
     },
     {
@@ -4199,6 +4339,7 @@
         "Медный слиток": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Прокатный стан"
     },
     {
@@ -4227,6 +4368,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Высокая печь"
     },
     {
@@ -4259,6 +4401,7 @@
         "Привод": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4285,6 +4428,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Токарный станок"
     },
     {
@@ -4317,6 +4461,7 @@
         "Труба": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4347,6 +4492,7 @@
         "Труба": 8.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4373,6 +4519,7 @@
         "Нефть": 1.5
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Перегонная колонна"
     },
     {
@@ -4399,6 +4546,7 @@
         "Нефть": 5.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Перегонная колонна"
     },
     {
@@ -4425,6 +4573,7 @@
         "Нефть": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Перегонная колонна"
     },
     {
@@ -4451,6 +4600,7 @@
         "Нефть": 3.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Перегонная колонна"
     },
     {
@@ -4477,6 +4627,7 @@
         "Нефть": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Перегонная колонна"
     },
     {
@@ -4507,6 +4658,7 @@
         "Труба": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4533,6 +4685,7 @@
         "Лигроин": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Химический реактор"
     },
     {
@@ -4561,6 +4714,7 @@
         "Сера": 1.2
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Химический реактор"
     },
     {
@@ -4587,6 +4741,7 @@
         "Пластик": 3.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Химический реактор"
     },
     {
@@ -4615,6 +4770,7 @@
         "Никель": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Высокая печь"
     },
     {
@@ -4645,6 +4801,7 @@
         "Магнит": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4675,6 +4832,7 @@
         "Провод": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4707,6 +4865,7 @@
         "Реле": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4741,6 +4900,7 @@
         "Провод": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4769,6 +4929,7 @@
         "Нефтяной кокс": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Высокая печь"
     },
     {
@@ -4795,6 +4956,7 @@
         "Кремний": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Токарный станок"
     },
     {
@@ -4823,6 +4985,7 @@
         "Смола": 2
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Верстак"
     },
     {
@@ -4857,6 +5020,7 @@
         "Провод": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -4885,6 +5049,7 @@
         "Медная фольга": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -4915,6 +5080,7 @@
         "Провод": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -4945,6 +5111,7 @@
         "Провод": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -4977,6 +5144,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -5005,6 +5173,7 @@
         "Микросхема": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -5033,6 +5202,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5059,6 +5229,7 @@
         "Болванка рецепта": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Руками"
     },
     {
@@ -5093,6 +5264,7 @@
         "Пластик": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5127,6 +5299,7 @@
         "Процессорный блок": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5161,6 +5334,7 @@
         "Процессорный блок": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5195,6 +5369,7 @@
         "Процессорный блок": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5225,6 +5400,7 @@
         "Ткань": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5255,6 +5431,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5287,6 +5464,7 @@
         "Процессорный блок": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5315,6 +5493,7 @@
         "Сталь": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Кузница"
     },
     {
@@ -5345,6 +5524,7 @@
         "Верёвка": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5375,6 +5555,7 @@
         "Труба": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5403,6 +5584,7 @@
         "Вода": 10
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Бродильный чан"
     },
     {
@@ -5433,6 +5615,7 @@
         "Стекло": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5456,9 +5639,12 @@
         "Вода"
       ],
       "amounts": {
-        "Вода": 10
+        "Вода": 11.25
       },
-      "manual_amounts": false,
+      "manual_amounts": true,
+      "byproduct": {
+        "Водород": 2.0
+      },
       "station": "Электролизёр"
     },
     {
@@ -5485,6 +5671,7 @@
         "Селитра": 1.5
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Электролизёр"
     },
     {
@@ -5513,6 +5700,7 @@
         "Окислитель": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5541,6 +5729,7 @@
         "Окислитель": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5571,6 +5760,7 @@
         "Баллон высокого давления": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5601,6 +5791,7 @@
         "Датчик": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -5629,6 +5820,7 @@
         "Никель": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Прокатный стан"
     },
     {
@@ -5657,6 +5849,7 @@
         "Известь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Высокая печь"
     },
     {
@@ -5685,6 +5878,7 @@
         "Известь": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Высокая печь"
     },
     {
@@ -5717,6 +5911,7 @@
         "Процессорный блок": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5747,6 +5942,7 @@
         "Верёвка": 4.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5775,6 +5971,7 @@
         "Никель": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Прокатный стан"
     },
     {
@@ -5805,6 +6002,7 @@
         "Точная деталь": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Токарный станок"
     },
     {
@@ -5837,6 +6035,7 @@
         "Резина": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Токарный станок"
     },
     {
@@ -5869,6 +6068,7 @@
         "Датчик": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5899,6 +6099,7 @@
         "Теплозащитные плиты": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5929,6 +6130,7 @@
         "Пироксисовая плита": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -5959,6 +6161,7 @@
         "Стекло": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -5993,6 +6196,7 @@
         "Резина": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -6025,6 +6229,7 @@
         "Стальная рама": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -6059,6 +6264,7 @@
         "Стальная рама": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -6091,6 +6297,7 @@
         "Медный слиток": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Чистая мастерская"
     },
     {
@@ -6125,6 +6332,7 @@
         "Резина": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -6159,6 +6367,7 @@
         "Резина": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -6193,6 +6402,7 @@
         "Датчик": 1.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -6225,6 +6435,7 @@
         "Привод": 2.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -6257,6 +6468,7 @@
         "Труба": 6.0
       },
       "manual_amounts": true,
+      "byproduct": {},
       "station": "Мастерская"
     },
     {
@@ -6287,6 +6499,7 @@
         "Провод": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Космическая мастерская"
     },
     {
@@ -6317,6 +6530,7 @@
         "Провод": 1.0
       },
       "manual_amounts": false,
+      "byproduct": {},
       "station": "Космическая мастерская"
     }
   ]
