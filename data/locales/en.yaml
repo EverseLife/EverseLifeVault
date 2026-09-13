@@ -78,6 +78,7 @@ goods:
   fiber: Fiber
   field_automaton: Field automaton
   flax: Flax
+  flare_stack: Flare stack
   flax_seeds: Flax seeds
   flour: Flour
   forge: Forge
@@ -246,6 +247,7 @@ classes:
   cart: Cart
   cookware: Cookware
   fauna: Animal
+  flare: Flare
   flora: Plant matter
   fuel_plant: Fuel plant
   fuel_tank: Fuel tank
