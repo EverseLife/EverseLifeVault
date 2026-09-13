@@ -13,8 +13,9 @@
     "cold_c": -75.0,
     "lapse_per_km": 52.0,
     "ice_c": -8.0,
+    "ice_cap_c": -68.0,
     "ice_rain": 0.25,
-    "ice_deep_c": -20.0,
+    "ice_deep_c": -78.0,
     "continental_c": 5.0,
     "continental_reach_r": 0.5,
     "climate_noise_c": 5.0,
@@ -38,8 +39,8 @@
         "temp_shift_c": -2.0,
         "vein_k": 0.7,
         "favours": [
-          "firn_plain",
-          "glaze_ice"
+          "wind_crust",
+          "deep_snow"
         ]
       },
       {
@@ -48,7 +49,7 @@
         "temp_shift_c": -3.0,
         "vein_k": 1.9,
         "favours": [
-          "bare_summit"
+          "black_boulders"
         ]
       },
       {
@@ -57,6 +58,8 @@
         "temp_shift_c": 0.0,
         "vein_k": 0.8,
         "favours": [
+          "wind_crust",
+          "drift_ridges",
           "pressure_ridges",
           "crevasses"
         ]
@@ -67,8 +70,8 @@
         "temp_shift_c": 4.0,
         "vein_k": 0.9,
         "favours": [
-          "melt_pool",
-          "glaze_ice"
+          "frozen_hollow",
+          "deep_snow"
         ]
       },
       {
@@ -77,7 +80,8 @@
         "temp_shift_c": -5.0,
         "vein_k": 0.8,
         "favours": [
-          "sastrugi"
+          "drift_ridges",
+          "wind_crust"
         ]
       },
       {
@@ -86,7 +90,7 @@
         "temp_shift_c": -2.0,
         "vein_k": 1.1,
         "favours": [
-          "crevasses"
+          "drift_ridges"
         ]
       },
       {
@@ -95,8 +99,8 @@
         "temp_shift_c": -6.0,
         "vein_k": 0.6,
         "favours": [
-          "firn_plain",
-          "melt_pool"
+          "frozen_hollow",
+          "deep_snow"
         ]
       },
       {
@@ -105,8 +109,8 @@
         "temp_shift_c": 2.0,
         "vein_k": 1.5,
         "favours": [
-          "bare_summit",
-          "glaze_ice"
+          "black_boulders",
+          "wind_crust"
         ]
       },
       {
@@ -115,7 +119,7 @@
         "temp_shift_c": 1.0,
         "vein_k": 0.5,
         "favours": [
-          "firn_plain"
+          "deep_snow"
         ]
       },
       {
@@ -124,6 +128,7 @@
         "temp_shift_c": -1.0,
         "vein_k": 1.0,
         "favours": [
+          "drift_ridges",
           "pressure_ridges"
         ]
       },
@@ -133,7 +138,7 @@
         "temp_shift_c": -4.0,
         "vein_k": 1.2,
         "favours": [
-          "glaze_ice"
+          "wind_crust"
         ]
       },
       {
@@ -142,8 +147,8 @@
         "temp_shift_c": 5.0,
         "vein_k": 0.9,
         "favours": [
-          "melt_pool",
-          "crevasses"
+          "deep_snow",
+          "frozen_hollow"
         ]
       }
     ],
@@ -344,7 +349,7 @@
     "valley_width_m": 600.0,
     "capture_reach_m": 250.0
   },
-  "digest": "44cb580331a8",
+  "digest": "970d4fe9c581",
   "grid": {
     "kind": "healpix",
     "nside": 255,
@@ -827,8 +832,8 @@
       "temp_shift_c": -2.0,
       "vein_k": 0.7,
       "favours": [
-        "firn_plain",
-        "glaze_ice"
+        "wind_crust",
+        "deep_snow"
       ]
     },
     {
@@ -837,7 +842,7 @@
       "temp_shift_c": -3.0,
       "vein_k": 1.9,
       "favours": [
-        "bare_summit"
+        "black_boulders"
       ]
     },
     {
@@ -846,6 +851,8 @@
       "temp_shift_c": 0.0,
       "vein_k": 0.8,
       "favours": [
+        "wind_crust",
+        "drift_ridges",
         "pressure_ridges",
         "crevasses"
       ]
@@ -856,8 +863,8 @@
       "temp_shift_c": 4.0,
       "vein_k": 0.9,
       "favours": [
-        "melt_pool",
-        "glaze_ice"
+        "frozen_hollow",
+        "deep_snow"
       ]
     },
     {
@@ -866,7 +873,8 @@
       "temp_shift_c": -5.0,
       "vein_k": 0.8,
       "favours": [
-        "sastrugi"
+        "drift_ridges",
+        "wind_crust"
       ]
     },
     {
@@ -875,7 +883,7 @@
       "temp_shift_c": -2.0,
       "vein_k": 1.1,
       "favours": [
-        "crevasses"
+        "drift_ridges"
       ]
     },
     {
@@ -884,8 +892,8 @@
       "temp_shift_c": -6.0,
       "vein_k": 0.6,
       "favours": [
-        "firn_plain",
-        "melt_pool"
+        "frozen_hollow",
+        "deep_snow"
       ]
     },
     {
@@ -894,8 +902,8 @@
       "temp_shift_c": 2.0,
       "vein_k": 1.5,
       "favours": [
-        "bare_summit",
-        "glaze_ice"
+        "black_boulders",
+        "wind_crust"
       ]
     },
     {
@@ -904,7 +912,7 @@
       "temp_shift_c": 1.0,
       "vein_k": 0.5,
       "favours": [
-        "firn_plain"
+        "deep_snow"
       ]
     },
     {
@@ -913,6 +921,7 @@
       "temp_shift_c": -1.0,
       "vein_k": 1.0,
       "favours": [
+        "drift_ridges",
         "pressure_ridges"
       ]
     },
@@ -922,7 +931,7 @@
       "temp_shift_c": -4.0,
       "vein_k": 1.2,
       "favours": [
-        "glaze_ice"
+        "wind_crust"
       ]
     },
     {
@@ -931,8 +940,8 @@
       "temp_shift_c": 5.0,
       "vein_k": 0.9,
       "favours": [
-        "melt_pool",
-        "crevasses"
+        "deep_snow",
+        "frozen_hollow"
       ]
     }
   ]

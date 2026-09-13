@@ -7,7 +7,7 @@
 >
 > **Числа** здесь — стартовые калибровки для переноса в `data/constants.yaml` (D-065); в тексте они не обсуждаются. Порядок величин — от `biome.marks`, `biome.vein_k`, `biome.reach_m`, `biome.swing_c` в [реестре констант](../30-economy/07-constants.md).
 >
-> **Шестнадцать биомов.** Четыре зональных — `rainforest`, `savanna`, `semidesert`, `woodland` — объявлены в `biome.names` волной 4 плана ландшафта (дополнение к D-321 от 2026-09-09); словарь написан под закрытый список из шестнадцати, и они входят в него на равных.
+> **Семнадцать биомов** *(семнадцатый — снежное поле Авроры, D-338)*. Четыре зональных — `rainforest`, `savanna`, `semidesert`, `woodland` — объявлены в `biome.names` волной 4 плана ландшафта (дополнение к D-321 от 2026-09-09); словарь написан под закрытый список из шестнадцати, и они входят в него на равных.
 
 Три масштаба местности. **Макро** (3,5 км и крупнее) — климат и биом, их даёт шум и география (D-323). **Фацет** (150–300 м) — грань биома, в которой стоишь: стоя в лесу, ты всегда в лесу, но в чаще, на опушке, на гари или в буреломе; два узла в трёхстах метрах друг от друга читаются по-разному (в двадцати — обычно одинаково: владелец 2026-09-09, план §6). **Провинция** (десятки километров) — область с собственным именем на карте и характером: сдвигом осадков и температуры, множителем жилы и парой фацетов, которые здесь встречаются чаще.
 
@@ -1033,7 +1033,7 @@ facets:
     note: узкий хребет, ветер валит с ног, обе стороны вниз
   - id: snowfield
     ru: Снежник
-    en: Snowfield
+    en: Snow patch
     biome: alpine
     share: 10
     where: {slope: [0.2, 0.6], wet: [0.4, 0.8], high: [0.6, 1.0]}
@@ -1065,7 +1065,64 @@ facets:
     swing_k: 1.1
     note: мелкий щебень едет под ногой до самого низа
 
-  # ---------- ice (ледяное поле, Аврора) ----------
+  # ---------- snow (снежное поле, Аврора; D-338) ----------
+  - id: deep_snow
+    ru: Глубокий снег
+    en: Deep snow
+    biome: snow
+    share: 30
+    where: {slope: [0.0, 0.2], wet: [0.0, 1.0], high: [0.0, 0.45]}
+    marks: {woods: 0, stones: 0, meadow: 0}
+    vein_k: 0.6
+    reach_k: 0.8
+    swing_k: 0.9
+    note: снег по пояс, тропу приходится топтать
+  - id: wind_crust
+    ru: Наст
+    en: Wind crust
+    biome: snow
+    share: 25
+    where: {slope: [0.0, 0.25], wet: [0.0, 1.0], high: [0.45, 1.0]}
+    marks: {woods: 0, stones: 10, meadow: 0}
+    vein_k: 0.6
+    reach_k: 1.2
+    swing_k: 1.1
+    note: ветер спрессовал снег в корку, она держит шаг и хрустит
+  - id: drift_ridges
+    ru: Сугробы
+    en: Snow drifts
+    biome: snow
+    share: 20
+    where: {slope: [0.2, 0.5], wet: [0.0, 1.0], high: [0.0, 1.0]}
+    marks: {woods: 0, stones: 10, meadow: 0}
+    vein_k: 0.7
+    reach_k: 0.9
+    swing_k: 1.0
+    note: ветер намёл гряды выше роста, между ними тихо
+  - id: black_boulders
+    ru: Чёрные валуны
+    en: Black boulders
+    biome: snow
+    share: 15
+    where: {slope: [0.6, 1.0], wet: [0.0, 1.0], high: [0.55, 1.0]}
+    marks: {woods: 0, stones: 90, meadow: 0}
+    vein_k: 1.6
+    reach_k: 1.5
+    swing_k: 1.2
+    note: чёрные валуны торчат из снега, между ними сдувает до камня
+  - id: frozen_hollow
+    ru: Мёрзлая лощина
+    en: Frozen hollow
+    biome: snow
+    share: 10
+    where: {slope: [0.0, 0.15], wet: [0.0, 1.0], high: [0.0, 0.3]}
+    marks: {woods: 0, stones: 0, meadow: 0}
+    vein_k: 0.5
+    reach_k: 1.0
+    swing_k: 0.8
+    note: в низине снег синеет, под ним старый лёд
+
+  # ---------- ice (ледяное поле: ледники и шапки; у Авроры — полюса с D-338) ----------
   - id: firn_plain
     ru: Фирн
     en: Firn plain
@@ -1561,7 +1618,7 @@ provinces:
       rain_shift: -5
       temp_shift_c: -2
       vein_k: 0.7
-      favours: [firn_plain, glaze_ice]
+      favours: [wind_crust, deep_snow]
       note: ровно, как стол, на три дня пути, вешки — единственная примета
     - id: black_teeth
       ru: Чёрные зубья
@@ -1569,47 +1626,47 @@ provinces:
       rain_shift: -10
       temp_shift_c: -3
       vein_k: 1.9
-      favours: [bare_summit]
-      note: гольцы торчат из льда рядом, у их подножия единственный камень на планете
+      favours: [black_boulders]
+      note: чёрные валуны торчат из снега рядом, у их подножия единственный камень на планете
     - id: broken_ice
-      ru: Ломаный лёд
-      en: Broken Ice
+      ru: Рваный край
+      en: Broken Edge
       rain_shift: 0
       temp_shift_c: 0
       vein_k: 0.8
-      favours: [pressure_ridges, crevasses]
-      note: путь втрое длиннее прямой, ночью лёд трещит
+      favours: [wind_crust, drift_ridges, pressure_ridges, crevasses]
+      note: к полюсу снег рвётся о торосы шапки, путь втрое длиннее прямой
     - id: warm_lead
-      ru: Тёплая полынья
-      en: Warm Lead
+      ru: Туманная падь
+      en: Misty Glen
       rain_shift: 15
       temp_shift_c: 4
       vein_k: 0.9
-      favours: [melt_pool, glaze_ice]
-      note: вода не замерзает, стоит туман, здесь единственные мокрые ноги на Авроре
+      favours: [frozen_hollow, deep_snow]
+      note: теплее соседей: снег оседает, стоит морозный туман, в низинах — старый лёд
     - id: wind_ridge
       ru: Ветровой гребень
       en: Wind Ridge
       rain_shift: -15
       temp_shift_c: -5
       vein_k: 0.8
-      favours: [sastrugi]
-      note: ветер несёт снег стеной, заструги в рост, стоять нельзя
+      favours: [drift_ridges, wind_crust]
+      note: ветер несёт снег стеной, сугробы в рост, стоять нельзя
     - id: blue_rifts
-      ru: Синие трещины
-      en: Blue Rifts
+      ru: Синие сугробы
+      en: Blue Drifts
       rain_shift: 0
       temp_shift_c: -2
       vein_k: 1.1
-      favours: [crevasses]
-      note: ледник течёт, разломы каждый год на новом месте
+      favours: [drift_ridges]
+      note: в тени сугробы синие, между ними ветер выметает канавы до старого льда
     - id: still_basin
       ru: Тихая котловина
       en: Still Basin
       rain_shift: 5
       temp_shift_c: -6
       vein_k: 0.6
-      favours: [firn_plain, melt_pool]
+      favours: [frozen_hollow, deep_snow]
       note: ветра нет, зато самый лютый холод — воздух стекает и стоит
     - id: stone_edge
       ru: Каменный берег
@@ -1617,40 +1674,40 @@ provinces:
       rain_shift: 5
       temp_shift_c: 2
       vein_k: 1.5
-      favours: [bare_summit, glaze_ice]
-      note: край ледника упирается в камень, тут ставят первые дома
+      favours: [black_boulders, wind_crust]
+      note: снежное поле упирается в камень, тут ставят первые дома
     - id: loose_snows
       ru: Рыхлые снега
       en: Loose Snows
       rain_shift: 20
       temp_shift_c: 1
       vein_k: 0.5
-      favours: [firn_plain]
+      favours: [deep_snow]
       note: снег валит неделями, по пояс, дороги торят заново
     - id: ice_rampart
-      ru: Ледяной вал
-      en: Ice Rampart
+      ru: Высокий вал
+      en: High Rampart
       rain_shift: -5
       temp_shift_c: -1
       vein_k: 1.0
-      favours: [pressure_ridges]
-      note: гряда торосов в высоту дома тянется через всю область
+      favours: [drift_ridges, pressure_ridges]
+      note: гряда надувов в высоту дома тянется через всю область, к полюсу переходит в торосы
     - id: mirror_ice
-      ru: Зеркальный лёд
-      en: Mirror Ice
+      ru: Голая равнина
+      en: Bare Plain
       rain_shift: -20
       temp_shift_c: -4
       vein_k: 1.2
-      favours: [glaze_ice]
-      note: ветер сдувает снег дочиста, лёд как стекло, не устоять
+      favours: [wind_crust]
+      note: ветер сдувает снег до наста, блестит, как стекло, не устоять
     - id: melt_edge
-      ru: Талый край
-      en: Melt Edge
+      ru: Инейный дол
+      en: Rime Dale
       rain_shift: 10
       temp_shift_c: 5
       vein_k: 0.9
-      favours: [melt_pool, crevasses]
-      note: летом лёд течёт ручьями, зимой всё это застывает буграми
+      favours: [deep_snow, frozen_hollow]
+      note: самый тёплый край: сырой воздух оседает инеем, к утру всё в корке
 
   pyroxis:
     - id: black_level
