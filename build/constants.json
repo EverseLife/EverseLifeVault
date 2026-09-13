@@ -1661,7 +1661,10 @@
   "oxygen.cylinder_store": 6,
   "oxygen.autonomy_target": 90,
   "oxygen.hydroponics_rate": 0.02,
-  "frost.reserve_max": 6,
+  "frost.reserve_max": {
+    "frost": 12,
+    "heat": 6
+  },
   "frost.warm_rate": 3,
   "frost.suit_k": {
     "Утеплённый костюм": 3
