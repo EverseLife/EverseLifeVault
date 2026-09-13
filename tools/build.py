@@ -282,6 +282,31 @@ def normalize_recipes(doc: dict) -> list[str]:
             if not isinstance(per, (int, float)) or per <= 0:
                 problems.append(f"«{r['name']}»: побочного «{name}» должно быть больше нуля")
     meta["byproducts"] = sorted(byproducts)
+    #: Сбросной газ (D-340): жидкость, которая, не найдя тары, выпускается
+    #: в пустоту или сжигается в факеле, а не льётся на пол. Признак вещи, а
+    #: не имя (D-215): движок спрашивает флаг, и второй такой газ — строка
+    #: данных. Два инварианта держат его честным: сбросным бывает только
+    #: жидкое — твёрдое и так ложится рядом, — и жидкий побочный выход обязан
+    #: быть сбросным: иначе партии некуда деть то, что не вошло в тару, кроме
+    #: пола, а жидкость на полу не живёт (D-230).
+    liquids = set(meta["liquid"])
+    meta["vent"] = sorted(
+        {m["name"] for m in materials if m.get("vent")}
+        | {r["name"] for _, _, r in all_recipes(doc) if r.get("vent")}
+    )
+    for m in [*materials, *(r for _, _, r in all_recipes(doc))]:
+        vent = m.get("vent")
+        if vent is not None and not isinstance(vent, bool):
+            problems.append(f"«{m.get('name')}»: `vent` — это true или ничего")
+    for name in meta["vent"]:
+        if name not in liquids:
+            problems.append(f"«{name}»: `vent` бывает только у жидкости (`liquid: true`)")
+    for name in sorted(byproducts & liquids):
+        if name not in meta["vent"]:
+            problems.append(
+                f"«{name}»: жидкий побочный выход обязан быть сбросным газом (`vent: true`) — "
+                "иначе то, что не вошло в тару, некуда деть"
+            )
     #: Сырьё — то, что берётся из мира, а не переделывается: материал,
     #: который не является выходом расходующей операции. Рубка и добыча
     #: (consumes пуст) берут материю из мира — их выходы остаются сырьём.
@@ -2964,6 +2989,9 @@ def main() -> int:
             "edible": recipes_doc["meta"].get("edible", []),
             # жидкости (D-230): только в таре с `holds: жидкость`
             "liquid": sorted(recipes_doc["meta"].get("liquid", [])),
+            # сбросной газ (D-340): не найдя тары, выпускается в пустоту или
+            # сжигается в факеле узла, а в воздух не выходит никогда
+            "vent": recipes_doc["meta"].get("vent", []),
             # слоты снаряжения: в каждый надевается одна вещь (D-146)
             "gear_slots": recipes_doc["meta"].get("gear_slots", []),
             # масса единицы, кг. Задана данными: см. compute_mass. Семена

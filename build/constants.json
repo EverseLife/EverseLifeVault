@@ -319,6 +319,8 @@
   "agro.program_steps": 12,
   "agro.energy_per_hour": 6,
   "agro.wear_per_day": 5,
+  "agro.moisture_band": 5,
+  "agro.days_max": 60,
   "harvest.rates": {
     "Железная руда": 60,
     "Медная руда": 45,
@@ -466,6 +468,8 @@
   "orbit.burn_share": 0.5,
   "orbit.corona_radius": 35,
   "orbit.longest_days": 12,
+  "orbit.route_gap": 2,
+  "orbit.flyby_floor_radii": 2.0,
   "orbit.period_days": {
     "pyroxis": 11,
     "terra": 28,
@@ -1661,14 +1665,20 @@
   "oxygen.cylinder_store": 6,
   "oxygen.autonomy_target": 90,
   "oxygen.hydroponics_rate": 0.02,
-  "frost.reserve_max": 6,
-  "frost.warm_rate": 3,
+  "frost.reserve_max": {
+    "frost": 12,
+    "heat": 6
+  },
+  "frost.warm_hours": 2,
   "frost.suit_k": {
     "Утеплённый костюм": 3
   },
   "frost.warmer_hours": 4,
   "frost.frozen_drain_k": 2,
-  "frost.frozen_stamina": 15,
+  "frost.frozen_stamina": {
+    "frost": 25,
+    "heat": 15
+  },
   "frost.plant_draw": 60,
   "frost.heater_draw": 20,
   "frost.brazier_fuel_draw": 2,
