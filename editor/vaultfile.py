@@ -78,6 +78,7 @@ KEY_ORDER = (
     "fuel",
     "inputs",
     "amounts",
+    "byproduct",
     "weights",
     "station",
     "note",
