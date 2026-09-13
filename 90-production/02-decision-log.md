@@ -9176,7 +9176,7 @@ D-253). Ни одна константа не меняется — меняет�
 - Правило одно на три двери: руке (`storage.pick`), досягаемости работы (`reach`) и двору автомата отвечает `fuel_plant.off_the_pile`. Раздел топливной станции (вид станции, засыпка, эта куча) уехал из `energy.py` в `engine/fuel_plant.py` — файл подходил к планке 800 строк. Куча исключается тем же запросом, которым автомат блокирует свои входы, — один запрос, один порядок блокировок.
 - Термин «куча станции» — в словаре.
 
-*Где:* `engine/fuel_plant.py` (`off_the_pile`, `plant_view`, `fuel`), `engine/stock.py` (`locked_stacks(..., barred=)`), `engine/liquid.py` (`locked_stacks`), `engine/automat/run.py` (`advance`), `engine/reach.py`, `engine/storage.py` (`pick`), `tests/test_automat.py`, `tests/test_races_automat.py`.
+*Где:* `engine/fuel_plant.py` (`off_the_pile`, `plant_view`, `fuel`), `engine/stock.py` (`locked_stacks(..., barred=)`), `engine/liquid.py` (`locked_stacks`), `engine/automat/run.py` (`advance`), `engine/reach.py`, `engine/storage.py` (`pick`), `tests/test_fuel_plant.py`, `tests/test_races_energy.py`.
 
 ---
 
