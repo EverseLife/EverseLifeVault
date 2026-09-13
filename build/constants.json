@@ -319,6 +319,8 @@
   "agro.program_steps": 12,
   "agro.energy_per_hour": 6,
   "agro.wear_per_day": 5,
+  "agro.moisture_band": 5,
+  "agro.days_max": 60,
   "harvest.rates": {
     "Железная руда": 60,
     "Медная руда": 45,

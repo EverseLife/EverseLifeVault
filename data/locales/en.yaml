@@ -234,6 +234,7 @@ classes:
   bactericide: Bactericide
   forge: Forge
   automaton: Automaton
+  field_automaton: Field automaton
   axe: Axe
   battery: Battery
   bed: Bed
