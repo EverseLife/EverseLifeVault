@@ -94,6 +94,7 @@ MATERIAL_KEY_ORDER = (
     "mass",
     "bulk",
     "liquid",
+    "vent",
     "edible",
     "rate",
     "forage",
@@ -111,7 +112,7 @@ MAP_FIELDS = ("amounts", "weights")
 HOLDS_VALUES = ("жидкость",)
 #: The parts of a material's `forage` row (D-210, D-254).
 FORAGE_KEYS = ("finds", "handful", "place")
-MATERIAL_BOOL_FIELDS = ("relic", "bulk", "liquid", "edible")
+MATERIAL_BOOL_FIELDS = ("relic", "bulk", "liquid", "vent", "edible")
 MATERIAL_NUMBER_FIELDS = ("mass", "rate", "fuel")
 
 
