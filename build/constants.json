@@ -643,10 +643,9 @@
   "chat.leak_group_size": 2,
   "chat.leak_group_free": 3,
   "chat.leak_quiet_multiplier": 0.3,
-  "chat.leak_location_modifier": {
-    "Кузница": 0.5,
-    "Библиотека": 1.5
-  },
+  "chat.leak_space_per_person": 25,
+  "chat.leak_crowding_min": 0.5,
+  "chat.leak_crowding_max": 2,
   "chat.city_record_retention": 30,
   "market.tank_capacity": 2000,
   "market.order_lifetime": 14,
@@ -1671,7 +1670,9 @@
   },
   "frost.warm_hours": 2,
   "frost.suit_k": {
-    "Утеплённый костюм": 3
+    "Утеплённый костюм": 3,
+    "Жаростойкий скафандр": 2,
+    "Скафандр на пироксите": 3
   },
   "frost.warmer_hours": 4,
   "frost.frozen_drain_k": 2,
