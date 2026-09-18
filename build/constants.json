@@ -1465,7 +1465,7 @@
     "ice": "ice"
   },
   "biome.facet_axes": {
-    "wave_m": 200,
+    "wave_m": 50,
     "slope_full": 0.2,
     "wet_km": 0.5,
     "patch_km": 0.125,

@@ -2205,6 +2205,15 @@ def check_facets(constants: dict, facets: dict[str, list[dict]]) -> list[str]:
         for axis in ("wave_m", "slope_full", "wet_km", "patch_km", "soft_edge", "favour_k")
         if not isinstance(axes.get(axis), (int, float)) or float(axes[axis]) <= 0
     ]
+    #: Мозаика лица не мельче клетки поля (дополнение к D-321 от 2026-09-18):
+    #: крутизна, влага и высота читаются по клетке, и мельче неё лицо стало
+    #: бы броском кости на каждой находке, а не пятном земли. Два ключа
+    #: совпадают не сами собой, и правка одного молча сломала бы правило.
+    wave, step = axes.get("wave_m"), constants.get("terrain.step_m")
+    if isinstance(wave, (int, float)) and isinstance(step, (int, float)) and wave < step:
+        problems.append(
+            f"biome.facet_axes.wave_m {wave:g} м мельче клетки поля terrain.step_m {step:g} м"
+        )
     return problems
 
 
