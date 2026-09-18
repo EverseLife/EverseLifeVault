@@ -3706,7 +3706,7 @@ groups:
       - key: map.lattice_m
         value: 5
         unit: м
-        note: Шаг решётки планеты, к которой прижимается точка разведки; ключ узла — ячейка решётки, поэтому найденное одинаково для всех (D-237)
+        note: Шаг решётки планеты, к которой прижимается точка разведки; ключ узла — ячейка решётки, поэтому найденное одинаково для всех (D-237). Вторая роль — ширина кольца в поле дальней границы разведки за краем земли узла (`facet.room_floor`, дополнение к D-321 от 2026-09-18, второе)
         decision: D-321
       - key: biome.names
         value: {coast: Берег, floodplain: Пойма, forest: Лес, steppe: Степь, desert: Пустыня, taiga: Тайга, tundra: Тундра, marsh: Болото, foothills: Предгорье, alpine: Горный склон, ice: Ледяное поле, snow: Снежное поле, cinder: Чёрное поле, rainforest: Дождевой лес, savanna: Саванна, semidesert: Полупустыня, woodland: Сухолесье}
@@ -3715,7 +3715,7 @@ groups:
       - key: biome.reach_m
         value: {coast: {min: 5, max: 20}, floodplain: {min: 5, max: 20}, forest: {min: 5, max: 20}, steppe: {min: 10, max: 30}, desert: {min: 20, max: 80}, taiga: {min: 10, max: 30}, tundra: {min: 20, max: 80}, marsh: {min: 5, max: 20}, foothills: {min: 10, max: 50}, alpine: {min: 20, max: 100}, ice: {min: 20, max: 80}, snow: {min: 20, max: 80}, cinder: {min: 10, max: 60}, rainforest: {min: 5, max: 20}, savanna: {min: 10, max: 40}, semidesert: {min: 15, max: 60}, woodland: {min: 5, max: 25}}
         unit: м
-        note: "Как близко и как далеко можно разведать из узла этого биома (владелец 2026-09-06: равнина 5–20 м, горы 20–100 м); четыре новых класса — стартовые калибровки по словарю 10-world/08"
+        note: "Как близко и как далеко можно разведать из узла этого биома (владелец 2026-09-06: равнина 5–20 м, горы 20–100 м); четыре новых класса — стартовые калибровки по словарю 10-world/08. Ближняя граница — от центра узла, дальняя — от края его земли, а у пути к стоящему узлу — до края земли цели (дополнение к D-321 от 2026-09-18, второе): иначе широкий узел съедал свою полосу. Пол дальней границы — место находки и клетка решётки за краем (`facet.room_floor`), и не ближе прежних 19,3 м от центра (`facet.centre_floor`): короче, чем было, не становится нигде"
         decision: D-321
       - key: biome.swing_c
         value: {coast: 4, floodplain: 6, forest: 6, steppe: 10, desert: 20, taiga: 8, tundra: 8, marsh: 5, foothills: 9, alpine: 12, ice: 6, snow: 6, cinder: 15, rainforest: 4, savanna: 12, semidesert: 16, woodland: 8}
