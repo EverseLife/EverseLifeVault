@@ -671,6 +671,12 @@
   "city.rings_reserved": 1,
   "city.ring_slots_base": 6,
   "city.ring_slots_growth": 6,
+  "city.outline_power": 4,
+  "city.outline_reach_share": 0.5,
+  "city.outline_lone_reach_m": 6,
+  "city.outline_cells_per_step": 8,
+  "city.outline_max_cells": 160,
+  "city.outline_bridge_cells": 1.5,
   "land.decay_per_node": 35,
   "land.area_ring1": {
     "min": 60,
