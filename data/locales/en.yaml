@@ -355,6 +355,7 @@ node_properties:
   airless: airless
   anvil: anvil
   city: city
+  covered: covered
   deferred: deferred
   depth: depth
   description: description

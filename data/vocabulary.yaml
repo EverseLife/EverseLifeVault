@@ -80,6 +80,7 @@ node_properties:
   - {name: помещение, id: indoors, note: engine}
   - {name: разведано, id: surveyed, note: engine}
   - {name: дикий, id: wild, note: engine}
+  - {name: покрыто, id: covered, note: engine}
   - {name: карта, id: map, note: engine}
   - {name: значок, id: emblem, note: engine}
   - {name: описание, id: description, note: engine}
